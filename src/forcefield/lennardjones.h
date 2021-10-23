@@ -1,20 +1,20 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <armadillo>
-
-using namespace arma;
+#pragma once
+#include "forcefield.h"
 
 class LennardJones : public ForceField
 {
 public:
-    LennardJones(string params);
+    LennardJones(class Box* box_in, string params);
     void read_param_file(string params);
-    double eval_force_par(const mat positions, const int i, vec& acc, const bool comp_energy=false) = 0;
-    double eval_force(const mat positions, vec& acc, const bool comp_energy=false) = 0;
+    double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy=false);
+    double eval_acc(const mat positions, mat& accs, const bool comp_energy=false);
+
+    vector<int> build_neigh_list(const mat positions, const int i);
+    void build_neigh_lists(const mat positions);
 
 private:
-    double sigma, epsilon, rc, rc_sqrd;
-    field<vector<int>> neigh_lists();
+    mat sigma_mat, epsilon_mat, rc_sqrd_mat;
+
+    vector<vector<int>> neigh_lists;
     string label = "Lennard Jones";
 };

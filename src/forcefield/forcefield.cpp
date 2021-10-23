@@ -1,21 +1,24 @@
 #include "forcefield.h"
+#include "../box.h"
 
-ForceField::ForceField()
-{}
+ForceField::ForceField(class Box* box_in)
+{
+    box = box_in;
+}
 
-void distance_matrix_element(const mat positions, const int i, const int j)
+void ForceField::distance_matrix_element(const mat positions, const int i, const int j)
 {
     /* Update element (i, j) of distance matrix and distance direction
      * cube. This corresponds to the distance between particles i and
      * j squared and the vector pointing from i to j, respectively.
      */
-    vec dr = positions(j) - positions(i);
+    rowvec dr = positions.row(j) - positions.row(i);
     distance_dir_cube.tube(i, j) = dr;
     distance_mat(i, j) = sum(dr%dr);
 }
 
 
-void distance_matrix_cross(const mat positions, const int i)
+void ForceField::distance_matrix_cross(const mat positions, const int i)
 {
     /* Update the distances between particle i and all other particles.
      * This corresponds to updating a cross in the distance matrix:
@@ -24,29 +27,29 @@ void distance_matrix_cross(const mat positions, const int i)
     for(int j=0; j<i; j++){
         distance_matrix_element(positions, i, j);
     }
-    for(int j>i; j>npar; j++){
+    for(int j=i+1; j>box->npar; j++){
         distance_matrix_element(positions, i, j);
     }
 }
 
 
-void add_distance_row(const mat positions)
+void ForceField::add_distance_cross(const mat positions)
 {
     /* Add row and column to distance matrix
      * when particle is added.
      */
-    distance_mat.insert_cols(npar, 1);
-    distance_mat.insert_rows(npar, 1);
-    distance_dir_cube.insert_cols(npar, 1);
-    distance_dir_cube.insert_rows(npar, 1);
-    npar ++;
-    for(int j=0; j<npar; j++){
-        distance_matrix_element(positions, npar-1, i);
+    distance_mat.insert_cols(box->npar, 1);
+    distance_mat.insert_rows(box->npar, 1);
+    distance_dir_cube.insert_cols(box->npar, 1);
+    distance_dir_cube.insert_rows(box->npar, 1);
+    box->npar ++;
+    for(int j=0; j<box->npar; j++){
+        distance_matrix_element(positions, box->npar-1, j);
     }
 }
 
 
-void rm_distance_row(const int i){
+void ForceField::rm_distance_cross(const int i){
     /* Remove row and column of distance matrix
      * when particle is removed.
      */
@@ -57,19 +60,18 @@ void rm_distance_row(const int i){
 }
 
 
-void distance_matrix(const mat positions)
+void ForceField::distance_matrix(const mat positions)
 {
     /* Update all elements of distance matrix and distance
      * direction cube. Only upper triangular elements are filled.
      */
-    npar = positions.n_rows;
-    ndim = positions.n_cols;
-    distance_mat = zeros(npar, npar);
-    distance_dir_cube = zeros(npar, npar, ndim);
-    for(int i=0; i<npar; i++){
+    distance_mat = zeros(box->npar, box->npar);
+    distance_dir_cube = zeros(box->npar, box->npar, box->ndim);
+    for(int i=0; i<box->npar; i++){
         for(int j=0; j<i; j++){
             distance_matrix_element(positions, i, j);
         }
     }
 }
 
+//ForceField::~ForceField() {}

@@ -1,26 +1,34 @@
+#pragma once
 #include <iostream>
 #include <string>
+#include <vector>
 #include <armadillo>
 
+using namespace std;
 using namespace arma;
+
 
 class ForceField
 {
 public:
-    ForceField();
-    virtual double eval_force_par(const mat positions, const int i, vec& acc, const bool comp_energy=false) = 0;
-    virtual double eval_force(const mat positions, vec& acc, const bool comp_energy=false) = 0;
-        
+    ForceField(class Box* box_in);
+
+    // Declare pure virtual functions
+    virtual void read_param_file(const string params) = 0;
+    virtual double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy=false) = 0;
+    virtual double eval_acc(const mat positions, mat& accs, const bool comp_energy=false) = 0;
+    virtual ~ForceField() = default;
+    
+    // Declare global functions
     void distance_matrix_element(const mat positions, const int i, const int j);
     void distance_matrix_cross(const mat positions, const int i);
     void distance_matrix(const mat positions);
-    void add_distance_col(const mat positions);
-    void rm_distance_col(const int i);
+    void add_distance_cross(const mat positions);
+    void rm_distance_cross(const int i);
 
     mat distance_mat;
     cube distance_dir_cube;
 
 protected:
-    int npar;
-    int ndim;
+    class Box* box = nullptr;
 };
