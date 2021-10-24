@@ -15,6 +15,8 @@ public:
 
     // Declare pure virtual functions
     virtual void read_param_file(const string params) = 0;
+    virtual void build_neigh_lists(const mat positions) = 0;
+    virtual double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy=false) = 0;
     virtual double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy=false) = 0;
     virtual double eval_acc(const mat positions, mat& accs, const bool comp_energy=false) = 0;
     virtual ~ForceField() = default;

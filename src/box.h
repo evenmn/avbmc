@@ -5,6 +5,7 @@
 #include <armadillo>
 #include <cassert>
 
+#include "io.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
 #include "integrator/integrator.h"
@@ -51,8 +52,8 @@ public:
     //vector<Moves> moves;
     //vector<double> moves_prob;
 
-private:
-    void write_xyz(string filename);
+//private:
+    //void write_xyz(string filename);
     //void Core::write_xyz(string filename, mat arma_mat, string chem="X", string info="type x y z", bool overwrite=false)
 
 };

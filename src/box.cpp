@@ -1,6 +1,6 @@
 #include "box.h"
 
-Box::Box(string working_dir_in, double temp_in, double chempot_in) //: integrator(Euler(this)), forcefield(LennardJones(this, ".in")
+Box::Box(string working_dir_in, double temp_in, double chempot_in)
 {
     working_dir = working_dir_in;
     temp = temp_in;
@@ -43,11 +43,14 @@ void Box::add_particles(const int type, const double mass, const mat position, c
     /* Add particles of type "type", mass "mass",
      * positions "position" and velocities "velocity"
      */
+
+    // check dimensionality
     int npar_added = position.n_rows;
     npar += npar_added;
     ndim = position.n_cols;
     assert (velocity.n_rows == npar_added);
     
+    // join old and new particles
     types = join_cols(types, type * ones(npar_added));
     masses = join_cols(masses, mass * ones(npar_added));
     positions = join_cols(positions, position);
@@ -57,51 +60,39 @@ void Box::add_particles(const int type, const double mass, const mat position, c
     chem_symbol.insert(chem_symbol.end(), chem_symbol_vec.begin(), chem_symbol_vec.end());
 }
 
-void Box::write_xyz(string filename)
-{
-    /* Write an Armadillo matrix containing
-     * positions at a given timestep to file with
-     * xyz-format. The cube has to have particles on
-     * first axis and dimensions on second axis
-     */
-    vector<string> dims = {"x", "y", "z"};
-
-    ofstream f;
-
-    f.open(filename);
-    f << npar << endl;
-    f << "symbol";
-    for(int j=0; j<ndim; j++){
-        f << " " + dims[j];
-    }
-    f << endl;
-    for(int i=0; i<npar; i++){
-        f << chem_symbol[i];
-        for(int j=0; j<ndim; j++){
-            f << " " << positions(i, j);
-        }
-        f << endl;
-    }
-    f.close();
-}
 
 void Box::snapshot(string filename){
     /* Dump snapshot of system using the
      * "write_xyz"-function. 
      */
-    write_xyz(filename);
+
+    // generate info line
+    vector<string> dims = {"x", "y", "z"};
+    string info = "symbol";
+    for(int j=0; j<ndim; j++){
+        info += " " + dims[j];
+    }
+    write_xyz(filename, positions, chem_symbol, info);
 }
 
 
 void Box::run_md(int steps)
 {
-    // Compute initial acceleration
+    /* Run molecular dynamics simulation
+     */
+
+    // Compute initial acceleration (this should be done when adding particles?)
+    forcefield->distance_mat = zeros(npar, npar);
+    forcefield->distance_dir_cube = zeros(npar, npar, ndim);
+    forcefield->build_neigh_lists(positions);
     forcefield->eval_acc(positions, accelerations);
 
     // Run molecular dynamics simulation
     for(int step=0; step<steps; step++){
+        cout << step << endl;
         integrator->next_step();
         // dump
         cout << step << endl;
+        write_xyz("dump.xyz", positions, chem_symbol, "", true);
     }
 }

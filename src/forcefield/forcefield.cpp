@@ -14,7 +14,9 @@ void ForceField::distance_matrix_element(const mat positions, const int i, const
      */
     rowvec dr = positions.row(j) - positions.row(i);
     distance_dir_cube.tube(i, j) = dr;
+    distance_dir_cube.tube(j, i) = -dr;
     distance_mat(i, j) = sum(dr%dr);
+    distance_mat(j, i) = distance_mat(i, j);
 }
 
 
@@ -27,8 +29,8 @@ void ForceField::distance_matrix_cross(const mat positions, const int i)
     for(int j=0; j<i; j++){
         distance_matrix_element(positions, i, j);
     }
-    for(int j=i+1; j>box->npar; j++){
-        distance_matrix_element(positions, i, j);
+    for(int j=i+1; j<box->npar; j++){
+        distance_matrix_element(positions, j, i);
     }
 }
 
