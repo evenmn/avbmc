@@ -10,6 +10,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
 
     //integrator = new Euler(this);
     //forcefield = new LennardJones(this, ".in");
+    rng = new MersenneTwister();
 }
 
 
@@ -23,20 +24,19 @@ void Box::set_integrator(class Integrator* integrator_in)
     integrator = integrator_in;
 }
 
-/*
+
 void Box::set_sampler(class Sampler* sampler_in)
 {
     sampler = sampler_in;
 }
-*/
 
-/*
-void Box::add_move(class Moves move, double prob)
+
+void Box::add_move(class Moves* move, double prob)
 {
     moves.push_back(move);
     moves_prob.push_back(prob);
 }
-*/
+
 
 void Box::add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem)
 {
@@ -76,23 +76,42 @@ void Box::snapshot(string filename){
 }
 
 
-void Box::run_md(int steps)
+void Box::run_md(int nsteps)
 {
     /* Run molecular dynamics simulation
      */
 
-    // Compute initial acceleration (this should be done when adding particles?)
+    // compute initial acceleration (this should be done when adding particles?)
     forcefield->distance_mat = zeros(npar, npar);
     forcefield->distance_dir_cube = zeros(npar, npar, ndim);
     forcefield->build_neigh_lists(positions);
-    forcefield->eval_acc(positions, accelerations);
+    poteng = forcefield->eval_acc(positions, accelerations, true);
 
-    // Run molecular dynamics simulation
-    for(int step=0; step<steps; step++){
+    // run molecular dynamics simulation
+    for(int step=0; step<nsteps; step++){
         cout << step << endl;
         integrator->next_step();
         // dump
         cout << step << endl;
         write_xyz("dump.xyz", positions, chem_symbol, "", true);
+    }
+}
+
+
+void Box::run_mc(int nsteps, int nmoves)
+{
+    /* Run Monte Carlo simulation
+     */
+
+    // compute initial acceleration (this should be done when adding particles?)
+    forcefield->distance_mat = zeros(npar, npar);
+    forcefield->distance_dir_cube = zeros(npar, npar, ndim);
+    forcefield->build_neigh_lists(positions);
+    poteng = forcefield->eval_acc(positions, accelerations, true);
+
+    // run Monte Carlo simulation
+    for(int step=0; step<nsteps; step++){
+        cout << step << endl;
+        sampler->sample(nmoves);
     }
 }

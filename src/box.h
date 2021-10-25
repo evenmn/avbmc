@@ -5,13 +5,16 @@
 #include <armadillo>
 #include <cassert>
 
+//#include "tqdm/tqdm.h"
+
 #include "io.h"
+#include "rng/mersennetwister.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
 #include "integrator/integrator.h"
 #include "integrator/euler.h"
-//#include "moves/moves.h"
-//#include "sampler/sampler.h"
+#include "moves/moves.h"
+#include "sampler/sampler.h"
 //#include "dump.h"
 //#include "thermo.h"
 
@@ -25,35 +28,33 @@ public:
 
     void set_forcefield(class ForceField* forcefield_in);
     void set_integrator(class Integrator* integrator_in);
-    //void set_sampler(Sampler sampler_in);
+    void set_sampler(class Sampler* sampler_in);
+    void set_rng(class RandomNumberGenerator* rng_in);
         
-    //void add_move(Moves move);
+    void add_move(class Moves* move, const double prob);
     void add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem);
 
-    void snapshot(string filename);
-    void dump(int freq, string filename, vector<string> outputs);
-    void thermo(int freq, string filename, vector<string> outputs);
+    void snapshot(const string filename);
+    //void dump(int freq, string filename, vector<string> outputs);
+    //void thermo(int freq, string filename, vector<string> outputs);
 
-    void run_md(int steps);
+    void run_md(int nsteps);
+    void run_mc(int nsteps, int nmoves);
 
     string working_dir;
 
     class ForceField* forcefield = nullptr;
     class Integrator* integrator = nullptr;
-    //Sampler sampler;
+    class Sampler* sampler = nullptr;
+    class RandomNumberGenerator* rng = nullptr;
 
     int npar, ndim;
-    double temp, chempot;
+    double temp, chempot, poteng;
 
     vec types, masses;
     mat positions, velocities, accelerations;
 
     vector<string> chem_symbol;
-    //vector<Moves> moves;
-    //vector<double> moves_prob;
-
-//private:
-    //void write_xyz(string filename);
-    //void Core::write_xyz(string filename, mat arma_mat, string chem="X", string info="type x y z", bool overwrite=false)
-
+    vector<class Moves*> moves;
+    vector<double> moves_prob;
 };
