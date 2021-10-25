@@ -67,10 +67,18 @@ int MersenneTwister::choice(vector<double> probabilities)
      * need to take them as an argument
      */
 
+    // assert that sum of probabilities is 1
+    double sum_probs = 0;
+    for (double prob : probabilities){
+        sum_probs += prob;
+    }
+    assert((sum_probs - 1.0) < 0.01);
+
     double r = next_double();
     double p = 0.0;
     for (int i=0; i<probabilities.size(); i++) {
         p += probabilities[i];
         if (r>=p) return i;
     }
+    return 0;
 }
