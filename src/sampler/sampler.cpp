@@ -16,7 +16,7 @@ class Moves* Sampler::propose_move(vector<class Moves*> moves, vector<double> mo
     return moves[i];
 }
 
-vec Sampler::perform_move(class Moves* move)
+mat Sampler::perform_move(class Moves* move)
 {
     /* Propose move
      */
@@ -54,7 +54,7 @@ void Sampler::sample(int nmoves)
     // sample nmoves moves
     for(int i=0; i<nmoves; i++){
         move = propose_move(moves, moves_prob);
-        vec pos_new = perform_move(move);
+        mat pos_new = perform_move(move);
         accepted = accept_move(move, temp, chempot);
         if(accepted){
             box->positions = pos_new;
