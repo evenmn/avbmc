@@ -6,6 +6,8 @@
 #include "init_position.h"
 #include "forcefield/lennardjones.h"
 #include "integrator/euler.h"
+#include "sampler/metropolis.h"
+#include "moves/trans.h"
 
 using namespace std;
 using namespace arma;
@@ -32,16 +34,16 @@ int main()
     box.set_integrator(new Euler(&box));
     box.set_forcefield(new LennardJones(&box, ".in"));
     //box.thermo(1, "md.log", "step", "time", "poteng", "kineng");
-    box.run_md(10000);
+    box.run_md(100);
     box.snapshot("after_md.xyz");
-    /*
+    
     // run Monte Carlo
-    box.set_sampler(Metropolis());
-    box.add_move(Teans(dx=0.01), 0.3);
-    box.add_move(TransMH(dc=0.01, Ddt=0.01), 0.7);
-    box.thermo(1, "mc.log", "step", "poteng", "acc_ratio");
-    box.run_mc(steps=1000, out="log");
+    box.set_sampler(new Metropolis(&box));
+    box.add_move(new Trans(&box, 0.01), 1.0);
+    //box.thermo(1, "mc.log", "step", "poteng", "acc_ratio");
+    //box.run_mc(steps=1000, out="log");
+    box.run_mc(1000, 100);
     box.snapshot("final.xyz");
-    */
+    
     return 0;
 }
