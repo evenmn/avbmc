@@ -72,13 +72,14 @@ int MersenneTwister::choice(vector<double> probabilities)
     for (double prob : probabilities){
         sum_probs += prob;
     }
-    assert((sum_probs - 1.0) < 0.01);
+    assert(abs(sum_probs - 1.0) < 0.01);
 
     double r = next_double();
     double p = 0.0;
     for (int i=0; i<probabilities.size(); i++) {
         p += probabilities[i];
-        if (r>=p) return i;
+        if (r<=p) return i;
     }
+    cout << "outside" << endl;
     return 0;
 }
