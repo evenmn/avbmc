@@ -11,7 +11,7 @@ bool Moves::check_stillinger()
 {
     /* Check Stillinger criterion
      */
-    return false;
+    return true;
 }
 
 double Moves::get_cluster_volume()

@@ -19,12 +19,12 @@ public:
     
     // declare public functions
     class Moves* propose_move(vector<class Moves*> moves, vector<double> move_probs);
-    mat perform_move(class Moves* move);
-    bool accept_move(class Moves* move, double temp, double poteng);
+    mat perform_move(class Moves* move, const int j);
+    bool accept_move(class Moves* move, const double temp, const double chempot);
     void sample(int nmoves);
 
     // declare public variables
-    vec da;
+    rowvec da;
     double du, acceptance_ratio;
 
 protected:

@@ -16,11 +16,11 @@ class Moves* Sampler::propose_move(vector<class Moves*> moves, vector<double> mo
     return moves[i];
 }
 
-mat Sampler::perform_move(class Moves* move)
+mat Sampler::perform_move(class Moves* move, const int j)
 {
-    /* Propose move
+    /* Perform move 'move' on particle j
      */
-    return move->perform_move();
+    return move->perform_move(j);
 }
 
 bool Sampler::accept_move(class Moves* move, double temp, double chempot)
@@ -29,6 +29,7 @@ bool Sampler::accept_move(class Moves* move, double temp, double chempot)
      * or rejected
      */
     double p = get_acceptance_prob(move, temp, chempot);
+    //cout << p << endl;
     if(p > rng->next_double()){
         return true;
     }
@@ -54,14 +55,13 @@ void Sampler::sample(int nmoves)
     // sample nmoves moves
     for(int i=0; i<nmoves; i++){
         move = propose_move(moves, moves_prob);
-        mat pos_new = perform_move(move);
+        int j = rng->next_int(box->npar); // might move back to moves
+        move->perform_move(j);
         accepted = accept_move(move, temp, chempot);
         if(accepted){
-            box->positions = pos_new;
-            box->npar = pos_new.n_rows;
-            box->poteng += du;
+            move->update_box(j);
             acceptance_counter ++;
         }
     }
-    acceptance_ratio = (double)(acceptance_counter/nmoves);
+    acceptance_ratio = (double)(acceptance_counter)/nmoves;
 }

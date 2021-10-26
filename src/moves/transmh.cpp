@@ -1,35 +1,37 @@
-#include "trans.h"
+#include "transmh.h"
 #include "../box.h"
 
 
-Trans::Trans(class Box* box_in, double dx_in)
+TransMH::TransMH(class Box* box_in, double dx_in, double Ddt_in)
     : Moves(box_in) 
 {
     dx = dx_in;
+    Ddt = Ddt_in;
 }
 
-mat Trans::perform_move(const int i)
+mat TransMH::perform_move(const int i)
 {
-    /* Propose naive translation
-     * move
+    /* Propose translation move
+     * based on Metropolis-Hastings
+     * criterion
      */
 
     // declare variables
     mat pos_copy = box->positions;
     rowvec dr(3), a0;
     double u0;
-
+    
     // get acceleration and potential
     // energy of picked particle
     a0 = box->accelerations.row(i);
     u0 = box->potengs(i);
 
-    // move particle i
+    // move particle i 
     for(double &j : dr){
-        j = rng->next_double();
+        j = rng->next_gaussian();
     }
     dr *= dx / norm(dr);
-    eps = 2 * (rng->next_double() - 0.5) * dr; 
+    eps = Ddt * a0 + dr;
     pos_copy.row(i) += eps;
 
     // check Stillinger criterion with new position
@@ -48,18 +50,22 @@ mat Trans::perform_move(const int i)
     }
 }
 
-double Trans::accept()
+double TransMH::accept()
 {
     /* Gives the ratio between the translation
-     * probabilities Tij and Tji. For the 
-     * naive case, Tij = Tji.
+     * probabilities Tij and Tji. This is the ratio
+     * between two Green's functions. 1 comes from
+     * when da=0
      */
-    return 1.;
+    return exp(0.5 * as_scalar(box->sampler->da*eps)) + 1;
 }
 
-void Trans::update_box(const int i)
+void TransMH::update_box(const int i)
 {
-    /* Update global (box) variables
+    /* If the move is accepted, we want to update
+     * the position matrix, acceleration matrix
+     * and potential energy vector/double since
+     * this is already computed.
      */
     box->positions.row(i) += eps;;
     box->accelerations.row(i) = a1;
