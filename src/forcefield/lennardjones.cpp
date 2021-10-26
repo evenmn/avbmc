@@ -86,7 +86,7 @@ void LennardJones::build_neigh_lists(const mat positions)
 }
 
 
-double LennardJones::eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool     comp_energy=false)
+double LennardJones::eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy)
 {
     /* Evaluate acceleration between two particles i and j
      */
@@ -137,16 +137,20 @@ double LennardJones::eval_acc_par(const mat positions, const int i, rowvec& acc,
 }
 
 
-double LennardJones::eval_acc(const mat positions, mat& accs, const bool comp_energy)
+double LennardJones::eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy)
 {
     /* Evaluate forces acting on all particles
      */
-    double energy = 0;
+    double energy_cum, energy_par;
+    energy_cum = 0;
+    potengs.zeros(box->npar);
     accs.zeros(box->npar, box->ndim);
     for(int i=0; i<box->npar; i++){
         rowvec acc;
-        energy += eval_acc_par(positions, i, acc, comp_energy);
+        energy_par = eval_acc_par(positions, i, acc, comp_energy);
+        potengs(i) = energy_par;
+        energy_cum += energy_par;
         accs.row(i) = acc;
     }
-    return energy;
+    return energy_cum;
 }
