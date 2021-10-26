@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <armadillo>
+#include <vector>
 
 #include "box.h"
 #include "init_position.h"
@@ -8,6 +9,7 @@
 #include "integrator/euler.h"
 #include "sampler/metropolis.h"
 #include "moves/trans.h"
+#include "moves/transmh.h"
 
 using namespace std;
 using namespace arma;
@@ -33,13 +35,15 @@ int main()
     // relax with molecular dynamics simulation
     box.set_integrator(new Euler(&box));
     box.set_forcefield(new LennardJones(&box, ".in"));
-    //box.thermo(1, "md.log", "step", "time", "poteng", "kineng");
-    box.run_md(100);
-    box.snapshot("after_md.xyz");
+    vector<string> outputs = {"Step", "PotEng"};
+    box.set_thermo(1, "md.log", outputs);
+    //box.run_md(100);
+    //box.snapshot("after_md.xyz");
     
     // run Monte Carlo
     box.set_sampler(new Metropolis(&box));
-    box.add_move(new Trans(&box, 0.01), 1.0);
+    box.add_move(new Trans(&box, 0.01), 0.5);
+    box.add_move(new Trans(&box, 0.01), 0.5);
     //box.thermo(1, "mc.log", "step", "poteng", "acc_ratio");
     //box.run_mc(steps=1000, out="log");
     box.run_mc(1000, 100);

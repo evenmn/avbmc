@@ -76,6 +76,15 @@ void Box::snapshot(string filename){
 }
 
 
+void Box::set_thermo(int freq, const string filename, const vector<string> outputs)
+{
+    /* Specify thermo output
+     */
+
+    thermo = new Thermo(this, freq, filename, outputs);
+}
+
+
 void Box::run_md(int nsteps)
 {
     /* Run molecular dynamics simulation
@@ -85,12 +94,13 @@ void Box::run_md(int nsteps)
     forcefield->distance_mat = zeros(npar, npar);
     forcefield->distance_dir_cube = zeros(npar, npar, ndim);
     forcefield->build_neigh_lists(positions);
-    poteng = forcefield->eval_acc(positions, accelerations, true);
+    poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
 
     // run molecular dynamics simulation
-    for(int step=0; step<nsteps; step++){
+    for(step=0; step<nsteps; step++){
         cout << step << endl;
         integrator->next_step();
+        //time = step * integrator->dt;
         // dump
         cout << step << endl;
         write_xyz("dump.xyz", positions, chem_symbol, "", true);
@@ -107,11 +117,18 @@ void Box::run_mc(int nsteps, int nmoves)
     forcefield->distance_mat = zeros(npar, npar);
     forcefield->distance_dir_cube = zeros(npar, npar, ndim);
     forcefield->build_neigh_lists(positions);
-    poteng = forcefield->eval_acc(positions, accelerations, true);
+    poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
+    thermo->print_header();
 
     // run Monte Carlo simulation
-    for(int step=0; step<nsteps; step++){
-        cout << step << endl;
+    auto t1 = chrono::high_resolution_clock::now();
+    for(step=0; step<nsteps; step++){
+        //cout << step << endl;
+        thermo->print_line();
         sampler->sample(nmoves);
+        //write_xyz("dump.xyz", positions, chem_symbol, "", true);
     }
+    auto t2 = chrono::high_resolution_clock::now();
+    double duration_seconds = chrono::duration<double>(t2 - t1).count();
+    cout << duration_seconds << endl;
 }

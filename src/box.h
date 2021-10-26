@@ -4,10 +4,12 @@
 #include <vector>
 #include <armadillo>
 #include <cassert>
+#include <chrono>
 
 //#include "tqdm/tqdm.h"
 
 #include "io.h"
+#include "thermo.h"
 #include "rng/mersennetwister.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
@@ -16,7 +18,6 @@
 #include "moves/moves.h"
 #include "sampler/sampler.h"
 //#include "dump.h"
-//#include "thermo.h"
 
 using namespace std;
 using namespace arma;
@@ -36,7 +37,7 @@ public:
 
     void snapshot(const string filename);
     //void dump(int freq, string filename, vector<string> outputs);
-    //void thermo(int freq, string filename, vector<string> outputs);
+    void set_thermo(int freq, string filename, vector<string> outputs);
 
     void run_md(int nsteps);
     void run_mc(int nsteps, int nmoves);
@@ -47,11 +48,12 @@ public:
     class Integrator* integrator = nullptr;
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
+    class Thermo* thermo = nullptr;
 
-    int npar, ndim;
-    double temp, chempot, poteng;
+    int npar, ndim, step;
+    double temp, chempot, poteng, time;
 
-    vec types, masses;
+    vec types, masses, potengs;
     mat positions, velocities, accelerations;
 
     vector<string> chem_symbol;
