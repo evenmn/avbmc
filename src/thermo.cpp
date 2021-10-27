@@ -45,7 +45,7 @@ Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, cons
         else if(i == "KinEng"){
             output_functions.push_back(kineng);
         }
-        else if(i == "AcceptionRatio"){
+        else if(i == "AcceptanceRatio"){
             output_functions.push_back(acceptance_ratio);
         }
         else{

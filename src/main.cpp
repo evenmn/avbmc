@@ -10,6 +10,7 @@
 #include "sampler/metropolis.h"
 #include "moves/trans.h"
 #include "moves/transmh.h"
+#include "moves/avbmcout.h"
 
 using namespace std;
 using namespace arma;
@@ -35,15 +36,16 @@ int main()
     // relax with molecular dynamics simulation
     box.set_integrator(new Euler(&box));
     box.set_forcefield(new LennardJones(&box, ".in"));
-    vector<string> outputs = {"Step", "PotEng"};
-    box.set_thermo(1, "md.log", outputs);
+    vector<string> outputs = {"Step", "PotEng", "AcceptanceRatio"};
+    box.set_thermo(2, "md.log", outputs);
     //box.run_md(100);
     //box.snapshot("after_md.xyz");
     
     // run Monte Carlo
     box.set_sampler(new Metropolis(&box));
-    box.add_move(new Trans(&box, 0.01), 0.5);
-    box.add_move(new Trans(&box, 0.01), 0.5);
+    box.add_move(new Trans(&box, 0.1), 0.5);
+    box.add_move(new TransMH(&box, 0.01, 0.01), 0.25);
+    box.add_move(new AVBMCOut(&box, 0.5, 2.), 0.25);
     //box.thermo(1, "mc.log", "step", "poteng", "acc_ratio");
     //box.run_mc(steps=1000, out="log");
     box.run_mc(1000, 100);

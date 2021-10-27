@@ -8,8 +8,10 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
 
     npar = 0;
 
-    //integrator = new Euler(this);
-    //forcefield = new LennardJones(this, ".in");
+    integrator = new Euler(this);
+    forcefield = new LennardJones(this, ".in");
+    sampler = new Metropolis(this);
+    boundary = new Stillinger(this);
     rng = new MersenneTwister();
 }
 
