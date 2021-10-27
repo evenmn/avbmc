@@ -19,7 +19,7 @@ public:
     
     // declare public functions
     class Moves* propose_move(vector<class Moves*> moves, vector<double> move_probs);
-    mat perform_move(class Moves* move, const int j);
+    //mat perform_move(class Moves* move, const int j);
     bool accept_move(class Moves* move, const double temp, const double chempot);
     void sample(int nmoves);
 

@@ -1,5 +1,6 @@
 #include "metropolis.h"
 #include "../box.h"
+#include "../moves/moves.h"
 
 
 Metropolis::Metropolis(class Box* box_in)
