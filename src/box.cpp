@@ -68,13 +68,10 @@ void Box::snapshot(string filename){
      * "write_xyz"-function. 
      */
 
-    // generate info line
-    vector<string> dims = {"x", "y", "z"};
-    string info = "symbol";
-    for(int j=0; j<ndim; j++){
-        info += " " + dims[j];
-    }
-    write_xyz(filename, positions, chem_symbol, info);
+    vector<string> outputs = {"xyz"};
+    class Dump* tmp_dump = new Dump(this, 1, filename, outputs);
+    tmp_dump->print_frame();
+    delete tmp_dump;
 }
 
 
