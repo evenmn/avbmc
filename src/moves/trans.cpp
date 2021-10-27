@@ -8,7 +8,7 @@ Trans::Trans(class Box* box_in, double dx_in)
     dx = dx_in;
 }
 
-mat Trans::perform_move(const int i)
+void Trans::perform_move(const int i)
 {
     /* Propose naive translation
      * move
@@ -32,20 +32,10 @@ mat Trans::perform_move(const int i)
     eps = 2 * (rng->next_double() - 0.5) * dr; 
     pos_copy.row(i) += eps;
 
-    // check Stillinger criterion with new position
-    bool stillinger_accepted = check_stillinger();
-    if(stillinger_accepted){
-        // compute new acceleration and potential energy
-        u1 = box->forcefield->eval_acc_par(pos_copy, i, a1, true);
-        box->sampler->da = a1 - a0;
-        box->sampler->du = u1 - u0;
-        return pos_copy;
-    }
-    else{
-        box->sampler->da = zeros(3);
-        box->sampler->du = 0.;
-        return box->positions;
-    }
+    // compute new acceleration and potential energy
+    u1 = box->forcefield->eval_acc_par(pos_copy, i, a1, true);
+    box->sampler->da = a1 - a0;
+    box->sampler->du = u1 - u0;
 }
 
 double Trans::accept()
