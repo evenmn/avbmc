@@ -78,6 +78,15 @@ void Box::snapshot(string filename){
 }
 
 
+void Box::set_dump(int freq, const string filename, const vector<string> outputs)
+{
+    /* Specify dump output
+     */
+
+    dump = new Dump(this, freq, filename, outputs);
+}
+
+
 void Box::set_thermo(int freq, const string filename, const vector<string> outputs)
 {
     /* Specify thermo output
@@ -126,6 +135,7 @@ void Box::run_mc(int nsteps, int nmoves)
     auto t1 = chrono::high_resolution_clock::now();
     for(step=0; step<nsteps; step++){
         //cout << step << endl;
+        dump->print_frame();
         thermo->print_line();
         sampler->sample(nmoves);
         //write_xyz("dump.xyz", positions, chem_symbol, "", true);

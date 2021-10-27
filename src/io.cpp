@@ -38,7 +38,7 @@ mat read_xyz(const string filename)
 
 void write_xyz(const string filename, const mat positions, const vector<string> chem_symbols, const string info, const bool append)
 {
-    /*
+    /* 
      */
     int npar = positions.n_rows;
     int ndim = positions.n_cols;
@@ -60,4 +60,23 @@ void write_xyz(const string filename, const mat positions, const vector<string> 
         f << endl;
     }
     f.close();
+}
+
+
+void write_xyz(ofstream& f, const mat data, const vector<string> chem_symbols, const string info)
+{
+    /* 
+     */
+    int npar = data.n_rows;
+    int ndim = data.n_cols;
+
+    f << npar << endl;
+    f << info << endl;;
+    for(int i=0; i<npar; i++){
+        f << chem_symbols[i];
+        for(int j=0; j<ndim; j++){
+            f << " " << data(i, j);
+        }
+        f << endl;
+    }
 }

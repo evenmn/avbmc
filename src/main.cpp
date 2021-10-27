@@ -38,14 +38,16 @@ int main()
     box.set_forcefield(new LennardJones(&box, ".in"));
     vector<string> outputs = {"Step", "PotEng", "AcceptanceRatio"};
     box.set_thermo(2, "md.log", outputs);
+    outputs = {"xyz"};
+    box.set_dump(100, "mc.xyz", outputs);
     //box.run_md(100);
     //box.snapshot("after_md.xyz");
     
     // run Monte Carlo
     box.set_sampler(new Metropolis(&box));
     box.add_move(new Trans(&box, 0.1), 0.5);
-    box.add_move(new TransMH(&box, 0.01, 0.01), 0.25);
-    box.add_move(new AVBMCOut(&box, 0.5, 2.), 0.25);
+    box.add_move(new TransMH(&box, 0.01, 0.01), 0.5);
+    //box.add_move(new AVBMCOut(&box, 0.5, 2.), 0.25);
     //box.thermo(1, "mc.log", "step", "poteng", "acc_ratio");
     //box.run_mc(steps=1000, out="log");
     box.run_mc(1000, 100);

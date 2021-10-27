@@ -9,6 +9,7 @@
 //#include "tqdm/tqdm.h"
 
 #include "io.h"
+#include "dump.h"
 #include "thermo.h"
 #include "rng/mersennetwister.h"
 //#include "forcefield/forcefield.h"
@@ -19,7 +20,6 @@
 //#include "sampler/sampler.h"
 #include "sampler/metropolis.h"
 #include "boundary/stillinger.h"
-//#include "dump.h"
 
 using namespace std;
 using namespace arma;
@@ -39,7 +39,7 @@ public:
     void add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem);
 
     void snapshot(const string filename);
-    //void dump(int freq, string filename, vector<string> outputs);
+    void set_dump(int freq, string filename, vector<string> outputs);
     void set_thermo(int freq, string filename, vector<string> outputs);
 
     void run_md(int nsteps);
@@ -51,6 +51,7 @@ public:
     class Integrator* integrator = nullptr;
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
+    class Dump* dump = nullptr;
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
 
