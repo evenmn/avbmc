@@ -4,10 +4,6 @@ MersenneTwister::MersenneTwister()
     : RandomNumberGenerator()
 {}
 
-//Mersenne Twister RNG
-random_device rd;   // will be used to obtain a seed for the random number engine
-mt19937 gen(rd());  // standard mersenne_twister_engine seeded with rd()
-
 double MersenneTwister::next_gaussian(double mean, double variance)
 {
     /* Returns a double drawn from a Gaussian 
@@ -15,7 +11,7 @@ double MersenneTwister::next_gaussian(double mean, double variance)
      * 'variance'
      */
     normal_distribution<double> dis(mean, variance);
-    return dis(gen);
+    return dis(generator);
 }
 
 int MersenneTwister::next_int(int upper_limit)
@@ -23,7 +19,7 @@ int MersenneTwister::next_int(int upper_limit)
     /* Returns an integer between 0 and 'upper_limit'
      */
     uniform_int_distribution<int> dis(0, upper_limit - 1);
-    return dis(gen);
+    return dis(generator);
 }
 
 double MersenneTwister::next_double()
@@ -32,7 +28,7 @@ double MersenneTwister::next_double()
      * from a uniform distribution
      */
     std::uniform_real_distribution<double> dis(0, 1);
-    return dis(gen);
+    return dis(generator);
 }
 
 /*

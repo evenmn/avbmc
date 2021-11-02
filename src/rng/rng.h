@@ -12,7 +12,7 @@ using namespace arma;
 class RandomNumberGenerator
 {
 public:
-    RandomNumberGenerator() {}
+    RandomNumberGenerator() : generator(seed()) {}
     virtual int next_int(int upper_limit) = 0;
     virtual double next_double() = 0;
     virtual double next_gaussian(double mean=0., double variance=1.) = 0;
@@ -22,4 +22,7 @@ public:
     //virtual mat random_normal_matrix(Eigen::Index row, Eigen::Index col, double mean, double variance) = 0;
 
     virtual ~RandomNumberGenerator() = default;
+
+    random_device seed;
+    mt19937 generator;
 };
