@@ -1,12 +1,31 @@
 #include "fixed.h"
 #include "../box.h"
 
-Fixed::Fixed(class Box* box_in, const vec length_in)
+Fixed::Fixed(class Box* box_in, const double lx_in)
     : Boundary(box_in)
 {
-    assert(length_in.n_cols == box->ndim);
-    length = length_in;
-    volume = prod(length);    
+    assert(box->ndim == 1);
+    lx = lx_in;
+    volume = lx;    
+}
+
+Fixed::Fixed(class Box* box_in, const double lx_in, const double ly_in)
+    : Boundary(box_in)
+{
+    assert(box->ndim == 2);
+    lx = lx_in;
+    ly = ly_in;
+    volume = lx * ly;    
+}
+
+Fixed::Fixed(class Box* box_in, const double lx_in, const double ly_in, const double lz_in)
+    : Boundary(box_in)
+{
+    assert(box->ndim == 3);
+    lx = lx_in;
+    ly = ly_in;
+    lz = lz_in;
+    volume = lx * ly * lz;    
 }
 
 bool Fixed::correct_position(mat &pos)
