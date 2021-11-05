@@ -27,7 +27,7 @@ using namespace arma;
 class Box
 {
 public:
-    Box(string working_dir_in, double temp_in, double chempot_in); 
+    Box(string working_dir_in="", double temp_in=1., double chempot_in=0.); 
 
     void set_forcefield(class ForceField* forcefield_in);
     void set_integrator(class Integrator* integrator_in);
@@ -35,6 +35,9 @@ public:
     void set_rng(class RandomNumberGenerator* rng_in);
     void set_boundary(class Boundary* boundary_in);
         
+    void set_temp(const double temp_in);
+    void set_chempot(const double chempot_in);
+
     void add_move(class Moves* move, const double prob);
     void add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem);
 

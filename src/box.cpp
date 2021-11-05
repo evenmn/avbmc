@@ -15,6 +15,15 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     rng = new MersenneTwister();
 }
 
+void Box::set_temp(double temp_in)
+{
+    temp = temp_in;
+}
+
+void Box::set_chempot(double chempot_in)
+{
+    chempot = chempot_in;
+}
 
 void Box::set_forcefield(class ForceField* forcefield_in)
 {
@@ -30,6 +39,16 @@ void Box::set_integrator(class Integrator* integrator_in)
 void Box::set_sampler(class Sampler* sampler_in)
 {
     sampler = sampler_in;
+}
+
+void Box::set_rng(class RandomNumberGenerator* rng_in)
+{
+    rng = rng_in;
+}
+
+void Box::set_boundary(class Boundary* boundary_in)
+{
+    boundary = boundary_in;
 }
 
 
