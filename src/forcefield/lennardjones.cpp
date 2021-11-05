@@ -16,12 +16,41 @@ void LennardJones::read_param_file(string params)
      * size (num_types x num_types)
      */
 
-    // replace this with a parser
+    // declare vectors
     vector<int> type1_vec = {0};
     vector<int> type2_vec = {0};
     vector<double> sigma_vec = {1.};
     vector<double> epsilon_vec = {1.};
     vector<double> rc_vec = {3.};
+
+    /*
+    ifstream infile(params);
+    string line;
+    int type1, type2;
+    double sigma, epsilon, rc;
+    while (getline(infile, line))
+    {
+        istringstream iss(line);
+        if (line[0] == "#"){
+            continue;
+        }
+        else if (!(iss >> type1 >> type2 >> sigma >> epsilon >> rc)){ 
+            break; 
+        }
+    }
+    */
+    /*
+    int type1, type2;
+    double sigma, epsilon, rc;
+    while (infile >> type1 >> type2 >> sigma >> epsilon >> rc)
+    {
+        type1_vec.push_back(type1);
+        type2_vec.push_back(type2);
+        sigma_vec.push_back(sigma);
+        epsilon_vec.push_back(epsilon);
+        rc_vec.push_back(rc);
+    }
+    */
 
     int max_type1 = *max_element(type1_vec.begin(), type1_vec.end());
     int max_type2 = *max_element(type2_vec.begin(), type2_vec.end());
