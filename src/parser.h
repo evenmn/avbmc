@@ -41,4 +41,6 @@ void set(Box& box, const vector<string> splitted, const int argc);
 void add(Box& box, const vector<string> splitted, const int argc);
 void take(Box& box, const vector<string> splitted, const int argc);
 void run(Box& box, const vector<string> splitted, const int argc);
+void thermo(Box& box, const vector<string> splitted, const int argc);
+void dump(Box& box, const vector<string> splitted, const int argc);
 vector<string> split(const string s);

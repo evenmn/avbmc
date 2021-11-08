@@ -4,10 +4,10 @@ vector<string> split(const string s)
 {
     /* Split string by whitespace
      */
-    std::stringstream ss(s);
-    std::istream_iterator<std::string> begin(ss);
-    std::istream_iterator<std::string> end;
-    std::vector<std::string> vstrings(begin, end);
+    stringstream ss(s);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    vector<string> vstrings(begin, end);
     return vstrings;
 }
 
@@ -48,6 +48,12 @@ void parser(int argc, char** argv)
                     }
                     else if(cmd_cat == "run"){
                         run(box, splitted, argc);
+                    }
+                    else if(cmd_cat == "thermo"){
+                        thermo(box, splitted, argc);
+                    }
+                    else if(cmd_cat == "dump"){
+                        dump(box, splitted, argc);
                     }
                     else{
                         cout << "There is no category '" + cmd_cat + "'! Aborting." << endl;
@@ -328,4 +334,32 @@ void run(Box& box, const vector<string> splitted, const int argc)
         cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
         exit(0);
     }
+}
+
+void thermo(Box& box, const vector<string> splitted, const int argc)
+{
+    /* Thermo output
+     */
+    assert(argc > 3);
+    int freq = stoi(splitted[1]);
+    string filename = splitted[2];
+    vector<string> outputs;
+    for(int i=3; i<argc; i++){
+        outputs.push_back(splitted[i]);
+    }
+    box.set_thermo(freq, filename, outputs);
+}
+
+void dump(Box& box, const vector<string> splitted, const int argc)
+{
+    /* Dump output
+     */
+    assert(argc > 3);
+    int freq = stoi(splitted[1]);
+    string filename = splitted[2];
+    vector<string> outputs;
+    for(int i=3; i<argc; i++){
+        outputs.push_back(splitted[i]);
+    }
+    box.set_dump(freq, filename, outputs);
 }
