@@ -13,5 +13,5 @@ void EulerCromer::next_step()
 
     box->velocities += box->accelerations * dt;
     box->positions += box->velocities * dt;
-    box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
+    box->poteng = box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
 }

@@ -13,5 +13,5 @@ void Euler::next_step()
 
     box->positions += box->velocities * dt;
     box->velocities += box->accelerations * dt;
-    box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
+    box->poteng = box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
 }

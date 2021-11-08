@@ -26,6 +26,7 @@ class Box
 public:
     Box(string working_dir_in="", double temp_in=1., double chempot_in=0.); 
 
+    // methods
     void set_forcefield(class ForceField* forcefield_in);
     void set_integrator(class Integrator* integrator_in);
     void set_sampler(class Sampler* sampler_in);
@@ -52,6 +53,7 @@ public:
     void run_md(int nsteps);
     void run_mc(int nsteps, int nmoves);
 
+    // variables
     string working_dir;
 
     class ForceField* forcefield = nullptr;

@@ -43,4 +43,5 @@ void RungeKutta4::next_step()
     // move
     box->positions = pos_old + (K1x + 2 * (K2x + K3x) + K4x) / 6;
     box->velocities = vel_old + (K1v + 2 * (K2v + K3v) + K4v) / 6;
+    box->poteng = box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
 }
