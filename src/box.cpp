@@ -6,6 +6,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     temp = temp_in;
     chempot = chempot_in;
 
+    time = 0.;
     npar = ntype = nmove = 0;
 
     rng = new MersenneTwister();
@@ -241,10 +242,10 @@ void Box::run_md(int nsteps)
 
     // run molecular dynamics simulation
     for(step=0; step<nsteps; step++){
+        time = step * integrator->dt;
         dump->print_frame();
         thermo->print_line();
         integrator->next_step();
-        //time = step * integrator->dt;
     }
 }
 

@@ -7,11 +7,9 @@ auto step = [] (class Box* box) -> double {
     return box->step;
 };
 
-/*
-auto time = [] (class Box* box) -> double {
+auto time_ = [] (class Box* box) -> double {
     return box->time;
 };
-*/
 
 auto poteng = [] (class Box* box) -> double {
     return box->poteng;
@@ -19,7 +17,7 @@ auto poteng = [] (class Box* box) -> double {
 
 auto kineng = [] (class Box* box) -> double {
     vec vel = box->velocities;
-    return sum(vel % vel);
+    return sum(sum(vel % vel));
 };
 
 auto acceptance_ratio = [] (class Box* box) -> double {
@@ -38,6 +36,9 @@ Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, cons
     for(string i : outputs_in){
         if(i == "Step"){
             output_functions.push_back(step);
+        }
+        else if(i == "Time"){
+            output_functions.push_back(time_);
         }
         else if(i == "PotEng"){
             output_functions.push_back(poteng);

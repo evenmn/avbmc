@@ -14,8 +14,8 @@ public:
     virtual void next_step() = 0;
     virtual ~Integrator() = default;
 
-protected:
     double dt;
 
+protected:
     class Box* box = nullptr;
 };
