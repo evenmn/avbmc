@@ -12,12 +12,8 @@
 #include "dump.h"
 #include "thermo.h"
 #include "rng/mersennetwister.h"
-//#include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
-//#include "integrator/integrator.h"
-#include "integrator/euler.h"
-//#include "moves/moves.h"
-//#include "sampler/sampler.h"
+#include "integrator/velocityverlet.h"
 #include "sampler/metropolis.h"
 #include "boundary/stillinger.h"
 
@@ -66,14 +62,15 @@ public:
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
 
-    int npar, ndim, ntype, step;
+    int npar, ndim, ntype, nmove, step;
     double temp, chempot, poteng, time;
 
-    vec types, masses, potengs;
+    vec potengs;
     mat positions, velocities, accelerations;
 
     vector<string> chem_symbols;
     vector<int> particle_types;
+    vector<double> particle_masses;
     vector<string> unique_chem_symbols;
     vector<double> unique_masses;
     vector<class Moves*> moves;

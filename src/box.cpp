@@ -6,13 +6,17 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     temp = temp_in;
     chempot = chempot_in;
 
-    npar = ntype = 0;
+    npar = ntype = nmove = 0;
 
-    integrator = new Euler(this);
+    rng = new MersenneTwister();
+    integrator = new VelocityVerlet(this);
     forcefield = new LennardJones(this, ".in");
     sampler = new Metropolis(this);
     boundary = new Stillinger(this);
-    rng = new MersenneTwister();
+
+    vector<string> outputs;
+    dump = new Dump(this, 0, "", outputs);
+    thermo = new Thermo(this, 0, "", outputs);
 }
 
 void Box::set_temp(const double temp_in)
@@ -70,6 +74,7 @@ void Box::add_move(class Moves* move, double prob)
     /* Add move type and the corresponding probability.
      * The sum of the probabilities have to be 1.
      */
+    nmove ++;
     moves.push_back(move);
     moves_prob.push_back(prob);
 }
@@ -200,6 +205,7 @@ void Box::check_particle_types()
         for(int j=0; j<ntype; j++){
             if(chem_symbol == unique_chem_symbols[j]){
                 particle_types.push_back(j);
+                particle_masses.push_back(unique_masses[j]);
                 assigned_mass = true;
             }
         }
@@ -235,12 +241,10 @@ void Box::run_md(int nsteps)
 
     // run molecular dynamics simulation
     for(step=0; step<nsteps; step++){
-        cout << step << endl;
+        dump->print_frame();
+        thermo->print_line();
         integrator->next_step();
         //time = step * integrator->dt;
-        // dump
-        cout << step << endl;
-        write_xyz("dump.xyz", positions, chem_symbols, "", true);
     }
 }
 
@@ -252,15 +256,17 @@ void Box::run_mc(int nsteps, int nmoves)
     check_particle_types();
     init_simulation();
 
+    cout << "Num particles: " << npar << endl;
+    cout << "Num dimensions: " << ndim << endl;
+    cout << "Num moves: " << nmove << endl;
+    cout << "Num types: " << ntype << endl;
 
     // run Monte Carlo simulation
     auto t1 = chrono::high_resolution_clock::now();
     for(step=0; step<nsteps; step++){
-        //cout << step << endl;
         dump->print_frame();
         thermo->print_line();
         sampler->sample(nmoves);
-        //write_xyz("dump.xyz", positions, chem_symbol, "", true);
     }
     auto t2 = chrono::high_resolution_clock::now();
     double duration_seconds = chrono::duration<double>(t2 - t1).count();

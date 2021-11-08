@@ -21,7 +21,7 @@ void parser(int argc, char** argv)
         ifstream f(filename);
 
         if (f.is_open()){ 
-            Box box("");
+            Box box("", 300., 0.);
             string line;
             while (getline(f, line))
             {

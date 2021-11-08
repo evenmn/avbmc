@@ -74,7 +74,7 @@ void LennardJones::sort_params()
         bool assigned = false;
         for(int j=0; j<box->ntype; j++){
             if(chem_symbol == box->unique_chem_symbols[j]){
-                types1_vec.push_back(j);
+                types2_vec.push_back(j);
                 assigned = true;
             }
         }
@@ -113,15 +113,15 @@ vector<int> LennardJones::build_neigh_list(const mat positions, const int i)
     // update distances between particle i and all other particles
     ForceField::distance_matrix_cross(positions, i);
 
-    typei = box->types(i);
+    typei = box->particle_types[i];
     for(int j=0; j<i; j++){
-        typej = box->types(j);
+        typej = box->particle_types[j];
         if(distance_mat(i, j) < rc_sqrd_mat(typei, typej)){
             neigh_list.push_back(j);
         }
     }
     for(int j=i+1; j<box->npar; j++){
-        typej = box->types(j);
+        typej = box->particle_types[j];
         if(distance_mat(j, i) < rc_sqrd_mat(typej, typei)){
             neigh_list.push_back(j);
         }
@@ -156,13 +156,13 @@ double LennardJones::eval_acc_element(const mat positions, const int i, const in
 
 
     // get types of particle j
-    typei = box->types(i);
-    typej = box->types(j);
+    typei = box->particle_types[i];
+    typej = box->particle_types[j];
 
     // calculate acceleration on particle i from particle j
     first_term = pow(dist_sqrd/sigma_mat(typei, typej), -3);
     second_term = first_term * first_term;
-    acc += 24 * epsilon_mat(typei, typej) * (2*second_term - first_term) * dr / dist_sqrd / box->masses(i);
+    acc += 24 * epsilon_mat(typei, typej) * (2*second_term - first_term) * dr / dist_sqrd / box->particle_masses[i];
 
     // calculate interactio energy between the two particles
     if(comp_energy){

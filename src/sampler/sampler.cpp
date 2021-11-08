@@ -16,13 +16,6 @@ class Moves* Sampler::propose_move(vector<class Moves*> moves, vector<double> mo
     int i = rng->choice(moves_prob);
     return moves[i];
 }
-/*
-mat Sampler::perform_move(class Moves* move, const int j)
-{
-    // Perform move 'move' on particle j
-    return move->perform_move(j);
-}
-*/
 
 bool Sampler::accept_move(class Moves* move, double temp, double chempot)
 {
