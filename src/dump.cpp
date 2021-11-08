@@ -142,7 +142,7 @@ void Dump::print_frame()
         for(auto func : output_functions){
             dump_data = join_rows(dump_data, func(box));
         }
-        write_xyz(f, dump_data, box->chem_symbol, info_line);
+        write_xyz(f, dump_data, box->chem_symbols, info_line);
     }
 }
 

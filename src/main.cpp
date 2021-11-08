@@ -22,12 +22,12 @@ int main()
     Box box("simulation", 300., 0.);
 
     // initialize particles
-    int type = 0;
     double mass = 1.;
     mat position = fcc(3, 5., 3);
     mat velocity = randn(position.n_rows, position.n_cols);
     string chem = "Ar";
-    box.add_particles(type, mass, position, velocity, chem);
+    box.add_particles(chem, position, velocity);
+    box.set_mass(chem, mass);
 
     box.snapshot("initial.xyz");
 

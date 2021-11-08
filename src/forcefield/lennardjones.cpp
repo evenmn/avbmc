@@ -11,17 +11,15 @@ void LennardJones::read_param_file(string params)
 {
     /* Read parameter file and store parameters
      * globally. It takes the following form:
-     * <type1> <type2> <sigma> <epsilon> <rc>
-     * Parameters are stored in matrices of 
-     * size (num_types x num_types)
+     * <chemsymbol1> <chemsymbol2> <sigma> <epsilon> <rc>
      */
 
-    // declare vectors
-    vector<int> type1_vec = {0};
-    vector<int> type2_vec = {0};
-    vector<double> sigma_vec = {1.};
-    vector<double> epsilon_vec = {1.};
-    vector<double> rc_vec = {3.};
+    chem_symbol1_vec = {"Ar"};
+    chem_symbol2_vec = {"Ar"};
+    sigma_vec = {1.};
+    epsilon_vec = {1.};
+    rc_vec = {3.};
+    nline = 1;
 
     /*
     ifstream infile(params);
@@ -51,25 +49,52 @@ void LennardJones::read_param_file(string params)
         rc_vec.push_back(rc);
     }
     */
+}
 
-    int max_type1 = *max_element(type1_vec.begin(), type1_vec.end());
-    int max_type2 = *max_element(type2_vec.begin(), type2_vec.end());
-    int max_type = max(max_type1, max_type2) + 1;
+void LennardJones::sort_params()
+{
+    /* Parameters have to be sorted with respect to
+     * the particle types, and are stored in matrices.
+     */
 
-    sigma_mat.zeros(max_type, max_type);
-    epsilon_mat.zeros(max_type, max_type);
-    rc_sqrd_mat.zeros(max_type, max_type);
+    // link list of chemical symbols to list of type indices
+    vector<int> types1_vec;
+    vector<int> types2_vec;
+    for(string chem_symbol : chem_symbol1_vec){
+        bool assigned = false;
+        for(int j=0; j<box->ntype; j++){
+            if(chem_symbol == box->unique_chem_symbols[j]){
+                types1_vec.push_back(j);
+                assigned = true;
+            }
+        }
+        assert(assigned);
+    }
+    for(string chem_symbol : chem_symbol2_vec){
+        bool assigned = false;
+        for(int j=0; j<box->ntype; j++){
+            if(chem_symbol == box->unique_chem_symbols[j]){
+                types1_vec.push_back(j);
+                assigned = true;
+            }
+        }
+        assert(assigned);
+    }
 
-    double rc;
+    // fill up matrices with parameters
+    sigma_mat.zeros(box->ntype, box->ntype);
+    epsilon_mat.zeros(box->ntype, box->ntype);
+    rc_sqrd_mat.zeros(box->ntype, box->ntype);
+    
     int type1, type2;
-    for(int i=0; i<type1_vec.size(); i++){
-        type1 = type1_vec[i];
-        type2 = type2_vec[i];
+    for(int i=0; i<nline; i++){
+        type1 = types1_vec[i];
+        type2 = types2_vec[i];
         sigma_mat(type1, type2) = sigma_vec[i];
         sigma_mat(type2, type1) = sigma_vec[i];
         epsilon_mat(type1, type2) = epsilon_vec[i];
         epsilon_mat(type2, type1) = epsilon_vec[i];
-        rc = rc_vec[i]; 
+        double rc = rc_vec[i];
         rc_sqrd_mat(type1, type2) = rc * rc;
         rc_sqrd_mat(type2, type1) = rc * rc;
     }

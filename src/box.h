@@ -24,6 +24,7 @@
 using namespace std;
 using namespace arma;
 
+
 class Box
 {
 public:
@@ -37,13 +38,20 @@ public:
         
     void set_temp(const double temp_in);
     void set_chempot(const double chempot_in);
+    void set_mass(const string chem, const double mass);
 
     void add_move(class Moves* move, const double prob);
-    void add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem);
+    void add_particles(const string chem_symbol, const mat positions_in);
+    void add_particles(const string chem_symbol, const mat positions_in, const mat velocities_in);
+    void add_particles(const vector<string> chem_symbols_in, const mat positions_in);
+    void add_particles(const vector<string> chem_symbols_in, const mat positions_in, const mat velocities_in);
 
     void snapshot(const string filename);
     void set_dump(int freq, string filename, vector<string> outputs);
     void set_thermo(int freq, string filename, vector<string> outputs);
+
+    void check_particle_types();
+    void init_simulation();
 
     void run_md(int nsteps);
     void run_mc(int nsteps, int nmoves);
@@ -58,13 +66,16 @@ public:
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
 
-    int npar, ndim, step;
+    int npar, ndim, ntype, step;
     double temp, chempot, poteng, time;
 
     vec types, masses, potengs;
     mat positions, velocities, accelerations;
 
-    vector<string> chem_symbol;
+    vector<string> chem_symbols;
+    vector<int> particle_types;
+    vector<string> unique_chem_symbols;
+    vector<double> unique_masses;
     vector<class Moves*> moves;
     vector<double> moves_prob;
 };

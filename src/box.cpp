@@ -6,7 +6,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     temp = temp_in;
     chempot = chempot_in;
 
-    npar = 0;
+    npar = ntype = 0;
 
     integrator = new Euler(this);
     forcefield = new LennardJones(this, ".in");
@@ -15,14 +15,29 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     rng = new MersenneTwister();
 }
 
-void Box::set_temp(double temp_in)
+void Box::set_temp(const double temp_in)
 {
+    /* Set system temperature. 
+     */
     temp = temp_in;
 }
 
-void Box::set_chempot(double chempot_in)
+void Box::set_chempot(const double chempot_in)
 {
+    /* Set chemical potential of system.
+     */
     chempot = chempot_in;
+}
+
+void Box::set_mass(const string chem_symbol, const double mass)
+{
+    /* Set mass of chemical symbol. Masses of all chemical symbols
+     * have to be given, as the software does not look up the
+     * masses in a table.
+     */
+    ntype ++;
+    unique_chem_symbols.push_back(chem_symbol);
+    unique_masses.push_back(mass);
 }
 
 void Box::set_forcefield(class ForceField* forcefield_in)
@@ -34,7 +49,6 @@ void Box::set_integrator(class Integrator* integrator_in)
 {
     integrator = integrator_in;
 }
-
 
 void Box::set_sampler(class Sampler* sampler_in)
 {
@@ -51,34 +65,93 @@ void Box::set_boundary(class Boundary* boundary_in)
     boundary = boundary_in;
 }
 
-
 void Box::add_move(class Moves* move, double prob)
 {
+    /* Add move type and the corresponding probability.
+     * The sum of the probabilities have to be 1.
+     */
     moves.push_back(move);
     moves_prob.push_back(prob);
 }
 
-
-void Box::add_particles(const int type, const double mass, const mat position, const mat velocity, const string chem)
+void Box::add_particles(const string chem_symbol, const mat positions_in)
 {
-    /* Add particles of type "type", mass "mass",
-     * positions "position" and velocities "velocity"
+    /* Add particles of the same type, chemical symbol 'chem_symbol' at positions
+     * 'positions_in'. No initial velocities.
      */
 
     // check dimensionality
-    int npar_added = position.n_rows;
+    int npar_added = positions_in.n_rows;
     npar += npar_added;
-    ndim = position.n_cols;
-    assert (velocity.n_rows == npar_added);
+    ndim = positions_in.n_cols;
     
-    // join old and new particles
-    types = join_cols(types, type * ones(npar_added));
-    masses = join_cols(masses, mass * ones(npar_added));
-    positions = join_cols(positions, position);
-    velocities = join_cols(velocities, velocity);
+    // join old and new particles positions and velocities
+    positions = join_cols(positions, positions_in);
+    velocities = join_cols(velocities, zeros(npar_added, ndim));
 
-    vector<string> chem_symbol_vec(npar_added, chem);
-    chem_symbol.insert(chem_symbol.end(), chem_symbol_vec.begin(), chem_symbol_vec.end());
+    // join old and new particles chemical symbols
+    vector<string> chem_symbol_vec(npar_added, chem_symbol);
+    chem_symbols.insert(chem_symbols.end(), chem_symbol_vec.begin(), chem_symbol_vec.end());
+}
+
+void Box::add_particles(const string chem_symbol, const mat positions_in, const mat velocities_in)
+{
+    /* Add particles of the same type, chemical symbol 'chem_symbol' at positions
+     * 'positions_in' and velocities 'velocities_in'.
+     */
+
+    // check dimensionality
+    int npar_added = positions_in.n_rows;
+    npar += npar_added;
+    ndim = positions_in.n_cols;
+    assert (velocities_in.n_rows == npar_added);
+    
+    // join old and new particles positions and velocities
+    positions = join_cols(positions, positions_in);
+    velocities = join_cols(velocities, velocities_in);
+
+    // join old and new particles chemical symbols
+    vector<string> chem_symbol_vec(npar_added, chem_symbol);
+    chem_symbols.insert(chem_symbols.end(), chem_symbol_vec.begin(), chem_symbol_vec.end());
+}
+
+void Box::add_particles(const vector<string> chem_symbols_in, const mat positions_in)
+{
+    /* Add particles of potentially various chemical symbols at positions
+     * 'positions_in'. No initial velocities.
+     */
+
+    // check dimensionality
+    int npar_added = positions_in.n_rows;
+    npar += npar_added;
+    ndim = positions_in.n_cols;
+    
+    // join old and new particles positions and velocities
+    positions = join_cols(positions, positions_in);
+    velocities = join_cols(velocities, zeros(npar_added, ndim));
+
+    // join old and new particles chemical symbols
+    chem_symbols.insert(chem_symbols.end(), chem_symbols_in.begin(), chem_symbols_in.end());
+}
+
+void Box::add_particles(const vector<string> chem_symbols_in, const mat positions_in, const mat velocities_in)
+{
+    /* Add particles of potentially various chemical symbols at positions
+     * 'positions_in' and velocities 'velocities_in'.
+     */
+
+    // check dimensionality
+    int npar_added = positions_in.n_rows;
+    npar += npar_added;
+    ndim = positions_in.n_cols;
+    assert (velocities_in.n_rows == npar_added);
+    
+    // join old and new particles positions and velocities
+    positions = join_cols(positions, positions_in);
+    velocities = join_cols(velocities, velocities_in);
+
+    // join old and new particles chemical symbols
+    chem_symbols.insert(chem_symbols.end(), chem_symbols_in.begin(), chem_symbols_in.end());
 }
 
 
@@ -112,32 +185,36 @@ void Box::set_thermo(int freq, const string filename, const vector<string> outpu
 }
 
 
-void Box::run_md(int nsteps)
+void Box::check_particle_types()
 {
-    /* Run molecular dynamics simulation
+    /* The particles in the system have to be a subset
+     * of the particles that are given mass and 
+     * parameters. That has to be checked after parsing,
+     * but before simulation is started.
      */
 
-    // compute initial acceleration (this should be done when adding particles?)
-    forcefield->distance_mat = zeros(npar, npar);
-    forcefield->distance_dir_cube = zeros(npar, npar, ndim);
-    forcefield->build_neigh_lists(positions);
-    poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
-
-    // run molecular dynamics simulation
-    for(step=0; step<nsteps; step++){
-        cout << step << endl;
-        integrator->next_step();
-        //time = step * integrator->dt;
-        // dump
-        cout << step << endl;
-        write_xyz("dump.xyz", positions, chem_symbol, "", true);
+    // Check that all particles are assigned a mass
+    bool not_assigned_mass_all = 0;
+    for(string chem_symbol : chem_symbols){
+        bool assigned_mass = false;
+        for(int j=0; j<ntype; j++){
+            if(chem_symbol == unique_chem_symbols[j]){
+                particle_types.push_back(j);
+                assigned_mass = true;
+            }
+        }
+        not_assigned_mass_all += !assigned_mass;
     }
+    assert(!not_assigned_mass_all);
+
+    // Check that all particles are assigned parameters
+    forcefield->sort_params();
 }
 
 
-void Box::run_mc(int nsteps, int nmoves)
+void Box::init_simulation()
 {
-    /* Run Monte Carlo simulation
+    /* Initialize variables needed before simulation.
      */
 
     // compute initial acceleration (this should be done when adding particles?)
@@ -146,6 +223,35 @@ void Box::run_mc(int nsteps, int nmoves)
     forcefield->build_neigh_lists(positions);
     poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
     thermo->print_header();
+}
+
+
+void Box::run_md(int nsteps)
+{
+    /* Run molecular dynamics simulation
+     */
+    check_particle_types();
+    init_simulation();
+
+    // run molecular dynamics simulation
+    for(step=0; step<nsteps; step++){
+        cout << step << endl;
+        integrator->next_step();
+        //time = step * integrator->dt;
+        // dump
+        cout << step << endl;
+        write_xyz("dump.xyz", positions, chem_symbols, "", true);
+    }
+}
+
+
+void Box::run_mc(int nsteps, int nmoves)
+{
+    /* Run Monte Carlo simulation
+     */
+    check_particle_types();
+    init_simulation();
+
 
     // run Monte Carlo simulation
     auto t1 = chrono::high_resolution_clock::now();
