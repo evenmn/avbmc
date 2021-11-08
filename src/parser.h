@@ -8,9 +8,13 @@
 #include <vector>
 
 #include "box.h"
+#include "init_position.h"
 
 #include "integrator/integrator.h"
 #include "integrator/euler.h"
+#include "integrator/eulercromer.h"
+#include "integrator/velocityverlet.h"
+#include "integrator/rungekutta4.h"
 
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"

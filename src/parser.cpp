@@ -2,7 +2,7 @@
 
 vector<string> split(const string s)
 {
-    /* Split wtring by whitespace
+    /* Split string by whitespace
      */
     std::stringstream ss(s);
     std::istream_iterator<std::string> begin(ss);
@@ -69,14 +69,19 @@ void parser(int argc, char** argv)
 
 void set(Box& box, const vector<string> splitted, const int argc)
 {
-    
-    assert(argc > 1);
+    assert(argc > 2);
     string keyword = splitted[1];
     if(keyword == "temp"){
         box.set_temp(stod(splitted[2]));
     }
     else if(keyword == "chempot"){
         box.set_chempot(stod(splitted[2]));
+    }
+    else if(keyword == "mass"){
+        assert(argc > 3);
+        string chem_symbol = splitted[2];
+        double mass = stod(splitted[3]);
+        box.set_mass(chem_symbol, mass);
     }
     else if(keyword == "forcefield"){
         assert(argc > 2);
@@ -99,15 +104,15 @@ void set(Box& box, const vector<string> splitted, const int argc)
             if(integrator == "euler"){
                 box.set_integrator(new Euler(&box));
             }
-            //else if(integrator == "eulercromer"){
-            //    box.set_integrator(new EulerCromer(&box));
-            //}
-            //else if(integrator == "velocityverlet"){
-            //    box.set_integrator(new VelocityVerlet(&box));
-            //}
-            //else if(integrator == "rungekutta4"){
-            //    box.set_integrator(new RungeKutta4(&box));
-            //}
+            else if(integrator == "eulercromer"){
+                box.set_integrator(new EulerCromer(&box));
+            }
+            else if(integrator == "velocityverlet"){
+                box.set_integrator(new VelocityVerlet(&box));
+            }
+            else if(integrator == "rungekutta4"){
+                box.set_integrator(new RungeKutta4(&box));
+            }
             else{
                 cout << "Integrator '" + integrator + "' is not known! Aborting." << endl;
                 exit(0);
@@ -118,15 +123,15 @@ void set(Box& box, const vector<string> splitted, const int argc)
             if(integrator == "euler"){
                 box.set_integrator(new Euler(&box, dt));
             }
-            //else if(integrator == "eulercromer"){
-            //    box.set_integrator(new EulerCromer(&box, dt));
-            //}
-            //else if(integrator == "velocityverlet"){
-            //    box.set_integrator(new VelocityVerlet(&box, dt));
-            //}
-            //else if(integrator == "rungekutta4"){
-            //    box.set_integrator(new RungeKutta4(&box, dt));
-            //}
+            else if(integrator == "eulercromer"){
+                box.set_integrator(new EulerCromer(&box, dt));
+            }
+            else if(integrator == "velocityverlet"){
+                box.set_integrator(new VelocityVerlet(&box, dt));
+            }
+            else if(integrator == "rungekutta4"){
+                box.set_integrator(new RungeKutta4(&box, dt));
+            }
             else{
                 cout << "Integrator '" + integrator + "' is not known! Aborting." << endl;
                 exit(0);
@@ -226,13 +231,64 @@ void add(Box& box, const vector<string> splitted, const int argc)
             }
         }
         else{
-            //
-            cout << "Hey" << endl;
+            cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+            exit(0);
         }
     }
     else if(keyword == "particle"){
         assert(argc > 3);
-        // Need to figure out the best way to treat particles
+        if(argc == 4){
+            // assuming 1d
+            string chem_symbol = splitted[2];
+            double x = stod(splitted[3]);
+            mat positions_in = {x};
+            box.add_particles(chem_symbol, positions_in);
+        }
+        if(argc == 5){
+            // assuming 2d
+            string chem_symbol = splitted[2];
+            double x = stod(splitted[3]);
+            double y = stod(splitted[4]);
+            mat positions_in = {x, y};
+            box.add_particles(chem_symbol, positions_in);
+        }
+        else{
+            // assuming 3d
+            string chem_symbol = splitted[2];
+            double x = stod(splitted[3]);
+            double y = stod(splitted[4]);
+            double z = stod(splitted[5]);
+            mat positions_in = {x, y, z};
+            box.add_particles(chem_symbol, positions_in);
+        }
+    }
+    else if(keyword == "particles"){
+        assert(argc > 3);
+        string init_type = splitted[2];
+        if(init_type == "fcc"){
+            assert(argc > 5);
+            string chem_symbol = splitted[3];
+            int ncell = stoi(splitted[4]);
+            double lenbulk = stod(splitted[5]);
+            mat positions_in;
+            if(argc == 6){
+                positions_in = fcc(ncell, lenbulk);
+            }
+            else{
+                int ndim = stoi(splitted[6]);
+                positions_in = fcc(ncell, lenbulk, ndim);
+            }
+            box.add_particles(chem_symbol, positions_in);
+        }
+        //else if(init_type == "xyz"){
+        //    string filename = splitted[3];
+        //    vector<string> chem_symbols_in;
+        //    mat positions_in = from_xyz(filename, chem_symbols_in);
+        //    box.add_particles(chem_symbols_in, positions_in);
+        //}
+        else{
+            cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << endl;
+        }
     }
     else{
         cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
