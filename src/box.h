@@ -44,14 +44,16 @@ public:
     void add_particles(const vector<string> chem_symbols_in, const mat positions_in, const mat velocities_in);
 
     void snapshot(const string filename);
-    void set_dump(int freq, string filename, vector<string> outputs);
-    void set_thermo(int freq, string filename, vector<string> outputs);
+    void set_dump(const int freq, const string filename, const vector<string> outputs);
+    void set_thermo(const int freq, const string filename, const vector<string> outputs);
 
     void check_particle_types();
     void init_simulation();
+    int get_maxiter(const int nsteps);
+    void print_info();
 
-    void run_md(int nsteps);
-    void run_mc(int nsteps, int nmoves);
+    void run_md(const int nsteps);
+    void run_mc(const int nsteps, const int nmoves);
 
     // variables
     string working_dir;

@@ -11,6 +11,14 @@ auto time_ = [] (class Box* box) -> double {
     return box->time;
 };
 
+auto atoms = [] (class Box* box) -> double {
+    return box->npar;
+};
+
+auto types = [] (class Box* box) -> double {
+    return box->ntype;
+};
+
 auto poteng = [] (class Box* box) -> double {
     return box->poteng;
 };
@@ -34,19 +42,25 @@ Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, cons
 
     // fill vector with output functions
     for(string i : outputs_in){
-        if(i == "Step"){
+        if(i == "step"){
             output_functions.push_back(step);
         }
-        else if(i == "Time"){
+        else if(i == "time"){
             output_functions.push_back(time_);
         }
-        else if(i == "PotEng"){
+        else if(i == "atoms"){
+            output_functions.push_back(atoms);
+        }
+        else if(i == "types"){
+            output_functions.push_back(types);
+        }
+        else if(i == "poteng"){
             output_functions.push_back(poteng);
         }
-        else if(i == "KinEng"){
+        else if(i == "kineng"){
             output_functions.push_back(kineng);
         }
-        else if(i == "AcceptanceRatio"){
+        else if(i == "acceptanceratio"){
             output_functions.push_back(acceptance_ratio);
         }
         else{

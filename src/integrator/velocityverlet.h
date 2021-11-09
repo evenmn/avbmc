@@ -10,4 +10,5 @@ public:
 
 private:
     double dt2;
+    double ddt2;
 };

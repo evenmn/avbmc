@@ -91,7 +91,7 @@ Dump::Dump(class Box* box_in, const int freq_in, const string filename, const ve
         else if(i == "axayaz"){
             output_functions.push_back(axayaz);
         }
-        if(i == "vx"){
+        else if(i == "vx"){
             output_functions.push_back(vx);
         }
         else if(i == "vy"){
@@ -106,7 +106,7 @@ Dump::Dump(class Box* box_in, const int freq_in, const string filename, const ve
         else if(i == "vxvyvz"){
             output_functions.push_back(vxvyvz);
         }
-        if(i == "x"){
+        else if(i == "x"){
             output_functions.push_back(x);
         }
         else if(i == "y"){

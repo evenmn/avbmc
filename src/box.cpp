@@ -7,7 +7,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     chempot = chempot_in;
 
     time = 0.;
-    npar = ntype = nmove = 0;
+    npar = ntype = nmove = step = 0;
 
     rng = new MersenneTwister();
     integrator = new VelocityVerlet(this);
@@ -161,7 +161,7 @@ void Box::add_particles(const vector<string> chem_symbols_in, const mat position
 }
 
 
-void Box::snapshot(string filename){
+void Box::snapshot(const string filename){
     /* Dump snapshot of system using the
      * "write_xyz"-function. 
      */
@@ -173,7 +173,7 @@ void Box::snapshot(string filename){
 }
 
 
-void Box::set_dump(int freq, const string filename, const vector<string> outputs)
+void Box::set_dump(const int freq, const string filename, const vector<string> outputs)
 {
     /* Specify dump output
      */
@@ -182,7 +182,7 @@ void Box::set_dump(int freq, const string filename, const vector<string> outputs
 }
 
 
-void Box::set_thermo(int freq, const string filename, const vector<string> outputs)
+void Box::set_thermo(const int freq, const string filename, const vector<string> outputs)
 {
     /* Specify thermo output
      */
@@ -232,44 +232,74 @@ void Box::init_simulation()
     thermo->print_header();
 }
 
+int Box::get_maxiter(const int nsteps)
+{
+    /* Returns the last iteration
+     */
+    int maxiter;
+    if(step == 0){
+        maxiter = nsteps + 1;
+    }
+    else{
+        maxiter = nsteps + step;
+    }
+    return maxiter;
+}
 
-void Box::run_md(int nsteps)
+void Box::print_info()
+{
+    /* Print information about simulation
+     */
+    cout << "Num particles: " << npar << endl;
+    cout << "Num dimensions: " << ndim << endl;
+    cout << "Num moves: " << nmove << endl;
+    cout << "Num types: " << ntype << endl;
+}
+
+void Box::run_md(const int nsteps)
 {
     /* Run molecular dynamics simulation
      */
     check_particle_types();
     init_simulation();
 
+    int maxiter = get_maxiter(nsteps);
+    print_info();
+
     // run molecular dynamics simulation
-    for(step=0; step<nsteps; step++){
+    auto t1 = chrono::high_resolution_clock::now();
+    while(step<maxiter){
         time = step * integrator->dt;
         dump->print_frame();
         thermo->print_line();
         integrator->next_step();
+        step ++;
     }
+    auto t2 = chrono::high_resolution_clock::now();
+    double duration_seconds = chrono::duration<double>(t2 - t1).count();
+    cout << "Elapsed time: " << duration_seconds << "s" << endl;
 }
 
 
-void Box::run_mc(int nsteps, int nmoves)
+void Box::run_mc(const int nsteps, const int nmoves)
 {
     /* Run Monte Carlo simulation
      */
     check_particle_types();
     init_simulation();
 
-    cout << "Num particles: " << npar << endl;
-    cout << "Num dimensions: " << ndim << endl;
-    cout << "Num moves: " << nmove << endl;
-    cout << "Num types: " << ntype << endl;
+    int maxiter = get_maxiter(nsteps);
+    print_info();
 
     // run Monte Carlo simulation
     auto t1 = chrono::high_resolution_clock::now();
-    for(step=0; step<nsteps; step++){
+    while(step<maxiter){
         dump->print_frame();
         thermo->print_line();
         sampler->sample(nmoves);
+        step ++;
     }
     auto t2 = chrono::high_resolution_clock::now();
     double duration_seconds = chrono::duration<double>(t2 - t1).count();
-    cout << duration_seconds << endl;
+    cout << "Elapsed time: " << duration_seconds << "s" << endl;
 }
