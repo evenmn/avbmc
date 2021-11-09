@@ -1,15 +1,17 @@
 #include "parser.h"
 
+/*
 vector<string> split(const string s)
 {
-    /* Split string by whitespace
-     */
+    // Split string by whitespace
+    //
     stringstream ss(s);
     istream_iterator<string> begin(ss);
     istream_iterator<string> end;
     vector<string> vstrings(begin, end);
     return vstrings;
 }
+*/
 
 
 void parser(int argc, char** argv)
@@ -306,12 +308,12 @@ void add(Box& box, const vector<string> splitted, const int argc)
             }
             box.add_particles(chem_symbol, positions_in);
         }
-        //else if(init_type == "xyz"){
-        //    string filename = splitted[3];
-        //    vector<string> chem_symbols_in;
-        //    mat positions_in = from_xyz(filename, chem_symbols_in);
-        //    box.add_particles(chem_symbols_in, positions_in);
-        //}
+        else if(init_type == "xyz"){
+            string filename = splitted[3];
+            vector<string> chem_symbols_in;
+            mat positions_in = read_xyz(filename, chem_symbols_in);
+            box.add_particles(chem_symbols_in, positions_in);
+        }
         else{
             cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << endl;
         }

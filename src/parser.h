@@ -7,6 +7,7 @@
 #include <iterator>
 #include <vector>
 
+#include "io.h"
 #include "box.h"
 #include "init_position.h"
 #include "init_velocity.h"
@@ -44,4 +45,4 @@ void take(Box& box, const vector<string> splitted, const int argc);
 void run(Box& box, const vector<string> splitted, const int argc);
 void thermo(Box& box, const vector<string> splitted, const int argc);
 void dump(Box& box, const vector<string> splitted, const int argc);
-vector<string> split(const string s);
+//vector<string> split(const string s);
