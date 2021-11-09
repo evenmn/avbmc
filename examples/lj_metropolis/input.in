@@ -1,0 +1,16 @@
+# setup box
+set temp 1.
+
+# initialize particles
+add particles fcc Ar 3 5. 3
+set mass Ar 1.
+
+# run Monte Carlo simulation
+thermo 1 mc.log step atoms poteng acceptanceratio
+dump 1 mc.xyz x y z
+set sampler metropolis
+add move trans 0.5
+add move transmh 0.5
+take snapshot initial.xyz
+run mc 100 1000
+take snapshot final.xyz
