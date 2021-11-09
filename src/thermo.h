@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <armadillo>
@@ -14,12 +15,15 @@ public:
     Thermo(class Box* box_in, const int freq_in, const string filename, const vector<string> outputs_in);
     void print_line();
     void print_header();
+    ~Thermo();
 
 private:
     class Box* box = nullptr;
 
-    vector<function<double(class Box*)>> output_functions;
+    vector<function<double(class Box*)> > output_functions;
     vector<string> outputs;
 
     int freq;
+
+    std::ofstream f;
 };

@@ -40,6 +40,9 @@ Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, cons
     box = box_in;
     outputs = outputs_in;
 
+    // open file
+    f.open(filename);
+
     // fill vector with output functions
     for(string i : outputs_in){
         if(i == "step"){
@@ -75,10 +78,13 @@ void Thermo::print_header()
 {
     /* Print header of thermo outputs
      */
+    f << "# ";
     for(string i : outputs){
         cout << i << " ";
+        f << i << " ";
     }
     cout << endl;
+    f << endl;
 }
 
 
@@ -88,10 +94,16 @@ void Thermo::print_line()
      * step
      */
     if(box->step % freq == 0){
-        for(auto f : output_functions){
-            cout << f(box) << " ";
+        for(auto func : output_functions){
+            cout << func(box) << " ";
+            f << func(box) << " ";
         }
         cout << endl;
+        f << endl;
     }
 }
 
+Thermo::~Thermo()
+{
+    f.close();
+}
