@@ -9,6 +9,7 @@
 
 #include "box.h"
 #include "init_position.h"
+#include "init_velocity.h"
 
 #include "integrator/integrator.h"
 #include "integrator/euler.h"

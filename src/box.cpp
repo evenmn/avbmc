@@ -224,11 +224,12 @@ void Box::init_simulation()
     /* Initialize variables needed before simulation.
      */
 
-    // compute initial acceleration (this should be done when adding particles?)
+    // compute initial acceleration
     forcefield->distance_mat = zeros(npar, npar);
     forcefield->distance_dir_cube = zeros(npar, npar, ndim);
     forcefield->build_neigh_lists(positions);
     poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
+
     thermo->print_header();
 }
 
@@ -260,11 +261,11 @@ void Box::run_md(const int nsteps)
 {
     /* Run molecular dynamics simulation
      */
+    print_info();
     check_particle_types();
     init_simulation();
 
     int maxiter = get_maxiter(nsteps);
-    print_info();
 
     // run molecular dynamics simulation
     auto t1 = chrono::high_resolution_clock::now();
@@ -285,11 +286,11 @@ void Box::run_mc(const int nsteps, const int nmoves)
 {
     /* Run Monte Carlo simulation
      */
+    print_info();
     check_particle_types();
     init_simulation();
 
     int maxiter = get_maxiter(nsteps);
-    print_info();
 
     // run Monte Carlo simulation
     auto t1 = chrono::high_resolution_clock::now();

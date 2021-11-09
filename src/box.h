@@ -65,6 +65,7 @@ public:
     class Dump* dump = nullptr;
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
+    class Velocity* velocity = nullptr;
 
     int npar, ndim, ntype, nmove, step;
     double temp, chempot, poteng, time;

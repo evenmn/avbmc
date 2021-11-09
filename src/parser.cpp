@@ -197,6 +197,26 @@ void set(Box& box, const vector<string> splitted, const int argc)
             }
         }
     }
+    else if(keyword == "velocity"){
+        assert(argc > 3);
+        string init_style = splitted[2];
+        if(init_style == "temp"){
+            double temp = stod(splitted[3]);
+            box.velocity = new Temp(&box, temp);
+            box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
+        }
+        else if(init_style == "gauss"){
+            assert(argc > 4);
+            double mean = stod(splitted[3]);
+            double var = stod(splitted[4]);
+            box.velocity = new Gauss(&box, mean, var);
+            box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
+        }
+        else{
+            cout << "Velocity style '" + init_style + "' is not known! Aborting." << endl;
+            exit(0);
+        }
+    }
     else{
         cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
         exit(0);
