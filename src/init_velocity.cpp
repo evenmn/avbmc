@@ -1,15 +1,20 @@
 #include "init_velocity.h"
-#include "../box.h"
+#include "../rng/rng.h"
 
 
-Velocity::Velocity(class Box* box_in)
+Velocity::Velocity() {}
+
+Zero::Zero() : Velocity() {}
+
+mat Zero::get_velocity(const int npar, const int ndim)
 {
-    box = box_in;
+    return zeros(npar, ndim);
 }
 
-Gauss::Gauss(class Box* box_in, const double mean_in, const double var_in) 
-    : Velocity(box_in)
+Gauss::Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const double var_in) 
+    : Velocity()
 {
+    rng = rng_in;
     mean = mean_in;
     var = var_in;
 }
@@ -19,18 +24,16 @@ mat Gauss::get_velocity(const int npar, const int ndim)
     mat velocity(npar, ndim);
     for(int i=0; i<npar; i++){
         for(int j=0; j<ndim; j++){
-            velocity(i, j) = box->rng->next_gaussian(mean, var);
+            velocity(i, j) = rng->next_gaussian(mean, var);
         }
     }
     return velocity;
 }
 
-Temp::Temp(class Box* box_in, const double temp_in)
-    : Velocity(box_in)
-{
-    temp = temp_in;
-}
+Temp::Temp(class RandomNumberGenerator* rng_in, const double temp_in)
+    : Gauss(rng_in, 0., sqrt(temp_in)) {}
 
+/*
 mat Temp::get_velocity(const int npar, const int ndim)
 {
     double mean = 0.;
@@ -38,3 +41,4 @@ mat Temp::get_velocity(const int npar, const int ndim)
     Gauss gauss(box, mean, var);
     return gauss.get_velocity(npar, ndim);
 }
+*/

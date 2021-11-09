@@ -10,27 +10,29 @@ using namespace arma;
 class Velocity
 {
 public:
-    Velocity(class Box* box_in);
+    Velocity();
     virtual mat get_velocity(const int npar, const int ndim) = 0;
+};
 
-protected:
-    class Box* box = nullptr;
+class Zero : public Velocity
+{
+public:
+    Zero();
+    mat get_velocity(const int npar, const int ndim);
 };
 
 class Gauss : public Velocity
 {
 public:
-    Gauss(class Box* box_in, const double mean_in, const double var_in);
+    Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const double var_in);
     mat get_velocity(const int npar, const int ndim);
 private:
     double mean, var;
+    class RandomNumberGenerator* rng = nullptr;
 };
 
-class Temp : public Velocity
+class Temp : public Gauss
 {
 public:
-    Temp(class Box* box_in, const double temp_in);
-    mat get_velocity(const int npar, const int ndim);
-private:
-    double temp;
+    Temp(class RandomNumberGenerator* rng_in, const double temp_in);
 };

@@ -11,6 +11,7 @@
 #include "io.h"
 #include "dump.h"
 #include "thermo.h"
+#include "init_velocity.h"
 #include "rng/mersennetwister.h"
 #include "forcefield/lennardjones.h"
 #include "integrator/velocityverlet.h"
@@ -32,6 +33,7 @@ public:
     void set_sampler(class Sampler* sampler_in);
     void set_rng(class RandomNumberGenerator* rng_in);
     void set_boundary(class Boundary* boundary_in);
+    void set_velocity(class Velocity* velocity_in);
         
     void set_temp(const double temp_in);
     void set_chempot(const double chempot_in);

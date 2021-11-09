@@ -204,14 +204,14 @@ void set(Box& box, const vector<string> splitted, const int argc)
         string init_style = splitted[2];
         if(init_style == "temp"){
             double temp = stod(splitted[3]);
-            box.velocity = new Temp(&box, temp);
+            box.velocity = new Temp(box.rng, temp);
             box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
         }
         else if(init_style == "gauss"){
             assert(argc > 4);
             double mean = stod(splitted[3]);
             double var = stod(splitted[4]);
-            box.velocity = new Gauss(&box, mean, var);
+            box.velocity = new Gauss(box.rng, mean, var);
             box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
         }
         else{

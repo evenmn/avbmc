@@ -14,10 +14,12 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     forcefield = new LennardJones(this, ".in");
     sampler = new Metropolis(this);
     boundary = new Stillinger(this);
+    velocity = new Zero();
 
     vector<string> outputs;
     dump = new Dump(this, 0, "", outputs);
-    thermo = new Thermo(this, 0, "", outputs);
+    outputs = {"step", "atoms", "poteng"};
+    thermo = new Thermo(this, 1, "", outputs);
 }
 
 void Box::set_temp(const double temp_in)
@@ -68,6 +70,12 @@ void Box::set_rng(class RandomNumberGenerator* rng_in)
 void Box::set_boundary(class Boundary* boundary_in)
 {
     boundary = boundary_in;
+}
+
+void Box::set_velocity(class Velocity* velocity_in)
+{
+    velocity = velocity_in;
+    velocities = velocity->get_velocity(npar, ndim);
 }
 
 void Box::add_move(class Moves* move, double prob)
