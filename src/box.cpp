@@ -11,7 +11,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
 
     rng = new MersenneTwister();
     integrator = new VelocityVerlet(this);
-    forcefield = new LennardJones(this, ".in");
+    forcefield = new LennardJones(this);
     sampler = new Metropolis(this);
     boundary = new Stillinger(this);
     velocity = new Zero();

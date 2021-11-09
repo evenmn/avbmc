@@ -1,54 +1,57 @@
 #include "lennardjones.h"
 #include "../box.h"
 
-LennardJones::LennardJones(class Box* box_in, string params)
+LennardJones::LennardJones(class Box* box_in)
     : ForceField(box_in)
 {
-    read_param_file(params);
-}
-
-void LennardJones::read_param_file(string params)
-{
-    /* Read parameter file and store parameters
-     * globally. It takes the following form:
-     * <chemsymbol1> <chemsymbol2> <sigma> <epsilon> <rc>
+    /* This is the default constructor
+     * when parameter file is not given. It
+     * only works for pure Argon
      */
-
     chem_symbol1_vec = {"Ar"};
     chem_symbol2_vec = {"Ar"};
     sigma_vec = {1.};
     epsilon_vec = {1.};
     rc_vec = {3.};
     nline = 1;
+}
 
-    /*
+LennardJones::LennardJones(class Box* box_in, const string params)
+    : ForceField(box_in)
+{
+    read_param_file(params);
+}
+
+void LennardJones::read_param_file(const string params)
+{
+    /* Read parameter file and store parameters
+     * globally. It takes the following form:
+     * <chem_symbol1> <chem_symbol2> <sigma> <epsilon> <rc>
+     */
+
     ifstream infile(params);
-    string line;
-    int type1, type2;
+    string line, chem_symbol1, chem_symbol2;
     double sigma, epsilon, rc;
+    nline = 0;
     while (getline(infile, line))
     {
         istringstream iss(line);
-        if (line[0] == "#"){
+        if (line.rfind("#", 0) == 0){
+            // comments are allowed in parameter file
             continue;
         }
-        else if (!(iss >> type1 >> type2 >> sigma >> epsilon >> rc)){ 
-            break; 
+        else if (!(iss >> chem_symbol1 >> chem_symbol2 >> sigma >> epsilon >> rc)){ 
+            chem_symbol1_vec.push_back(chem_symbol1);
+            chem_symbol2_vec.push_back(chem_symbol2);
+            sigma_vec.push_back(sigma);
+            epsilon_vec.push_back(epsilon);
+            rc_vec.push_back(rc);
+            nline ++;
+        }
+        else{
+            std::cout << "Warning: Could not read line in parameter file" << std::endl;
         }
     }
-    */
-    /*
-    int type1, type2;
-    double sigma, epsilon, rc;
-    while (infile >> type1 >> type2 >> sigma >> epsilon >> rc)
-    {
-        type1_vec.push_back(type1);
-        type2_vec.push_back(type2);
-        sigma_vec.push_back(sigma);
-        epsilon_vec.push_back(epsilon);
-        rc_vec.push_back(rc);
-    }
-    */
 }
 
 void LennardJones::sort_params()

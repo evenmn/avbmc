@@ -4,6 +4,7 @@
 class LennardJones : public ForceField
 {
 public:
+    LennardJones(class Box* box_in);
     LennardJones(class Box* box_in, string params);
     void read_param_file(string params);
     void sort_params();
