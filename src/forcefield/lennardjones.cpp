@@ -211,3 +211,21 @@ double LennardJones::eval_acc(const mat positions, mat& accs, vec& potengs, cons
     }
     return energy_cum;
 }
+
+double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
+{
+    /* Evaluate the energy change of the system
+     * when a particle is added at position pos
+     */
+    double energy_cum = 0;
+    acc.zeros(box->ndim);
+    for(int i=0; i<box->npar; i++){
+        rowvec dr = box->positions.row(i) - pos;
+        double dist2 = as_scalar(dr * dr.as_col());
+        double dist_inv6 = pow(dist2, -3);           // / sigma
+        double dist_inv12 = pow(dist_inv6, 2);
+        energy_cum += 4 * (dist_inv12 - dist_inv6);  // * epsilon
+        acc += 24 * (2 * dist_inv6 - dist_inv12) * dr / dist2;
+    }
+    return energy_cum;
+}

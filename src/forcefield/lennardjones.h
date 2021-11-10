@@ -11,6 +11,7 @@ public:
     double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy);
     double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy);
     double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy);
+    double comp_force_par(const rowvec pos, rowvec& acc);
 
     vector<int> build_neigh_list(const mat positions, const int i);
     void build_neigh_lists(const mat positions);

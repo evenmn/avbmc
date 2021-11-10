@@ -22,6 +22,7 @@ public:
     virtual double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy=false) = 0;
     virtual double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy=false) = 0;
     virtual double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy=false) = 0;
+    virtual double comp_force_par(const rowvec pos, rowvec& acc) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
@@ -30,6 +31,7 @@ public:
     void distance_matrix(const mat positions);
     void add_distance_cross(const mat positions);
     void rm_distance_cross(const int i);
+    std::vector<int> build_neigh_list(const int i, const double r_sqrd);
 
     mat distance_mat;
     cube distance_dir_cube;

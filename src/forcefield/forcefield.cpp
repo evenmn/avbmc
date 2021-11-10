@@ -40,11 +40,15 @@ void ForceField::add_distance_cross(const mat positions)
     /* Add row and column to distance matrix
      * when particle is added.
      */
-    distance_mat.insert_cols(box->npar, 1);
-    distance_mat.insert_rows(box->npar, 1);
-    distance_dir_cube.insert_cols(box->npar, 1);
-    distance_dir_cube.insert_rows(box->npar, 1);
-    box->npar ++;
+    cout << "add_distance_cross1" << endl;
+    distance_mat.insert_cols(box->npar-2, 1);
+    cout << "add_distance_cross2" << endl;
+    distance_mat.insert_rows(box->npar-2, 1);
+    cout << "add_distance_cross3" << endl;
+    distance_dir_cube.insert_cols(box->npar-2, 1);
+    cout << "add_distance_cross4" << endl;
+    distance_dir_cube.insert_rows(box->npar-2, 1);
+    cout << "add_distance_cross5" << endl;
     for(int j=0; j<box->npar; j++){
         distance_matrix_element(positions, box->npar-1, j);
     }
@@ -74,6 +78,21 @@ void ForceField::distance_matrix(const mat positions)
             distance_matrix_element(positions, i, j);
         }
     }
+}
+
+
+std::vector<int> ForceField::build_neigh_list(const int i, const double r_sqrd)
+{
+    /* Build neighbor list of particle i for a cutoff distance
+     * (squared) r_sqrd.
+     */
+    std::vector<int> neigh_list;
+    for(int j=0; j<i; j++){
+        if(distance_mat(i, j) < r_sqrd){
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
 }
 
 //ForceField::~ForceField() {}

@@ -155,9 +155,22 @@ void set(Box& box, const vector<string> splitted, const int argc)
         if(sampler == "metropolis"){
             box.set_sampler(new Metropolis(&box));
         }
-        //else if(sampler == "umbrella"){
-        //    box.set_sampler(new Umbrella(&box));
-        //}
+        else if(sampler == "umbrella"){
+            assert(argc > 3);
+            std::string umbrella_type = splitted[3];
+            if(umbrella_type == "square"){
+                assert(argc > 6);
+                double a = stod(splitted[4]);
+                double b = stod(splitted[5]);
+                double c = stod(splitted[6]);
+                auto f = [a, b, c] (const int x) { return (a * x * x + b * x + c); };
+                box.set_sampler(new Umbrella(&box, f));
+            }
+            else{
+                cout << "Umbrella type '" + umbrella_type + "' is not known! Aborting." << endl;
+                exit(0);
+            }
+        }
         else {
             cout << "Sampler '" + sampler + "' is not known! Aborting." << endl;
             exit(0);
@@ -239,7 +252,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
             if(argc == 4){
                 box.add_move(new Trans(&box), prob);
             }
-            else if(argc >= 5){
+            else{
                 double dx = stod(splitted[4]);
                 box.add_move(new Trans(&box, dx), prob);
             }
@@ -252,14 +265,51 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 double dx = stod(splitted[4]);
                 box.add_move(new TransMH(&box, dx), prob);
             }
-            else if(argc >= 6){
+            else{
                 double dx = stod(splitted[4]);
                 double Ddt = stod(splitted[5]);
                 box.add_move(new TransMH(&box, dx, Ddt), prob);
             }
         }
+        else if(move == "avbmc"){
+            if(argc == 4){
+                box.add_move(new AVBMC(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMC(&box, r_below), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                double r_above = stod(splitted[5]);
+                box.add_move(new AVBMC(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcin"){
+            if(argc == 4){
+                box.add_move(new AVBMCIn(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMCIn(&box, r_below), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                double r_above = stod(splitted[5]);
+                box.add_move(new AVBMCIn(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcout"){
+            if(argc == 4){
+                box.add_move(new AVBMCOut(&box), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMCOut(&box, r_below), prob);
+            }
+        }
         else{
-            cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+            cout << "Move '" + move + "' is not known! Aborting." << endl;
             exit(0);
         }
     }

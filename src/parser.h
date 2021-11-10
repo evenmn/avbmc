@@ -23,11 +23,12 @@
 
 #include "sampler/sampler.h"
 #include "sampler/metropolis.h"
+#include "sampler/umbrella.h"
 
 #include "moves/moves.h"
 #include "moves/trans.h"
 #include "moves/transmh.h"
-#include "moves/avbmcout.h"
+#include "moves/avbmc.h"
 
 #include "boundary/boundary.h"
 #include "boundary/fixed.h"
