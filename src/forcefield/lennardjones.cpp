@@ -1,54 +1,57 @@
 #include "lennardjones.h"
 #include "../box.h"
 
-LennardJones::LennardJones(class Box* box_in, string params)
+LennardJones::LennardJones(class Box* box_in)
     : ForceField(box_in)
 {
-    read_param_file(params);
-}
-
-void LennardJones::read_param_file(string params)
-{
-    /* Read parameter file and store parameters
-     * globally. It takes the following form:
-     * <chemsymbol1> <chemsymbol2> <sigma> <epsilon> <rc>
+    /* This is the default constructor
+     * when parameter file is not given. It
+     * only works for pure Argon
      */
-
     chem_symbol1_vec = {"Ar"};
     chem_symbol2_vec = {"Ar"};
     sigma_vec = {1.};
     epsilon_vec = {1.};
     rc_vec = {3.};
     nline = 1;
+}
 
-    /*
+LennardJones::LennardJones(class Box* box_in, const string params)
+    : ForceField(box_in)
+{
+    read_param_file(params);
+}
+
+void LennardJones::read_param_file(const string params)
+{
+    /* Read parameter file and store parameters
+     * globally. It takes the following form:
+     * <chem_symbol1> <chem_symbol2> <sigma> <epsilon> <rc>
+     */
+
     ifstream infile(params);
-    string line;
-    int type1, type2;
+    string line, chem_symbol1, chem_symbol2;
     double sigma, epsilon, rc;
+    nline = 0;
     while (getline(infile, line))
     {
         istringstream iss(line);
-        if (line[0] == "#"){
+        if (line.rfind("#", 0) == 0){
+            // comments are allowed in parameter file
             continue;
         }
-        else if (!(iss >> type1 >> type2 >> sigma >> epsilon >> rc)){ 
-            break; 
+        else if (!(iss >> chem_symbol1 >> chem_symbol2 >> sigma >> epsilon >> rc)){ 
+            chem_symbol1_vec.push_back(chem_symbol1);
+            chem_symbol2_vec.push_back(chem_symbol2);
+            sigma_vec.push_back(sigma);
+            epsilon_vec.push_back(epsilon);
+            rc_vec.push_back(rc);
+            nline ++;
+        }
+        else{
+            std::cout << "Warning: Could not read line in parameter file" << std::endl;
         }
     }
-    */
-    /*
-    int type1, type2;
-    double sigma, epsilon, rc;
-    while (infile >> type1 >> type2 >> sigma >> epsilon >> rc)
-    {
-        type1_vec.push_back(type1);
-        type2_vec.push_back(type2);
-        sigma_vec.push_back(sigma);
-        epsilon_vec.push_back(epsilon);
-        rc_vec.push_back(rc);
-    }
-    */
 }
 
 void LennardJones::sort_params()
@@ -205,6 +208,24 @@ double LennardJones::eval_acc(const mat positions, mat& accs, vec& potengs, cons
         potengs(i) = energy_par;
         energy_cum += energy_par;
         accs.row(i) = acc;
+    }
+    return energy_cum;
+}
+
+double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
+{
+    /* Evaluate the energy change of the system
+     * when a particle is added at position pos
+     */
+    double energy_cum = 0;
+    acc.zeros(box->ndim);
+    for(int i=0; i<box->npar; i++){
+        rowvec dr = box->positions.row(i) - pos;
+        double dist2 = as_scalar(dr * dr.as_col());
+        double dist_inv6 = pow(dist2, -3);           // / sigma
+        double dist_inv12 = pow(dist_inv6, 2);
+        energy_cum += 4 * (dist_inv12 - dist_inv6);  // * epsilon
+        acc += 24 * (2 * dist_inv6 - dist_inv12) * dr / dist2;
     }
     return energy_cum;
 }

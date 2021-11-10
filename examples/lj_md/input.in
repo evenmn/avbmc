@@ -1,0 +1,14 @@
+# Perform a molecular dynamics simulation
+# of Lennard-Jonesium
+
+# initialize particles
+add particles fcc Ar 3 5. 3
+set mass Ar 1.
+set velocity temp 1.
+
+# perform simulation
+thermo 10 md.log step time atoms poteng
+dump 10 md.xyz x y z vx vy vz
+take snapshot initial.xyz
+run md 1000
+take snapshot final.xyz

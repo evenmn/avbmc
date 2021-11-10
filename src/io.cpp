@@ -1,45 +1,66 @@
 #include "io.h"
 
-/*
-def read_xyz(filename):
-    """
 
-    """
-
-    with open(filename, "r") as f:
-        frames = []
-        while True:  # frame loop
-            try:
-                npar = int(f.readline())
-                comment = f.readline()
-            except ValueError:
-                break
-            particle_coords = []
-            i = 1
-            for line in f: # particle loop
-                chem, x, y, z = line.split()
-                particle_coords.append([x, y, z])
-                i += 1
-                if i > npar:
-                    break
-            frames.append(particle_coords)
-
-    return asarray(frames, dtype=float)
-*/
-
-mat read_xyz(const string filename)
+vector<string> split(const string s)
 {
-    /*
+    /* Split string by whitespace
      */
-    mat r(1, 3);
-    return r;
+    stringstream ss(s);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    vector<string> vstrings(begin, end);
+    return vstrings;
 }
 
+mat read_xyz(const string filename, vector<string>& chem_symbols)
+{
+    /* Read xyz-file consisting of one time frame
+     */
+    int npar, ndim;
+    mat positions;
+    ifstream f(filename);
+    if(f.is_open()){
+        string line;
+        int line_num = 0;
+        while(getline(f, line))
+        {
+            if(line_num == 0){
+                // line containing number of particles
+                npar = stoi(line);
+            }
+            else if(line_num == 1){
+                // ignore info line
+                line_num ++;
+                continue;
+            }
+            else{ 
+                // coordinate line
+                vector<string> splitted = split(line);
+                if(line_num == 2){
+                    // count number of dimensions
+                    ndim = splitted.size() - 1;
+                    positions = zeros(npar, ndim);
+                }
+                chem_symbols.push_back(splitted[0]);
+                for(int i=1; i<ndim; i++){
+                    positions(line_num-2, i) = stod(splitted[i]);
+                }
+            }
+            line_num ++;
+        }
+    }
+    else{
+        cout << "Could not open file '" + filename + "'! Aborting." << endl;
+        exit(0);
+    }
+    return positions;
+}
 
+/*
 void write_xyz(const string filename, const mat positions, const vector<string> chem_symbols, const string info, const bool append)
 {
-    /* 
-     */
+    // 
+    //
     int npar = positions.n_rows;
     int ndim = positions.n_cols;
 
@@ -61,7 +82,7 @@ void write_xyz(const string filename, const mat positions, const vector<string> 
     }
     f.close();
 }
-
+*/
 
 void write_xyz(ofstream& f, const mat data, const vector<string> chem_symbols, const string info)
 {

@@ -7,8 +7,10 @@
 #include <iterator>
 #include <vector>
 
+#include "io.h"
 #include "box.h"
 #include "init_position.h"
+#include "init_velocity.h"
 
 #include "integrator/integrator.h"
 #include "integrator/euler.h"
@@ -21,11 +23,12 @@
 
 #include "sampler/sampler.h"
 #include "sampler/metropolis.h"
+#include "sampler/umbrella.h"
 
 #include "moves/moves.h"
 #include "moves/trans.h"
 #include "moves/transmh.h"
-#include "moves/avbmcout.h"
+#include "moves/avbmc.h"
 
 #include "boundary/boundary.h"
 #include "boundary/fixed.h"
@@ -43,4 +46,4 @@ void take(Box& box, const vector<string> splitted, const int argc);
 void run(Box& box, const vector<string> splitted, const int argc);
 void thermo(Box& box, const vector<string> splitted, const int argc);
 void dump(Box& box, const vector<string> splitted, const int argc);
-vector<string> split(const string s);
+//vector<string> split(const string s);

@@ -1,15 +1,17 @@
 #include "parser.h"
 
+/*
 vector<string> split(const string s)
 {
-    /* Split string by whitespace
-     */
+    // Split string by whitespace
+    //
     stringstream ss(s);
     istream_iterator<string> begin(ss);
     istream_iterator<string> end;
     vector<string> vstrings(begin, end);
     return vstrings;
 }
+*/
 
 
 void parser(int argc, char** argv)
@@ -153,9 +155,22 @@ void set(Box& box, const vector<string> splitted, const int argc)
         if(sampler == "metropolis"){
             box.set_sampler(new Metropolis(&box));
         }
-        //else if(sampler == "umbrella"){
-        //    box.set_sampler(new Umbrella(&box));
-        //}
+        else if(sampler == "umbrella"){
+            assert(argc > 3);
+            std::string umbrella_type = splitted[3];
+            if(umbrella_type == "square"){
+                assert(argc > 6);
+                double a = stod(splitted[4]);
+                double b = stod(splitted[5]);
+                double c = stod(splitted[6]);
+                auto f = [a, b, c] (const int x) { return (a * x * x + b * x + c); };
+                box.set_sampler(new Umbrella(&box, f));
+            }
+            else{
+                cout << "Umbrella type '" + umbrella_type + "' is not known! Aborting." << endl;
+                exit(0);
+            }
+        }
         else {
             cout << "Sampler '" + sampler + "' is not known! Aborting." << endl;
             exit(0);
@@ -197,6 +212,26 @@ void set(Box& box, const vector<string> splitted, const int argc)
             }
         }
     }
+    else if(keyword == "velocity"){
+        assert(argc > 3);
+        string init_style = splitted[2];
+        if(init_style == "temp"){
+            double temp = stod(splitted[3]);
+            box.velocity = new Temp(box.rng, temp);
+            box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
+        }
+        else if(init_style == "gauss"){
+            assert(argc > 4);
+            double mean = stod(splitted[3]);
+            double var = stod(splitted[4]);
+            box.velocity = new Gauss(box.rng, mean, var);
+            box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
+        }
+        else{
+            cout << "Velocity style '" + init_style + "' is not known! Aborting." << endl;
+            exit(0);
+        }
+    }
     else{
         cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
         exit(0);
@@ -217,7 +252,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
             if(argc == 4){
                 box.add_move(new Trans(&box), prob);
             }
-            else if(argc >= 5){
+            else{
                 double dx = stod(splitted[4]);
                 box.add_move(new Trans(&box, dx), prob);
             }
@@ -230,14 +265,51 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 double dx = stod(splitted[4]);
                 box.add_move(new TransMH(&box, dx), prob);
             }
-            else if(argc >= 6){
+            else{
                 double dx = stod(splitted[4]);
                 double Ddt = stod(splitted[5]);
                 box.add_move(new TransMH(&box, dx, Ddt), prob);
             }
         }
+        else if(move == "avbmc"){
+            if(argc == 4){
+                box.add_move(new AVBMC(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMC(&box, r_below), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                double r_above = stod(splitted[5]);
+                box.add_move(new AVBMC(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcin"){
+            if(argc == 4){
+                box.add_move(new AVBMCIn(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMCIn(&box, r_below), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                double r_above = stod(splitted[5]);
+                box.add_move(new AVBMCIn(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcout"){
+            if(argc == 4){
+                box.add_move(new AVBMCOut(&box), prob);
+            }
+            else{
+                double r_below = stod(splitted[4]);
+                box.add_move(new AVBMCOut(&box, r_below), prob);
+            }
+        }
         else{
-            cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+            cout << "Move '" + move + "' is not known! Aborting." << endl;
             exit(0);
         }
     }
@@ -286,12 +358,12 @@ void add(Box& box, const vector<string> splitted, const int argc)
             }
             box.add_particles(chem_symbol, positions_in);
         }
-        //else if(init_type == "xyz"){
-        //    string filename = splitted[3];
-        //    vector<string> chem_symbols_in;
-        //    mat positions_in = from_xyz(filename, chem_symbols_in);
-        //    box.add_particles(chem_symbols_in, positions_in);
-        //}
+        else if(init_type == "xyz"){
+            string filename = splitted[3];
+            vector<string> chem_symbols_in;
+            mat positions_in = read_xyz(filename, chem_symbols_in);
+            box.add_particles(chem_symbols_in, positions_in);
+        }
         else{
             cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << endl;
         }

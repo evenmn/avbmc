@@ -11,13 +11,15 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
 
     rng = new MersenneTwister();
     integrator = new VelocityVerlet(this);
-    forcefield = new LennardJones(this, ".in");
+    forcefield = new LennardJones(this);
     sampler = new Metropolis(this);
     boundary = new Stillinger(this);
+    velocity = new Zero();
 
     vector<string> outputs;
     dump = new Dump(this, 0, "", outputs);
-    thermo = new Thermo(this, 0, "", outputs);
+    outputs = {"step", "atoms", "poteng"};
+    thermo = new Thermo(this, 1, "", outputs);
 }
 
 void Box::set_temp(const double temp_in)
@@ -68,6 +70,12 @@ void Box::set_rng(class RandomNumberGenerator* rng_in)
 void Box::set_boundary(class Boundary* boundary_in)
 {
     boundary = boundary_in;
+}
+
+void Box::set_velocity(class Velocity* velocity_in)
+{
+    velocity = velocity_in;
+    velocities = velocity->get_velocity(npar, ndim);
 }
 
 void Box::add_move(class Moves* move, double prob)
@@ -224,11 +232,12 @@ void Box::init_simulation()
     /* Initialize variables needed before simulation.
      */
 
-    // compute initial acceleration (this should be done when adding particles?)
+    // compute initial acceleration
     forcefield->distance_mat = zeros(npar, npar);
     forcefield->distance_dir_cube = zeros(npar, npar, ndim);
     forcefield->build_neigh_lists(positions);
     poteng = forcefield->eval_acc(positions, accelerations, potengs, true);
+
     thermo->print_header();
 }
 
@@ -260,11 +269,11 @@ void Box::run_md(const int nsteps)
 {
     /* Run molecular dynamics simulation
      */
+    print_info();
     check_particle_types();
     init_simulation();
 
     int maxiter = get_maxiter(nsteps);
-    print_info();
 
     // run molecular dynamics simulation
     auto t1 = chrono::high_resolution_clock::now();
@@ -285,11 +294,11 @@ void Box::run_mc(const int nsteps, const int nmoves)
 {
     /* Run Monte Carlo simulation
      */
+    print_info();
     check_particle_types();
     init_simulation();
 
     int maxiter = get_maxiter(nsteps);
-    print_info();
 
     // run Monte Carlo simulation
     auto t1 = chrono::high_resolution_clock::now();
