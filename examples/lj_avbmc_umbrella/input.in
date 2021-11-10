@@ -1,0 +1,25 @@
+# Simulate Lennard-Jonesium using 
+# umbrella sampling and AVBMC-type
+# of moves
+
+# initialize box
+set temp 1.
+set chempot 0.
+set boundary stillinger 2.
+
+# initialize positions
+add particle Ar 0. 0. 0.
+set mass Ar 1.
+set forcefield lennardjones params.lj
+
+# initialize Monte Carlo
+set sampler umbrella square 0.5 35. 0.
+add move trans 0.5 0.1
+add move avbmc 0.5 0.95 3.0
+
+# initialize simulation
+thermo 1 mc.log step atoms poteng acceptanceratio
+dump 1 mc.xyz x y z
+take snapshot initial.xyz
+run mc 100 1000
+take snapshot final.xyz
