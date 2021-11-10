@@ -32,14 +32,13 @@ void AVBMCIn::perform_move(const int i)
     n_in = neigh_listi.size();
 
     // propose new particle position
-    rowvec posi = box->positions.row(i);
     rowvec dr(box->ndim, fill::zeros);
     while(norm(dr) > r_ratio){
         for(int d=0; d<box->ndim; d++){
             dr(d) = box->rng->next_double();
         }
     }
-    posj = posi + r_above * dr;
+    posj = box->positions.row(i) + r_above * dr;
 
     // compute du
     box->sampler->du = box->forcefield->comp_force_par(posj, accj);
@@ -58,6 +57,7 @@ void AVBMCIn::update_box(const int i)
      */
     box->npar ++;
     box->positions.insert_rows(box->npar-2, posj);
+    box->accelerations.insert_rows(box->npar-2, accj / mass);
     box->forcefield->add_distance_cross(box->positions);
     box->potengs.insert_cols(box->npar-2, box->sampler->du);
     box->particle_types.push_back(type);
