@@ -158,12 +158,19 @@ void set(Box& box, const vector<string> splitted, const int argc)
         else if(sampler == "umbrella"){
             assert(argc > 3);
             std::string umbrella_type = splitted[3];
-            if(umbrella_type == "square"){
+            if(umbrella_type == "poly"){
                 assert(argc > 6);
                 double a = stod(splitted[4]);
                 double b = stod(splitted[5]);
                 double c = stod(splitted[6]);
                 auto f = [a, b, c] (const int x) { return (a * x * x + b * x + c); };
+                box.set_sampler(new Umbrella(&box, f));
+            }
+            else if(umbrella_type == "square"){
+                assert(argc > 5);
+                double nc = stod(splitted[4]);
+                double k = stod(splitted[5]);
+                auto f = [nc, k] (const int n) { return (k * (n - nc) * (n - nc)); };
                 box.set_sampler(new Umbrella(&box, f));
             }
             else{
