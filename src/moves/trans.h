@@ -6,11 +6,12 @@ class Trans : public Moves
 {
 public:
     Trans(class Box* box_in, double dx_in=0.01);
-    void perform_move(const int i);
+    void perform_move();
     double accept();
-    void update_box(const int i);
+    void reset();
 
 private:
-    double dx, u1;
-    rowvec eps, a1;
+    int i;
+    double dx;
+    std::valarray<double> pos_old;
 };

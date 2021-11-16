@@ -3,37 +3,41 @@
 
 
 
-auto step = [] (class Box* box) -> double {
+auto step = [] (Box* box) -> double {
     return box->step;
 };
 
-auto time_ = [] (class Box* box) -> double {
+auto time_ = [] (Box* box) -> double {
     return box->time;
 };
 
-auto atoms = [] (class Box* box) -> double {
+auto atoms = [] (Box* box) -> double {
     return box->npar;
 };
 
-auto types = [] (class Box* box) -> double {
+auto types = [] (Box* box) -> double {
     return box->ntype;
 };
 
-auto poteng = [] (class Box* box) -> double {
+auto poteng = [] (Box* box) -> double {
     return box->poteng;
 };
-
-auto kineng = [] (class Box* box) -> double {
+/*
+auto kineng = [] (Box* box) -> double {
     vec vel = box->velocities;
     return sum(sum(vel % vel));
 };
-
-auto acceptance_ratio = [] (class Box* box) -> double {
+*/
+auto acceptance_ratio = [] (Box* box) -> double {
     return box->sampler->acceptance_ratio;
 };
 
+auto move_idx = [] (Box* box) -> double {
+    return box->sampler->move_idx;
+};
 
-Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, const vector<string> outputs_in)
+
+Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
@@ -60,14 +64,19 @@ Thermo::Thermo(class Box* box_in, const int freq_in, const string filename, cons
         else if(i == "poteng"){
             output_functions.push_back(poteng);
         }
+        /*
         else if(i == "kineng"){
             output_functions.push_back(kineng);
         }
+        */
         else if(i == "acceptanceratio"){
             output_functions.push_back(acceptance_ratio);
         }
+        else if(i == "move"){
+            output_functions.push_back(move_idx);
+        }
         else{
-            cout << "No output style '" + i + "' exists!" << endl;
+            std::cout << "No output style '" + i + "' exists! Aborting." << std::endl;
             exit(0);
         }
     }
@@ -79,12 +88,12 @@ void Thermo::print_header()
     /* Print header of thermo outputs
      */
     f << "# ";
-    for(string i : outputs){
-        cout << i << " ";
+    for(std::string i : outputs){
+        std::cout << i << " ";
         f << i << " ";
     }
-    cout << endl;
-    f << endl;
+    std::cout << std::endl;
+    f << std::endl;
 }
 
 
@@ -95,11 +104,11 @@ void Thermo::print_line()
      */
     if(box->step % freq == 0){
         for(auto func : output_functions){
-            cout << func(box) << " ";
+            std::cout << func(box) << " ";
             f << func(box) << " ";
         }
-        cout << endl;
-        f << endl;
+        std::cout << std::endl;
+        f << std::endl;
     }
 }
 

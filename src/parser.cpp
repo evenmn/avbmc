@@ -1,31 +1,17 @@
 #include "parser.h"
 
-/*
-vector<string> split(const string s)
-{
-    // Split string by whitespace
-    //
-    stringstream ss(s);
-    istream_iterator<string> begin(ss);
-    istream_iterator<string> end;
-    vector<string> vstrings(begin, end);
-    return vstrings;
-}
-*/
-
-
 void parser(int argc, char** argv)
 {
     /* Parser main function
      */
     if(argc >= 2){
-        string filename = argv[1];
-        ifstream f(filename);
+        std::string filename = argv[1];
+        std::ifstream f(filename);
 
         if (f.is_open()){ 
             Box box("", 300., 0.);
-            string line;
-            while (getline(f, line))
+            std::string line;
+            while (std::getline(f, line))
             {
                 if (line.empty()) {
                     /* Continue if line is blank */
@@ -36,9 +22,9 @@ void parser(int argc, char** argv)
                     continue;
                 }
                 else{
-                    vector<string> splitted = split(line);
+                    std::vector<std::string> splitted = split(line);
                     int argc = splitted.size();
-                    string cmd_cat = splitted[0];
+                    std::string cmd_cat = splitted[0];
                     if(cmd_cat == "set"){
                         set(box, splitted, argc);
                     }
@@ -58,43 +44,44 @@ void parser(int argc, char** argv)
                         dump(box, splitted, argc);
                     }
                     else{
-                        cout << "There is no category '" + cmd_cat + "'! Aborting." << endl;
+                        std::cout << "There is no category '" + cmd_cat + "'! Aborting." << std::endl;
                         exit(0);
                     }
                 }
             }
         }
         else{
-            cout << "Could not open the file!" << endl;
+            std::cout << "Could not open the file!" << std::endl;
+            exit(0);
         }
     }
     else{
-        cout << "avbmc version 0.0.1" << endl;
-        cout << "Author: Even M. Nordhagen" << endl;
-        cout << "url: github.com/evenmn/avbmc" << endl;
+        std::cout << "avbmc version 0.0.1" << std::endl;
+        std::cout << "Author: Even M. Nordhagen" << std::endl;
+        std::cout << "url: github.com/evenmn/avbmc" << std::endl;
     }
 }
 
-void set(Box& box, const vector<string> splitted, const int argc)
+void set(Box& box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
-    string keyword = splitted[1];
+    std::string keyword = splitted[1];
     if(keyword == "temp"){
-        box.set_temp(stod(splitted[2]));
+        box.set_temp(std::stod(splitted[2]));
     }
     else if(keyword == "chempot"){
-        box.set_chempot(stod(splitted[2]));
+        box.set_chempot(std::stod(splitted[2]));
     }
     else if(keyword == "mass"){
         assert(argc > 3);
-        string chem_symbol = splitted[2];
-        double mass = stod(splitted[3]);
-        box.set_mass(chem_symbol, mass);
+        std::string label = splitted[2];
+        double mass = std::stod(splitted[3]);
+        box.set_mass(label, mass);
     }
     else if(keyword == "forcefield"){
         assert(argc > 2);
-        string forcefield = splitted[2];
-        string paramfile = splitted[3];
+        std::string forcefield = splitted[2];
+        std::string paramfile = splitted[3];
         if(forcefield == "lennardjones"){
             box.set_forcefield(new LennardJones(&box, paramfile));
         }
@@ -102,12 +89,13 @@ void set(Box& box, const vector<string> splitted, const int argc)
         //    box.set_forcefield(new Vashishta(&box, paramfile));
         //}
         else{
-            cout << "Forcefield '" + forcefield + "' is not known! Aborting." << endl;
+            std::cout << "Forcefield '" + forcefield + "' is not known! Aborting." << std::endl;
             exit(0);
         }
     }
+    /*
     else if(keyword == "integrator"){
-        string integrator = splitted[2];
+        std::string integrator = splitted[2];
         if(argc == 3){
             if(integrator == "euler"){
                 box.set_integrator(new Euler(&box));
@@ -122,12 +110,12 @@ void set(Box& box, const vector<string> splitted, const int argc)
                 box.set_integrator(new RungeKutta4(&box));
             }
             else{
-                cout << "Integrator '" + integrator + "' is not known! Aborting." << endl;
+                std::cout << "Integrator '" + integrator + "' is not known! Aborting." << std::endl;
                 exit(0);
             }
         }
         else if(argc >= 4){
-            double dt = stod(splitted[3]);
+            double dt = std::stod(splitted[3]);
             if(integrator == "euler"){
                 box.set_integrator(new Euler(&box, dt));
             }
@@ -141,17 +129,18 @@ void set(Box& box, const vector<string> splitted, const int argc)
                 box.set_integrator(new RungeKutta4(&box, dt));
             }
             else{
-                cout << "Integrator '" + integrator + "' is not known! Aborting." << endl;
+                std::cout << "Integrator '" + integrator + "' is not known! Aborting." << std::endl;
                 exit(0);
             }
         }
         else{
-            cout << "Integrator does not have a sufficient number of arguments! Aborting." << endl;
+            std::cout << "Integrator does not have a sufficient number of arguments! Aborting." << std::endl;
             exit(0);
         }
     }
+    */
     else if(keyword == "sampler"){
-        string sampler = splitted[2];
+        std::string sampler = splitted[2];
         if(sampler == "metropolis"){
             box.set_sampler(new Metropolis(&box));
         }
@@ -160,45 +149,47 @@ void set(Box& box, const vector<string> splitted, const int argc)
             std::string umbrella_type = splitted[3];
             if(umbrella_type == "poly"){
                 assert(argc > 6);
-                double a = stod(splitted[4]);
-                double b = stod(splitted[5]);
-                double c = stod(splitted[6]);
+                double a = std::stod(splitted[4]);
+                double b = std::stod(splitted[5]);
+                double c = std::stod(splitted[6]);
                 auto f = [a, b, c] (const int x) { return (a * x * x + b * x + c); };
                 box.set_sampler(new Umbrella(&box, f));
             }
             else if(umbrella_type == "square"){
                 assert(argc > 5);
-                double nc = stod(splitted[4]);
-                double k = stod(splitted[5]);
+                double nc = std::stod(splitted[4]);
+                double k = std::stod(splitted[5]);
                 auto f = [nc, k] (const int n) { return (k * (n - nc) * (n - nc)); };
                 box.set_sampler(new Umbrella(&box, f));
             }
             else{
-                cout << "Umbrella type '" + umbrella_type + "' is not known! Aborting." << endl;
+                std::cout << "Umbrella type '" + umbrella_type + "' is not known! Aborting." << std::endl;
                 exit(0);
             }
         }
         else {
-            cout << "Sampler '" + sampler + "' is not known! Aborting." << endl;
+            std::cout << "Sampler '" + sampler + "' is not known! Aborting." << std::endl;
             exit(0);
         }
     }
     else if(keyword == "rng"){
-        string rng = splitted[2];
+        std::string rng = splitted[2];
         if(rng == "mersennetwister"){
             box.set_rng(new MersenneTwister());
         }
         else{
-            cout << "Random number generator '" + rng + "' is not known! Aborting." << endl;
+            std::cout << "Random number generator '" + rng + "' is not known! Aborting." << std::endl;
+            exit(0);
         }
     }
     else if(keyword == "boundary"){
         assert(argc > 3);
-        string boundary = splitted[2];
+        std::string boundary = splitted[2];
         if(boundary == "stillinger"){
-            double rc = stod(splitted[3]);
+            double rc = std::stod(splitted[3]);
             box.set_boundary(new Stillinger(&box, rc));
         }
+        /*
         else if(boundary == "fixed"){
             if(argc == 4){
                 // one box length, indicating one dimension
@@ -218,29 +209,36 @@ void set(Box& box, const vector<string> splitted, const int argc)
                 box.set_boundary(new Fixed(&box, lx, ly, lz));
             }
         }
+        */
+        else{
+            std::cout << "Boundary '" + boundary + "' is not known! Aborting." << std::endl;
+            exit(0);
+        }
     }
+    /*
     else if(keyword == "velocity"){
         assert(argc > 3);
-        string init_style = splitted[2];
+        std::string init_style = splitted[2];
         if(init_style == "temp"){
-            double temp = stod(splitted[3]);
+            double temp = std::stod(splitted[3]);
             box.velocity = new Temp(box.rng, temp);
             box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
         }
         else if(init_style == "gauss"){
             assert(argc > 4);
-            double mean = stod(splitted[3]);
-            double var = stod(splitted[4]);
+            double mean = std::stod(splitted[3]);
+            double var = std::stod(splitted[4]);
             box.velocity = new Gauss(box.rng, mean, var);
             box.velocities = box.velocity->get_velocity(box.npar, box.ndim);
         }
         else{
-            cout << "Velocity style '" + init_style + "' is not known! Aborting." << endl;
+            std::cout << "Velocity style '" + init_style + "' is not known! Aborting." << std::endl;
             exit(0);
         }
     }
+    */
     else{
-        cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+        std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
 }
@@ -249,46 +247,48 @@ void set(Box& box, const vector<string> splitted, const int argc)
 void add(Box& box, const vector<string> splitted, const int argc)
 {
     assert(argc > 1);
-    string keyword = splitted[1];
+    std::string keyword = splitted[1];
 
     if(keyword == "move"){
         assert(argc > 3);
-        string move = splitted[2];
-        double prob = stod(splitted[3]);
+        std::string move = splitted[2];
+        double prob = std::stod(splitted[3]);
         if(move == "trans"){
             if(argc == 4){
                 box.add_move(new Trans(&box), prob);
             }
             else{
-                double dx = stod(splitted[4]);
+                double dx = std::stod(splitted[4]);
                 box.add_move(new Trans(&box, dx), prob);
             }
         }
+        /*
         else if(move == "transmh"){
             if(argc == 4){
                 box.add_move(new TransMH(&box), prob);
             }
             else if(argc == 5){
-                double dx = stod(splitted[4]);
+                double dx = std::stod(splitted[4]);
                 box.add_move(new TransMH(&box, dx), prob);
             }
             else{
-                double dx = stod(splitted[4]);
-                double Ddt = stod(splitted[5]);
+                double dx = std::stod(splitted[4]);
+                double Ddt = std::stod(splitted[5]);
                 box.add_move(new TransMH(&box, dx, Ddt), prob);
             }
         }
+        */
         else if(move == "avbmc"){
             if(argc == 4){
                 box.add_move(new AVBMC(&box), prob);
             }
             else if(argc == 5){
-                double r_below = stod(splitted[4]);
+                double r_below = std::stod(splitted[4]);
                 box.add_move(new AVBMC(&box, r_below), prob);
             }
             else{
-                double r_below = stod(splitted[4]);
-                double r_above = stod(splitted[5]);
+                double r_below = std::stod(splitted[4]);
+                double r_above = std::stod(splitted[5]);
                 box.add_move(new AVBMC(&box, r_below, r_above), prob);
             }
         }
@@ -297,12 +297,12 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCIn(&box), prob);
             }
             else if(argc == 5){
-                double r_below = stod(splitted[4]);
+                double r_below = std::stod(splitted[4]);
                 box.add_move(new AVBMCIn(&box, r_below), prob);
             }
             else{
-                double r_below = stod(splitted[4]);
-                double r_above = stod(splitted[5]);
+                double r_below = std::stod(splitted[4]);
+                double r_above = std::stod(splitted[5]);
                 box.add_move(new AVBMCIn(&box, r_below, r_above), prob);
             }
         }
@@ -311,132 +311,143 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCOut(&box), prob);
             }
             else{
-                double r_below = stod(splitted[4]);
+                double r_below = std::stod(splitted[4]);
                 box.add_move(new AVBMCOut(&box, r_below), prob);
             }
         }
         else{
-            cout << "Move '" + move + "' is not known! Aborting." << endl;
+            std::cout << "Move '" + move + "' is not known! Aborting." << std::endl;
             exit(0);
         }
     }
     else if(keyword == "particle"){
         assert(argc > 3);
+        Particle* particle;
+        particle->label = splitted[2];
+        std::string label = splitted[2];
+        double x = std::stod(splitted[3]);
         if(argc == 4){
             // assuming 1d
-            string chem_symbol = splitted[2];
-            double x = stod(splitted[3]);
-            mat positions_in = {x};
-            box.add_particles(chem_symbol, positions_in);
+            std::valarray<double> r = {x};  // initializer list supported after C++11
+            box.add_particle(label, r);
         }
         if(argc == 5){
             // assuming 2d
-            string chem_symbol = splitted[2];
-            double x = stod(splitted[3]);
-            double y = stod(splitted[4]);
-            mat positions_in = {x, y};
-            box.add_particles(chem_symbol, positions_in);
+            double y = std::stod(splitted[4]);
+            std::valarray<double> r = {x, y};  // initializer list supported after C++11
+            box.add_particle(label, r);
         }
         else{
             // assuming 3d
-            string chem_symbol = splitted[2];
-            double x = stod(splitted[3]);
-            double y = stod(splitted[4]);
-            double z = stod(splitted[5]);
-            mat positions_in = {x, y, z};
-            box.add_particles(chem_symbol, positions_in);
+            double y = std::stod(splitted[4]);
+            double z = std::stod(splitted[5]);
+            std::cout << "Here3" << std::endl;
+            std::valarray<double> r = {x, y, z}; // initializer list supported after C++11
+            std::cout << "Here32" << std::endl;
+            std::cout << particle->r.size() << std::endl;
+            particle->r.resize(3);
+            std::cout << particle->r.size() << std::endl;
+            std::cout << "Here33" << std::endl;
+            //particle->r = r;
+            std::cout << "Here4" << std::endl;
+            box.add_particle(particle);
+            std::cout << "Here5" << std::endl;
         }
     }
     else if(keyword == "particles"){
         assert(argc > 3);
-        string init_type = splitted[2];
+        std::string init_type = splitted[2];
         if(init_type == "fcc"){
             assert(argc > 5);
-            string chem_symbol = splitted[3];
-            int ncell = stoi(splitted[4]);
-            double lenbulk = stod(splitted[5]);
-            mat positions_in;
+            std::string label = splitted[3];
+            int ncell = std::stoi(splitted[4]);
+            double lenbulk = std::stod(splitted[5]);
+            std::vector<Particle *> particles_in;
             if(argc == 6){
-                positions_in = fcc(ncell, lenbulk);
+                particles_in = fcc(ncell, lenbulk);
             }
             else{
-                int ndim = stoi(splitted[6]);
-                positions_in = fcc(ncell, lenbulk, ndim);
+                int ndim = std::stoi(splitted[6]);
+                particles_in = fcc(ncell, lenbulk, ndim);
             }
-            box.add_particles(chem_symbol, positions_in);
+            for(Particle *particle : particles_in){
+                particle->label = label;
+            }
+            box.add_particles(particles_in);
         }
         else if(init_type == "xyz"){
-            string filename = splitted[3];
-            vector<string> chem_symbols_in;
-            mat positions_in = read_xyz(filename, chem_symbols_in);
-            box.add_particles(chem_symbols_in, positions_in);
+            std::string filename = splitted[3];
+            std::vector<Particle *> particles_in = read_xyz(filename);
+            box.add_particles(particles_in);
         }
         else{
-            cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << endl;
+            std::cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << std::endl;
         }
     }
     else{
-        cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+        std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
 }
 
-void take(Box& box, const vector<string> splitted, const int argc)
+void take(Box& box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 1);
-    string keyword = splitted[1];
+    std::string keyword = splitted[1];
     if(keyword == "snapshot"){
         assert(argc > 2);
-        string filename = splitted[2];
+        std::string filename = splitted[2];
         box.snapshot(filename);
     }
     else{
-        cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+        std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
 }
 
-void run(Box& box, const vector<string> splitted, const int argc)
+void run(Box& box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
-    string keyword = splitted[1];
-    int nsteps = stod(splitted[2]);
+    std::string keyword = splitted[1];
+    int nsteps = std::stod(splitted[2]);
     if(keyword == "mc"){
         assert(argc > 3);
-        int nmoves = stod(splitted[3]);
+        int nmoves = std::stod(splitted[3]);
         box.run_mc(nsteps, nmoves);
     }
+    /*
     else if(keyword == "md"){
         box.run_md(nsteps);
     }
+    */
     else{
-        cout << "Keyword '" + keyword + "' is not known! Aborting." << endl;
+        std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
 }
 
-void thermo(Box& box, const vector<string> splitted, const int argc)
+void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
 {
     /* Thermo output
      */
     assert(argc > 3);
     int freq = stoi(splitted[1]);
-    string filename = splitted[2];
-    vector<string> outputs;
+    std::string filename = splitted[2];
+    std::vector<std::string> outputs;
     for(int i=3; i<argc; i++){
         outputs.push_back(splitted[i]);
     }
     box.set_thermo(freq, filename, outputs);
 }
 
-void dump(Box& box, const vector<string> splitted, const int argc)
+void dump(Box& box, const std::vector<std::string> splitted, const int argc)
 {
     /* Dump output
      */
     assert(argc > 3);
-    int freq = stoi(splitted[1]);
-    string filename = splitted[2];
-    vector<string> outputs;
+    int freq = std::stoi(splitted[1]);
+    std::string filename = splitted[2];
+    std::vector<std::string> outputs;
     for(int i=3; i<argc; i++){
         outputs.push_back(splitted[i]);
     }

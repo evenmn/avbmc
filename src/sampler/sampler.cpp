@@ -6,15 +6,18 @@ Sampler::Sampler(class Box* box_in)
 {
     box = box_in;
     rng = box->rng;
+
+    acceptance_ratio = 0.;
+    move_idx = NAN;
 }
 
-class Moves* Sampler::propose_move(vector<class Moves*> moves, vector<double> moves_prob)
+class Moves* Sampler::propose_move(vector<class Moves*> moves, std::vector<double> moves_prob)
 {
     /* Given a vector of moves and a vector of corresponding
      * probabilities, returning move
      */
-    int i = rng->choice(moves_prob);
-    return moves[i];
+    move_idx = rng->choice(moves_prob);
+    return moves[move_idx];
 }
 
 bool Sampler::accept_move(class Moves* move, double temp, double chempot)
@@ -26,10 +29,11 @@ bool Sampler::accept_move(class Moves* move, double temp, double chempot)
      */
 
     // check boundary condition
-    bool accept_boundary = box->boundary->correct_position(box->positions);
+    bool accept_boundary = box->boundary->correct_position();
 
     // check sampler condition
     double p = get_acceptance_prob(move, temp, chempot);
+    std::cout << p << std::endl;
     bool accept_sampler = p > rng->next_double();
 
     // utilize the principe of an AND gate
@@ -49,11 +53,12 @@ void Sampler::sample(int nmoves)
     // sample nmoves moves
     for(int i=0; i<nmoves; i++){
         move = propose_move(box->moves, box->moves_prob);
-        int j = rng->next_int(box->npar); // might move back to moves
-        move->perform_move(j);
+        move->perform_move();
         accepted = accept_move(move, box->temp, box->chempot);
-        if(accepted){
-            move->update_box(j);
+        if(!accepted){
+            move->reset();
+        }
+        else{
             acceptance_counter ++;
         }
     }
