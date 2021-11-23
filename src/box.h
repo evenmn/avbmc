@@ -11,7 +11,6 @@
 #include "io.h"
 #include "dump.h"
 #include "thermo.h"
-#include "particle.h"
 //#include "init_velocity.h"
 #include "rng/mersennetwister.h"
 #include "forcefield/lennardjones.h"
@@ -38,9 +37,9 @@ public:
     void set_mass(const std::string label, const double mass);
 
     void add_move(class Moves* move, const double prob);
-    void add_particle(Particle *particle);
+    void add_particle(class Particle *particle);
     void add_particle(const std::string label, const std::valarray<double> r);
-    void add_particles(std::vector<Particle *> particles);
+    void add_particles(std::vector<class Particle *> particles);
     //void add_particles(const string chem_symbol, const mat positions_in);
     //void add_particles(const string chem_symbol, const mat positions_in, const mat velocities_in);
     //void add_particles(const vector<string> chem_symbols_in, const mat positions_in);

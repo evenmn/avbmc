@@ -7,7 +7,7 @@ class AVBMCOut : virtual public Moves
 public:
     AVBMCOut(class Box* box_in, const double r_above_in=3.0);
     void perform_move();
-    double accept();
+    double accept(double, double);
     void reset();
 
 private:

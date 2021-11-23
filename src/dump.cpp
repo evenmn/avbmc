@@ -1,5 +1,6 @@
 #include "dump.h"
 #include "../box.h"
+#include "../particle.h"
 
 
 auto x = [] (class Box *box) -> double ** {
@@ -182,28 +183,44 @@ void Dump::print_frame()
     /* Print thermo output at the current
      * step
      */
-    if(box->step % freq == 0 && freq != 0){
-        double** dump_data = new double*[box->npar];
-        for(int i = 0; i<box->npar; i++){
-            dump_data[i] = new double[nvar];
-        }
-        int o = 0;
-        int cum_nvar = 0;
-        for(auto func : output_functions){
-            double **tmp_data = func(box);
-            for(int i=0; i<box->npar; i++){
-                for(int j=0; j<nvars[o]; j++){
-                    dump_data[i][cum_nvar + j] = tmp_data[i][j];
-                }
+    if(freq != 0){
+        if(box->step % freq == 0){
+            // create array for all data to dump
+            double** dump_data = new double*[box->npar];
+            for(int i = 0; i<box->npar; i++){
+                dump_data[i] = new double[nvar];
             }
-            cum_nvar += nvars[o];
-            o ++;
-        }
-        std::vector<std::string> labels;
-        for(Particle* particle : box->particles)
-            labels.push_back(particle->label);
 
-        write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
+            // fill up array 
+            int o = 0;
+            int cum_nvar = 0;
+            for(auto func : output_functions){
+                double **tmp_data = func(box);
+                for(int i=0; i<box->npar; i++){
+                    for(int j=0; j<nvars[o]; j++){
+                        dump_data[i][cum_nvar + j] = tmp_data[i][j];
+                    }
+                    free(tmp_data[i]);
+                }
+                free(tmp_data);
+                cum_nvar += nvars[o];
+                o ++;
+            }
+
+            // get labels
+            std::vector<std::string> labels;
+            for(Particle* particle : box->particles)
+                labels.push_back(particle->label);
+
+            // write to file
+            write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
+
+            // free memory
+            for(int i = 0; i<box->npar; i++){
+                free(dump_data[i]);
+            }
+            free(dump_data);
+        }
     }
 }
 

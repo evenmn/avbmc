@@ -1,5 +1,6 @@
 #include "forcefield.h"
 #include "../box.h"
+#include "../particle.h"
 
 ForceField::ForceField(class Box* box_in)
 {
@@ -182,6 +183,12 @@ std::vector<int> ForceField::build_neigh_list(const int i, const double r_sqrd)
     std::valarray<double> posi = box->particles[i]->r;
     std::vector<int> neigh_list;
     for(int j=0; j<i; j++){
+        sdist = std::pow(box->particles[j]->r - posi, 2).sum();
+        if(sdist < r_sqrd){
+            neigh_list.push_back(j);
+        }
+    }
+    for(int j=i+1; j<box->npar; j++){
         sdist = std::pow(box->particles[j]->r - posi, 2).sum();
         if(sdist < r_sqrd){
             neigh_list.push_back(j);

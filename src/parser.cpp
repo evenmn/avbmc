@@ -322,8 +322,11 @@ void add(Box& box, const vector<string> splitted, const int argc)
     }
     else if(keyword == "particle"){
         assert(argc > 3);
-        Particle* particle;
-        particle->label = splitted[2];
+        //std::cout << "particle1" << std::endl;
+        //Particle* particle;
+        //std::cout << "particle2" << std::endl;
+        //particle->label = splitted[2];
+        //std::cout << "particle3" << std::endl;
         std::string label = splitted[2];
         double x = std::stod(splitted[3]);
         if(argc == 4){
@@ -341,17 +344,8 @@ void add(Box& box, const vector<string> splitted, const int argc)
             // assuming 3d
             double y = std::stod(splitted[4]);
             double z = std::stod(splitted[5]);
-            std::cout << "Here3" << std::endl;
-            std::valarray<double> r = {x, y, z}; // initializer list supported after C++11
-            std::cout << "Here32" << std::endl;
-            std::cout << particle->r.size() << std::endl;
-            particle->r.resize(3);
-            std::cout << particle->r.size() << std::endl;
-            std::cout << "Here33" << std::endl;
-            //particle->r = r;
-            std::cout << "Here4" << std::endl;
-            box.add_particle(particle);
-            std::cout << "Here5" << std::endl;
+            std::valarray<double> r = {x, y, z};  // initializer list supported after C++11
+            box.add_particle(label, r);
         }
     }
     else if(keyword == "particles"){
@@ -362,18 +356,17 @@ void add(Box& box, const vector<string> splitted, const int argc)
             std::string label = splitted[3];
             int ncell = std::stoi(splitted[4]);
             double lenbulk = std::stod(splitted[5]);
-            std::vector<Particle *> particles_in;
+            std::vector<std::valarray<double> > positions;
             if(argc == 6){
-                particles_in = fcc(ncell, lenbulk);
+                positions = fcc(ncell, lenbulk);
             }
             else{
                 int ndim = std::stoi(splitted[6]);
-                particles_in = fcc(ncell, lenbulk, ndim);
+                positions = fcc(ncell, lenbulk, ndim);
             }
-            for(Particle *particle : particles_in){
-                particle->label = label;
+            for(std::valarray<double> position : positions){
+                box.add_particle(label, position);
             }
-            box.add_particles(particles_in);
         }
         else if(init_type == "xyz"){
             std::string filename = splitted[3];

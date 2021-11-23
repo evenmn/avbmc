@@ -12,13 +12,13 @@ void Stillinger::update()
 {
     /* Update neighbor lists of all particles
      */
+    neigh_lists.clear();
     for(int i=0; i<box->npar; i++){
-        cout << "i: " << i << endl;
         neigh_lists.push_back(box->forcefield->build_neigh_list(i, r_c));
     }
 }
 
-void Stillinger::check(const int i, std::valarray<bool> &in_cluster, std::valarray<bool> &checked)
+void Stillinger::check(const int i, std::valarray<int> &in_cluster, std::valarray<int> &checked)
 {
     /* Check if particles are in cluster. 'checked' contains
      * information about which atoms that we have checked 
@@ -26,15 +26,11 @@ void Stillinger::check(const int i, std::valarray<bool> &in_cluster, std::valarr
      * 'in_cluster' contains informations about which 
      * particles that are part of cluster
      */
-    cout << i << endl;
-    cout << in_cluster.size() << endl;
-    cout << checked.size() << endl;
     if(!checked[i]){
-        checked[i] = true;
-        in_cluster[i] = true;
+        checked[i] = 1;
+        in_cluster[i] = 1;
         for(int j : neigh_lists[i]){
-            cout << "j: " << j << endl;
-            in_cluster[j] = true;
+            in_cluster[j] = 1;
         }
         for(int j : neigh_lists[i]){
             check(j, in_cluster, checked);
@@ -51,14 +47,12 @@ bool Stillinger::correct_position()
      * simulations should abort in the same case.
      */
 
-    std::valarray<bool> in_cluster(false, box->npar);
-    std::valarray<bool> checked(false, box->npar);
-    cout << "correct_position1" << endl;
+    std::valarray<int> in_cluster(0, box->npar);
+    std::valarray<int> checked(0, box->npar);
     update();
     
-    cout << "correct_position2" << endl;
     check(0, in_cluster, checked);
-    cout << "correct_position3" << endl;
+
     if(in_cluster.sum() == box->npar){
         return true;
     }

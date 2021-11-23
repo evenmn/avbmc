@@ -1,5 +1,6 @@
 #include "lennardjones.h"
 #include "../box.h"
+#include "../particle.h"
 
 LennardJones::LennardJones(class Box* box_in)
     : ForceField(box_in)
@@ -85,12 +86,14 @@ void LennardJones::sort_params()
     }
 
     // fill up matrices with parameters
-    sigma_mat = (double**) malloc(sizeof(double*) * box->ntype * box->ntype);
-    epsilon_mat = (double**) malloc(sizeof(double*) * box->ntype * box->ntype);
-    rc_sqrd_mat = (double**) malloc(sizeof(double*) * box->ntype * box->ntype);
-    //sigma_mat.zeros(box->ntype, box->ntype);
-    //epsilon_mat.zeros(box->ntype, box->ntype);
-    //rc_sqrd_mat.zeros(box->ntype, box->ntype);
+    sigma_mat = new double*[box->ntype];
+    epsilon_mat = new double*[box->ntype];
+    rc_sqrd_mat = new double*[box->ntype];
+    for(int i=0; i<box->ntype; i++){
+        sigma_mat[i] = new double[box->ntype];
+        epsilon_mat[i] = new double[box->ntype];
+        rc_sqrd_mat[i] = new double[box->ntype];
+    }
     
     int type1, type2;
     for(int i=0; i<nline; i++){
@@ -226,8 +229,8 @@ double LennardJones::comp_energy_par(const std::vector<class Particle *> particl
     double energy = 0;
     for(Particle *particle : particles){
         sdist = std::pow(particle->r - posi, 2).sum();
-        if(sdist < rc_sqrd_mat[typei][particle->type]){
-            ss6 = pow(sigma_mat[typei][particle->type] / sdist, 3);
+        if(1e-5 < sdist && sdist < rc_sqrd_mat[typei][particle->type]){
+            ss6 = std::pow(sigma_mat[typei][particle->type] / sdist, 3);
             ss12 = ss6 * ss6;
             energy += epsilon_mat[typei][particle->type] * (ss12 - ss6);
         }
@@ -358,10 +361,11 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
     return energy_cum;
 }
 */
-
+/*
 LennardJones::~LennardJones()
 {
     free (sigma_mat);
     free (epsilon_mat);
     free (rc_sqrd_mat);
 }
+*/

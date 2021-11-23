@@ -24,15 +24,15 @@ void AVBMC::perform_move()
     }
 }
 
-double AVBMC::accept()
+double AVBMC::accept(double temp, double chempot)
 {
     /* 
      */
     if(move_in){
-        return AVBMCIn::accept();
+        return AVBMCIn::accept(temp, chempot);
     }
     else{
-        return AVBMCOut::accept();
+        return AVBMCOut::accept(temp, chempot);
     }
 }
 

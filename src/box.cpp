@@ -1,4 +1,5 @@
 #include "box.h"
+#include "particle.h"
 
 Box::Box(string working_dir_in, double temp_in, double chempot_in)
 {
@@ -97,24 +98,14 @@ void Box::add_particle(class Particle* particle)
     particles.push_back(particle);
 }
 
-void Box::add_particle(const std::string label, const std::valarray<double> r_)
+void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
     /*
      */
     npar ++;
-    ndim = r_.size();
-    Particle *particle;
-    particle->label = label;
-    std::valarray<double> x(1, 3);
-    std::cout << "add_particle4" << std::endl;
-    particle->r.resize(3, 2);
-    std::cout << "add_particle3" << std::endl;
-    particle->r = x;
-    std::cout << "add_particle5" << std::endl;
-    particle->r = r_;
-    std::cout << "add_particle6" << std::endl;
+    ndim = r.size();
+    Particle *particle = new Particle(label, r);
     particles.push_back(particle);
-    std::cout << "add_particle7" << std::endl;
 }
 
 void Box::add_particles(std::vector<Particle *> particles_in)
@@ -270,14 +261,6 @@ void Box::init_simulation()
 {
     /* Initialize variables needed before simulation.
      */
-
-    // compute initial acceleration
-    cout << "init_simulation1" << endl;
-    //forcefield->initialize();
-    cout << "init_simulation2" << endl;
-    //boundary->update();
-    cout << "init_simulation3" << endl;
-
     thermo->print_header();
 }
 

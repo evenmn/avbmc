@@ -8,7 +8,6 @@ Sampler::Sampler(class Box* box_in)
     rng = box->rng;
 
     acceptance_ratio = 0.;
-    move_idx = NAN;
 }
 
 class Moves* Sampler::propose_move(vector<class Moves*> moves, std::vector<double> moves_prob)
@@ -33,7 +32,6 @@ bool Sampler::accept_move(class Moves* move, double temp, double chempot)
 
     // check sampler condition
     double p = get_acceptance_prob(move, temp, chempot);
-    std::cout << p << std::endl;
     bool accept_sampler = p > rng->next_double();
 
     // utilize the principe of an AND gate

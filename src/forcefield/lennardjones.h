@@ -17,7 +17,7 @@ public:
     double comp_energy_par(const std::vector<class Particle *> particles, const int i);
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
-    ~LennardJones();
+    //~LennardJones();
 
     //std::vector<int> build_neigh_list(const mat positions, const int i);
     //void build_neigh_lists();

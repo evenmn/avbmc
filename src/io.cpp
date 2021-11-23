@@ -42,13 +42,11 @@ std::vector<Particle *> read_xyz(const std::string filename)
                     // count number of dimensions
                     ndim = splitted.size() - 1;
                 }
-                Particle *particle;
-                particle->label = splitted[0];
                 std::valarray<double> tmp_r(ndim);
                 for(int i=0; i<ndim; i++){
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
-                particle->r = tmp_r;
+                Particle *particle = new Particle(splitted[0], tmp_r);
             }
             line_num ++;
         }

@@ -11,7 +11,7 @@ public:
 
     // declare pure virtual functions
     virtual void perform_move() = 0;
-    virtual double accept() = 0;
+    virtual double accept(double, double) = 0;
     virtual void reset() = 0;
     virtual ~Moves() = default;
 
