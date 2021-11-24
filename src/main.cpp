@@ -4,12 +4,9 @@
 #include <vector>
 
 #include "box.h"
-#include "init_position.h"
 #include "forcefield/lennardjones.h"
-//#include "integrator/euler.h"
-#include "sampler/metropolis.h"
+#include "sampler/umbrella.h"
 #include "moves/trans.h"
-//#include "moves/transmh.h"
 #include "moves/avbmc.h"
 
 using namespace std;
@@ -18,27 +15,31 @@ using namespace std;
 int main()
 {
     // initialize box
-    Box box("simulation", 300., 0.);
+    Box box("simulation");
+    box.set_temp(0.7);
+    box.set_chempot(-1.3);
 
-    // initialize particles
-    std::valarray<double> r1(1, 3);
-    box.add_particle("Ar", r1);
-    //std::valarray<double> r2(2, 3);
-    //box.add_particle("Ar", r2);
+    // initialize particle at (0, 0, 0)
+    box.add_particle("Ar", {0, 0, 0});
     box.set_mass("Ar", 1.);
+    box.set_forcefield(new LennardJones(&box, "params.lj"));
 
-    box.snapshot("initial.xyz");
-    
-    // run Monte Carlo
-    box.set_sampler(new Metropolis(&box));
-    box.add_move(new Trans(&box, 0.1), 0.94);
+    // initialize Monte Carlo
+    double k = 0.007;
+    double nc = 32.;
+    auto f = [nc, k] (const int n) { return (k * (n - nc) * (n - nc)); };
+    box.set_sampler(new Umbrella(&box, f));
+    box.add_move(new Trans(&box, 0.01), 0.94);
     box.add_move(new AVBMC(&box, 0.9, 1.5), 0.06);
-    std::vector<std::string> outputs_dump = {"xyz"}; //, "acceptance_ratio"};
-    box.set_dump(1, "mc.xyz", outputs_dump);
-    std::vector<std::string> outputs_thermo = {"step", "atoms", "poteng"}; //, "acceptance_ratio"};
-    box.set_thermo(1, "mc.log", outputs_thermo);
-    box.run_mc(100000, 1);
-    //box.snapshot("final.xyz");
+
+    // set outputs
+    box.set_dump(1, "mc.xyz", {"x", "y", "z"});
+    box.set_thermo(1, "mc.log", {"step", "atoms", "poteng", "acceptanceratio"});
+
+    // run Monte Carlo simulation
+    box.snapshot("initial.xyz");
+    box.run_mc(10000, 1);
+    box.snapshot("final.xyz");
     
     return 0;
 }

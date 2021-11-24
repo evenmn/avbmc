@@ -23,7 +23,7 @@ AVBMCIn::AVBMCIn(class Box* box_in, const double r_below_in, const double r_abov
 
 void AVBMCIn::perform_move()
 {
-    /* Remove a random particle from the bonded region
+    /* Insert particle into the bonded region
      * of particle i
      */
 
@@ -46,7 +46,7 @@ void AVBMCIn::perform_move()
     double norm_ = norm(dr);
     while(norm_ > r_above2 || norm_ < r_below2){
         for(double &d : dr){
-            d = box->rng->next_double();
+            d = 2 * box->rng->next_double() - 1;
         }
         norm_ = norm(dr);
     }
