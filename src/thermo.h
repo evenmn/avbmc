@@ -1,18 +1,17 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <vector>
-#include <armadillo>
 
 using namespace std;
-using namespace arma;
 
 
 class Thermo
 {
 public:
-    Thermo(class Box* box_in, const int freq_in, const string filename, const vector<string> outputs_in);
+    Thermo(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in);
     void print_line();
     void print_header();
     ~Thermo();
@@ -20,8 +19,8 @@ public:
 private:
     class Box* box = nullptr;
 
-    vector<function<double(class Box*)> > output_functions;
-    vector<string> outputs;
+    std::vector<std::function<double(class Box*)> > output_functions;
+    std::vector<std::string> outputs;
 
     int freq;
 

@@ -5,7 +5,7 @@
 AVBMC::AVBMC(class Box* box_in, const double r_below_in, const double r_above_in)
     : AVBMCIn(box_in, r_below_in, r_above_in), AVBMCOut(box_in, r_above_in), Moves(box_in) {}
 
-void AVBMC::perform_move(const int i)
+void AVBMC::perform_move()
 {
     /* Pick in or out with the same probability
      */
@@ -17,33 +17,31 @@ void AVBMC::perform_move(const int i)
         move_in = AVBMCIn::box->rng->next_int(2);
     }
     if(move_in){
-        AVBMCIn::perform_move(i);
+        AVBMCIn::perform_move();
     }
     else{
-        AVBMCOut::perform_move(i);
+        AVBMCOut::perform_move();
     }
 }
 
-double AVBMC::accept()
+double AVBMC::accept(double temp, double chempot)
 {
     /* 
      */
     if(move_in){
-        return AVBMCIn::accept();
+        return AVBMCIn::accept(temp, chempot);
     }
     else{
-        return AVBMCOut::accept();
+        return AVBMCOut::accept(temp, chempot);
     }
 }
 
-void AVBMC::update_box(const int i)
+void AVBMC::reset()
 {
-    /*
-     */
     if(move_in){
-        AVBMCIn::update_box(i);
+        AVBMCIn::reset();
     }
     else{
-        AVBMCOut::update_box(i);
+        AVBMCOut::reset();
     }
 }

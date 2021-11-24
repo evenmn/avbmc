@@ -1,5 +1,6 @@
 #include "trans.h"
 #include "../box.h"
+#include "../particle.h"
 
 
 Trans::Trans(class Box* box_in, double dx_in)
@@ -8,37 +9,29 @@ Trans::Trans(class Box* box_in, double dx_in)
     dx = dx_in;
 }
 
-void Trans::perform_move(const int i)
+void Trans::perform_move()
 {
-    /* Propose naive translation
-     * move
+    /* Propose naive translation move of particle i
      */
 
-    // declare variables
-    mat pos_copy = box->positions;
-    rowvec dr(3), a0;
-    double u0;
-
-    // get acceleration and potential
-    // energy of picked particle
-    a0 = box->accelerations.row(i);
-    u0 = box->potengs(i);
+    // compute initial energy contribution from particle i
+    i = box->rng->next_int(box->npar);
+    double u0 = box->forcefield->comp_energy_par(box->particles, i);
 
     // move particle i
-    for(double &j : dr){
+    std::valarray<double> dr(box->ndim);
+    for(double &j : dr)
         j = rng->next_double();
-    }
-    dr *= dx / norm(dr);
-    eps = 2 * (rng->next_double() - 0.5) * dr; 
-    pos_copy.row(i) += eps;
+    pos_old = box->particles[i]->r;
+    box->particles[i]->r += 2 * (rng->next_double() - 0.5) * dx * dr;
 
-    // compute new acceleration and potential energy
-    u1 = box->forcefield->eval_acc_par(pos_copy, i, a1, true);
-    box->sampler->da = a1 - a0;
+    // compute new energy contribution from particle i
+    double u1 = box->forcefield->comp_energy_par(box->particles, i);
     box->sampler->du = u1 - u0;
+    box->poteng += box->sampler->du;
 }
 
-double Trans::accept()
+double Trans::accept(double /*temp*/, double /*chempot*/)
 {
     /* Gives the ratio between the translation
      * probabilities Tij and Tji. For the 
@@ -47,12 +40,10 @@ double Trans::accept()
     return 1.;
 }
 
-void Trans::update_box(const int i)
+void Trans::reset()
 {
-    /* Update global (box) variables
+    /* Set back to initial state if move is rejected
      */
-    box->positions.row(i) += eps;;
-    box->accelerations.row(i) = a1;
-    box->potengs(i) = u1;
-    box->poteng += box->sampler->du;
+    box->particles[i]->r = pos_old;
+    box->poteng -= box->sampler->du;
 }

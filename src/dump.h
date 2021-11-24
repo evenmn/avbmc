@@ -1,28 +1,28 @@
 #pragma once
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <vector>
-#include <armadillo>
 
 using namespace std;
-using namespace arma;
 
 
 class Dump
 {
 public:
-    Dump(class Box* box_in, const int freq_in, const string filename, const vector<string> outputs_in);
+    Dump(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in);
     void print_frame();
     ~Dump();
 
 private:
     class Box* box = nullptr;
 
-    vector<function<mat(class Box*)>> output_functions;
-    vector<string> outputs;
+    std::vector<std::function<double **(class Box*)> > output_functions;
+    std::vector<std::string> outputs;
+    std::vector<int> nvars;
 
-    int freq;
-    ofstream f;
-    string info_line;
+    int freq, nvar;
+    std::ofstream f;
+    std::string info_line;
 };

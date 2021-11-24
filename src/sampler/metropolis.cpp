@@ -10,5 +10,5 @@ double Metropolis::get_acceptance_prob(class Moves* move, double temp, double ch
 {
     /* Get acceptance probability of Metropolis sampling
      */
-    return move->accept() * exp((du + chempot)/temp);
+    return move->accept(temp, chempot) * std::exp(-du/temp);
 }

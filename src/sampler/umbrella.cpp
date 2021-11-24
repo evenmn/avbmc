@@ -29,9 +29,9 @@ double Umbrella::get_acceptance_prob(class Moves* move, double temp, double chem
      */
     int npar = box->npar;
     if(npar < maxpar){
-        return move->accept() * tabulated[npar] * exp((du + chempot)/temp);
+        return move->accept(chempot, temp) * tabulated[npar] * std::exp(-du/temp);
     }
     else{
-        return move->accept() * f(npar) * exp((du + chempot)/temp);
+        return move->accept(chempot, temp) * f(npar) * std::exp(-du/temp);
     }
 }
