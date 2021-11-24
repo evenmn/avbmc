@@ -200,9 +200,9 @@ void Dump::print_frame()
                     for(int j=0; j<nvars[o]; j++){
                         dump_data[i][cum_nvar + j] = tmp_data[i][j];
                     }
-                    free(tmp_data[i]);
+                    delete (tmp_data[i]);
                 }
-                free(tmp_data);
+                delete [] tmp_data;
                 cum_nvar += nvars[o];
                 o ++;
             }
@@ -217,9 +217,9 @@ void Dump::print_frame()
 
             // free memory
             for(int i = 0; i<box->npar; i++){
-                free(dump_data[i]);
+                delete (dump_data[i]);
             }
-            free(dump_data);
+            delete [] dump_data;
         }
     }
 }
