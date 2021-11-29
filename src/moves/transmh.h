@@ -12,6 +12,6 @@ public:
     void update_box(const int i);
 
 private:
-    double dx, Ddt, u1;
-    rowvec eps, a1;
+    double dx, Ddt;
+    rowvec eps, da;
 };

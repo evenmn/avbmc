@@ -79,7 +79,7 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
         box.set_mass(label, mass);
     }
     else if(keyword == "forcefield"){
-        assert(argc > 2);
+        assert(argc > 3);
         std::string forcefield = splitted[2];
         std::string paramfile = splitted[3];
         if(forcefield == "lennardjones"){
@@ -145,10 +145,9 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
             box.set_sampler(new Metropolis(&box));
         }
         else if(sampler == "umbrella"){
-            assert(argc > 3);
+            assert(argc > 6);
             std::string umbrella_type = splitted[3];
             if(umbrella_type == "poly"){
-                assert(argc > 6);
                 double a = std::stod(splitted[4]);
                 double b = std::stod(splitted[5]);
                 double c = std::stod(splitted[6]);
@@ -156,10 +155,10 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
                 box.set_sampler(new Umbrella(&box, f));
             }
             else if(umbrella_type == "square"){
-                assert(argc > 5);
                 double nc = std::stod(splitted[4]);
                 double k = std::stod(splitted[5]);
-                auto f = [nc, k] (const int n) { return (k * (n - nc) * (n - nc)); };
+                double nv = std::stod(splitted[6]);
+                auto f = [nc, k, nv] (const int n) { return (k * (n - nc) * (n - nc)) + nv; };
                 box.set_sampler(new Umbrella(&box, f));
             }
             else{

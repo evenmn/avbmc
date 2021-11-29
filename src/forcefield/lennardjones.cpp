@@ -30,6 +30,7 @@ void LennardJones::read_param_file(const std::string params)
      * <label1> <label2> <sigma> <epsilon> <rc>
      */
 
+    nline = 0;
     std::ifstream infile(params);
     std::string line, label1, label2;
     double sigma, epsilon, rc;
@@ -46,9 +47,10 @@ void LennardJones::read_param_file(const std::string params)
             sigma_vec.push_back(sigma);
             epsilon_vec.push_back(epsilon);
             rc_vec.push_back(rc);
+            nline ++;
         }
         else{
-            std::cout << "Warning: Could not read line in parameter file" << std::endl;
+            std::cout << "Warning: Corrupt line in parameter file" << std::endl;
             std::cout << "Line: " + line << std::endl;
         }
     }
@@ -85,7 +87,7 @@ void LennardJones::sort_params()
         assert(assigned);
     }
 
-    // fill up matrices with parameters
+    // allocate memory for matrices
     sigma_mat = new double*[box->ntype];
     epsilon_mat = new double*[box->ntype];
     rc_sqrd_mat = new double*[box->ntype];
@@ -94,7 +96,7 @@ void LennardJones::sort_params()
         epsilon_mat[i] = new double[box->ntype];
         rc_sqrd_mat[i] = new double[box->ntype];
     }
-    
+    // fill up matrices with parameters
     int type1, type2;
     for(int i=0; i<nline; i++){
         type1 = types1_vec[i];
@@ -217,18 +219,17 @@ std::vector<class Particle *> LennardJones::build_neigh_list(const std::vector<c
 }
 */
 
-double LennardJones::comp_energy_par(const std::vector<class Particle *> particles, const int i)
+double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
     /*
      */
     // declare variables
     int typei = particles[i]->type; 
     double sdist, ss6, ss12;
-    std::valarray<double> posi = particles[i]->r;
 
     double energy = 0;
-    for(Particle *particle : particles){
-        sdist = std::pow(particle->r - posi, 2).sum();
+    for(Particle* particle : particles){
+        sdist = std::pow(particle->r - particles[i]->r, 2).sum();
         if(1e-5 < sdist && sdist < rc_sqrd_mat[typei][particle->type]){
             ss6 = std::pow(sigma_mat[typei][particle->type] / sdist, 3);
             ss12 = ss6 * ss6;
@@ -361,11 +362,16 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
     return energy_cum;
 }
 */
-/*
+
 LennardJones::~LennardJones()
 {
-    free (sigma_mat);
-    free (epsilon_mat);
-    free (rc_sqrd_mat);
+    for(int i = 0; i < box->ntype; i++){
+        delete (sigma_mat[i]);
+        delete (epsilon_mat[i]);
+        delete (rc_sqrd_mat[i]);
+    }
+    delete (sigma_mat);
+    delete (epsilon_mat);
+    delete (rc_sqrd_mat);
 }
-*/
+

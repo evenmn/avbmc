@@ -3,7 +3,7 @@
 #include "../particle.h"
 
 
-Trans::Trans(class Box* box_in, double dx_in)
+Trans::Trans(Box* box_in, double dx_in)
     : Moves(box_in) 
 {
     dx = dx_in;
@@ -27,23 +27,23 @@ void Trans::perform_move()
 
     // compute new energy contribution from particle i
     double u1 = box->forcefield->comp_energy_par(box->particles, i);
-    box->sampler->du = u1 - u0;
-    box->poteng += box->sampler->du;
+    du = u1 - u0;
+    box->poteng += du;
 }
 
-double Trans::accept(double /*temp*/, double /*chempot*/)
+double Trans::accept(double temp, double /*chempot*/)
 {
-    /* Gives the ratio between the translation
-     * probabilities Tij and Tji. For the 
-     * naive case, Tij = Tji.
+     /* Gives the acceptance probability
+      * of the translational move
      */
-    return 1.;
+    return std::exp(-du/temp);
 }
 
 void Trans::reset()
 {
-    /* Set back to initial state if move is rejected
+    /* Set back to old state if 
+     * move is rejected
      */
     box->particles[i]->r = pos_old;
-    box->poteng -= box->sampler->du;
+    box->poteng -= du;
 }
