@@ -3,9 +3,9 @@
 # of moves
 
 # initialize box
-set temp 1.
-set chempot 0.
-set boundary stillinger 2.
+set temp 0.7
+set chempot -1.3
+set boundary stillinger 1.5
 
 # initialize positions
 add particle Ar 0. 0. 0.
@@ -13,13 +13,15 @@ set mass Ar 1.
 set forcefield lennardjones params.lj
 
 # initialize Monte Carlo
-set sampler umbrella square 0.5 35. 0.
-add move trans 0.5 0.1
-add move avbmc 0.5 0.95 3.0
+set sampler umbrella square 32. 0.02 0.0
+add move trans 0.66 0.01
+add move avbmc 0.34 0.95 1.5
 
-# initialize simulation
+# set outputs
 thermo 1 mc.log step atoms poteng acceptanceratio
 dump 1 mc.xyz x y z
+
+# run Monte Carlo simulation
 take snapshot initial.xyz
-run mc 100 1000
+run mc 200000 1
 take snapshot final.xyz
