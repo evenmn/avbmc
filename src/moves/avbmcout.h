@@ -12,7 +12,7 @@ public:
 
 private:
     bool not_accept;
-    int n_in;
+    int n_in, npar_prev_prev;
     double r_above, r_above2, v_in;
     class Particle * particle_out;
 };

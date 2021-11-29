@@ -17,6 +17,7 @@ public:
 
 protected:
     double pi = 3.14159265358979323846;
+    double du;
 
     class Box* box = nullptr;
     class RandomNumberGenerator* rng = nullptr;

@@ -3,11 +3,11 @@
 #include "../particle.h"
 
 
-AVBMCIn::AVBMCIn(class Box* box_in, const double r_below_in, const double r_above_in)
+AVBMCIn::AVBMCIn(Box* box_in, const double r_below_in, const double r_above_in)
     : Moves(box_in)
 {
-    /* Aggregate-volume-biased out move. 
-     * This is a fictitious inter-box move, and work is the
+    /* Aggregate-volume-biased in move. 
+     * This is a fictitious inter-box move, and works in the
      * grand canonical essemble only
      */
 
@@ -15,10 +15,10 @@ AVBMCIn::AVBMCIn(class Box* box_in, const double r_below_in, const double r_abov
     r_above = r_above_in;
     r_above2 = r_above * r_above;
     r_below2 = r_below * r_below;
-    v_in = 4 * pi * std::pow(r_above, 3)/3;
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 
-    type = 0;
-    label = "Ar";
+    type = 0;      // type and label of inserted particle
+    label = "Ar";  // this has to be generalized
 }
 
 void AVBMCIn::perform_move()
@@ -27,7 +27,7 @@ void AVBMCIn::perform_move()
      * of particle i
      */
 
-    // create local neighbor list of particle i
+    // pick particle i and create local neighbor list of particle
     int i = box->rng->next_int(box->npar);
     std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
     n_in = neigh_listi.size();
@@ -56,21 +56,24 @@ void AVBMCIn::perform_move()
     box->npar ++;
 
     // compute du
-    box->sampler->du = box->forcefield->comp_energy_par(box->particles, box->npar - 1);
-    box->poteng += box->sampler->du;
+    du = box->forcefield->comp_energy_par(box->particles, box->npar - 1);
+    box->poteng += du;
 }
 
 double AVBMCIn::accept(double temp, double chempot)
 {
-    /* Get pre-exponential factor of Boltzmann
-     * ratio
+    /* Get acceptance probability of move
      */
-    return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(chempot/temp);
+    double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar-1);
+    return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(-(du-chempot+dw)/temp);
 }
 
 void AVBMCIn::reset()
 {
+    /* Set back to old state is move
+     * is rejected
+     */
     box->npar --;
-    box->poteng -= box->sampler->du;
+    box->poteng -= du;
     box->particles.erase(box->particles.begin() + box->npar);
 }

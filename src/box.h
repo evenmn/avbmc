@@ -67,15 +67,9 @@ public:
     class Boundary* boundary = nullptr;
     //class Velocity* velocity = nullptr;
 
-    int npar, ndim, ntype, nmove, step;
+    int npar, ndim, ntype, nmove, step, npar_prev;
     double temp, chempot, poteng, time;
 
-    // matrices of dimensionality (npar, ndim)
-    //mat positions, velocities, accelerations;
-
-    //vector<string> chem_symbols;
-    //vector<int> particle_types;
-    //vector<double> particle_masses;
     std::vector<class Particle *> particles;
     std::vector<std::string> unique_labels;
     std::vector<double> unique_masses;

@@ -1,5 +1,4 @@
 #pragma once
-//#include <cmath>
 #include "moves.h"
 
 
@@ -12,8 +11,7 @@ public:
     void reset();
 
 private:
-    int n_in, type;
+    int n_in, type, npar_prev_prev;
     double r_below, r_above, r_below2, r_above2, v_in;
     std::string label;
-    //class Particle* particle_in = nullptr;
 };

@@ -2,7 +2,7 @@
 #include "../box.h"
 #include "../moves/moves.h"
 
-Sampler::Sampler(class Box* box_in)
+Sampler::Sampler(Box* box_in)
 {
     box = box_in;
     rng = box->rng;
@@ -10,7 +10,7 @@ Sampler::Sampler(class Box* box_in)
     acceptance_ratio = 0.;
 }
 
-class Moves* Sampler::propose_move(vector<class Moves*> moves, std::vector<double> moves_prob)
+class Moves* Sampler::propose_move(std::vector<Moves*> moves, std::vector<double> moves_prob)
 {
     /* Given a vector of moves and a vector of corresponding
      * probabilities, returning move
@@ -19,7 +19,7 @@ class Moves* Sampler::propose_move(vector<class Moves*> moves, std::vector<doubl
     return moves[move_idx];
 }
 
-bool Sampler::accept_move(class Moves* move, double temp, double chempot)
+bool Sampler::accept_move(Moves* move, double temp, double chempot)
 {
     /* Decide if move should be accepted or rejected.
      * This is done in two steps:
@@ -30,9 +30,8 @@ bool Sampler::accept_move(class Moves* move, double temp, double chempot)
     // check boundary condition
     bool accept_boundary = box->boundary->correct_position();
 
-    // check sampler condition
-    double p = get_acceptance_prob(move, temp, chempot);
-    bool accept_sampler = p > rng->next_double();
+    // check move acceptance probability
+    bool accept_sampler = move->accept(temp, chempot) > rng->next_double();
 
     // utilize the principe of an AND gate
     return accept_boundary * accept_sampler;
@@ -44,16 +43,13 @@ void Sampler::sample(int nmoves)
      */
 
     // declare variables
-    bool accepted;
     int acceptance_counter = 0;
-    class Moves* move = nullptr;
 
     // sample nmoves moves
     for(int i=0; i<nmoves; i++){
-        move = propose_move(box->moves, box->moves_prob);
+        Moves* move = propose_move(box->moves, box->moves_prob);
         move->perform_move();
-        accepted = accept_move(move, box->temp, box->chempot);
-        if(!accepted){
+        if(!accept_move(move, box->temp, box->chempot)){
             move->reset();
         }
         else{

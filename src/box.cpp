@@ -7,7 +7,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     temp = temp_in;
     chempot = chempot_in;
 
-    time = 0.;
+    time = poteng = 0.;
     npar = ntype = nmove = step = 0;
 
     rng = new MersenneTwister();
@@ -254,6 +254,7 @@ void Box::check_particle_types()
 
     // Check that all particles are assigned parameters
     forcefield->sort_params();
+    npar_prev = npar;
 }
 
 

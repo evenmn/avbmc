@@ -3,7 +3,7 @@
 #include "../moves/moves.h"
 
 
-Umbrella::Umbrella(class Box* box_in, std::function<double (int npar)> f_in, const int maxpar_in)
+Umbrella::Umbrella(Box* box_in, std::function<double (int npar)> f_in, const int maxpar_in)
     : Sampler(box_in) 
 {
     f = f_in;
@@ -23,15 +23,14 @@ std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in, 
 }
 
 
-double Umbrella::get_acceptance_prob(class Moves* move, double temp, double chempot)
+double Umbrella::w(const int npar)
 {
-    /* Get acceptance probability of biased sampling
+    /* Return weight value
      */
-    int npar = box->npar;
     if(npar < maxpar){
-        return move->accept(chempot, temp) * tabulated[npar] * std::exp(-du/temp);
+        return tabulated[npar];
     }
     else{
-        return move->accept(chempot, temp) * f(npar) * std::exp(-du/temp);
+        return f(npar);
     }
 }
