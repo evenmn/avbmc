@@ -27,7 +27,8 @@ public:
     //virtual double comp_force_par(const rowvec pos, rowvec& acc) = 0;
     //virtual double update_force_par(const mat positions, const int i) = 0;
     //virtual double update_force_all() = 0;
-    virtual double comp_energy_par(std::vector<class Particle *> particles, const int i) = 0;
+    virtual double comp_energy_mol(std::vector<class Particle *>, class Molecule *) = 0;
+    virtual double comp_energy_par(std::vector<class Particle *>, int) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
@@ -54,7 +55,6 @@ public:
     //mat tmp_distance_mat, tmp_poteng_mat, tmp_accelerations;
     //cube tmp_distance_dir_cube, tmp_force_mat;
 
-    int tmp_npar;
     //std::vector<std::string> tmp_chem_symbols;
     //std::vector<int> tmp_particle_types;
     //std::vector<double> tmp_particle_masses;

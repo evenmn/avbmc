@@ -1,6 +1,7 @@
 #include "avbmcout.h"
 #include "../box.h"
 #include "../particle.h"
+#include "../molecule.h"
 
 
 AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
@@ -20,8 +21,8 @@ AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
 
 void AVBMCOut::perform_move()
 {
-    /* Remove a random particle from the bonded region
-     * of particle i
+    /* Remove a random molecule from the bonded region
+     * of another similar molecule
      */
     
     if(box->npar < 2){
@@ -29,7 +30,21 @@ void AVBMCOut::perform_move()
     }
     else{
         not_accept = false;
+        // pick molecule to be removed
+        int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
+        molecule_out = box->molecule_types->construct_molecule(mol_idx);
+
+        du = - box->forcefield->comp_energy_mol(box->particles, molecule_out);
+
+        particles_old = box->particles;
+        for(int atom : molecule_out->atoms_idx){
+            box->particles.erase(box->particles.begin() + atom);
+        }
+        box->npar -= molecule_out->natom;
+
+        /*
         // create local neighbor list of particle i
+
         int i = box->rng->next_int(box->npar);
         std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
         n_in = neigh_listi.size();
@@ -47,6 +62,7 @@ void AVBMCOut::perform_move()
         else{
             not_accept = true;
         }
+        */
     }
 }
 
@@ -68,7 +84,7 @@ void AVBMCOut::reset()
     /* Set back to old state if
      * move is rejected
      */
-    box->npar ++;
+    box->npar += molecule_out->natom;
     box->poteng -= du;
-    box->particles.push_back(particle_out);
+    box->particles = particles_old;
 }

@@ -1,8 +1,9 @@
 #include "lennardjones.h"
 #include "../box.h"
 #include "../particle.h"
+#include "../molecule.h"
 
-LennardJones::LennardJones(class Box* box_in)
+LennardJones::LennardJones(Box* box_in)
     : ForceField(box_in)
 {
     /* This is the default constructor
@@ -17,7 +18,7 @@ LennardJones::LennardJones(class Box* box_in)
     nline = 1;
 }
 
-LennardJones::LennardJones(class Box* box_in, const std::string params)
+LennardJones::LennardJones(Box* box_in, const std::string params)
     : ForceField(box_in)
 {
     read_param_file(params);
@@ -91,10 +92,12 @@ void LennardJones::sort_params()
     sigma_mat = new double*[box->ntype];
     epsilon_mat = new double*[box->ntype];
     rc_sqrd_mat = new double*[box->ntype];
+    shift_mat = new double*[box->ntype];
     for(int i=0; i<box->ntype; i++){
         sigma_mat[i] = new double[box->ntype];
         epsilon_mat[i] = new double[box->ntype];
         rc_sqrd_mat[i] = new double[box->ntype];
+        shift_mat[i] = new double[box->ntype];
     }
     // fill up matrices with parameters
     int type1, type2;
@@ -108,6 +111,8 @@ void LennardJones::sort_params()
         double rc = rc_vec[i];
         rc_sqrd_mat[type1][type2] = rc * rc;
         rc_sqrd_mat[type2][type1] = rc * rc;
+        shift_mat[type1][type2] = std::pow(rc, 12) - std::pow(rc, 6);
+        shift_mat[type2][type1] = std::pow(rc, 12) - std::pow(rc, 6);
     }
 }
 
@@ -219,6 +224,19 @@ std::vector<class Particle *> LennardJones::build_neigh_list(const std::vector<c
 }
 */
 
+
+double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
+{
+    /* Compute energy contribution from a molecule
+     */
+    double energy = 0.;
+    for(int i : molecule->atoms_idx){
+        energy += comp_energy_par(particles, i);
+    }
+    return energy;
+}
+
+
 double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
     /*
@@ -227,13 +245,23 @@ double LennardJones::comp_energy_par(const std::vector<Particle *> particles, co
     int typei = particles[i]->type; 
     double sdist, ss6, ss12;
 
-    double energy = 0;
-    for(Particle* particle : particles){
-        sdist = std::pow(particle->r - particles[i]->r, 2).sum();
-        if(1e-5 < sdist && sdist < rc_sqrd_mat[typei][particle->type]){
-            ss6 = std::pow(sigma_mat[typei][particle->type] / sdist, 3);
+    double energy = 0.;
+    for(int j=0; j<i; j++){
+        sdist = std::pow(particles[j]->r - particles[i]->r, 2).sum();
+        int typej = particles[j]->type;
+        if(sdist < rc_sqrd_mat[typei][typej]){
+            ss6 = std::pow(sigma_mat[typei][typej] / sdist, 3);
             ss12 = ss6 * ss6;
-            energy += epsilon_mat[typei][particle->type] * (ss12 - ss6);
+            energy += epsilon_mat[typei][typej] * (ss12 - ss6 - shift_mat[typei][typej]);
+        }
+    }
+    for(int j=i+1; j<box->npar; j++){
+        sdist = std::pow(particles[j]->r - particles[i]->r, 2).sum();
+        int typej = particles[j]->type;
+        if(sdist < rc_sqrd_mat[typei][typej]){
+            ss6 = std::pow(sigma_mat[typei][typej] / sdist, 3);
+            ss12 = ss6 * ss6;
+            energy += epsilon_mat[typei][typej] * (ss12 - ss6 - shift_mat[typei][typej]);
         }
     }
     return (4 * energy);
@@ -369,9 +397,11 @@ LennardJones::~LennardJones()
         delete (sigma_mat[i]);
         delete (epsilon_mat[i]);
         delete (rc_sqrd_mat[i]);
+        delete (shift_mat[i]);
     }
     delete (sigma_mat);
     delete (epsilon_mat);
     delete (rc_sqrd_mat);
+    delete (shift_mat);
 }
 

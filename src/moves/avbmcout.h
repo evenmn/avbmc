@@ -12,7 +12,9 @@ public:
 
 private:
     bool not_accept;
-    int n_in, npar_prev_prev;
+    int n_in;
     double r_above, r_above2, v_in;
-    class Particle * particle_out;
+    //class Particle* particle_out = nullptr;
+    std::vector<class Particle *> particles_old;
+    class Molecule* molecule_out = nullptr;
 };

@@ -1,5 +1,6 @@
 #include "box.h"
 #include "particle.h"
+#include "molecule.h"
 
 Box::Box(string working_dir_in, double temp_in, double chempot_in)
 {
@@ -16,6 +17,7 @@ Box::Box(string working_dir_in, double temp_in, double chempot_in)
     sampler = new Metropolis(this);
     boundary = new Stillinger(this);
     //velocity = new Zero();
+    molecule_types = new MoleculeTypes(this);
 
     std::vector<std::string> outputs;
     dump = new Dump(this, 0, "", outputs);
@@ -252,9 +254,32 @@ void Box::check_particle_types()
     }
     assert(!not_assigned_mass_all);
 
-    // Check that all particles are assigned parameters
+    // Sort forcefield parameters according to particle types
     forcefield->sort_params();
-    npar_prev = npar;
+
+    // If molecule configuration is not set, let all single particles
+    // be considered as molecules
+    if (!molecule_types->configured)
+    {
+        for(std::string label : unique_labels){
+            std::vector<std::string> labels = {label};
+            molecule_types->add_molecule_type(labels, 0.0, 0, 1./ntype, {{0., 0., 0.}});
+        }
+    }
+
+    // Since particles are associated with types rather than labels,
+    // also molecule configuration labels have to be converted to types
+    for(int i=0; i<ntype; i++){
+        for(std::vector<std::string> molecule : molecule_types->molecule_types){
+            std::vector<int> types;
+            for(std::string element : molecule){
+                if(element == unique_labels[i]){
+                    types.push_back(i);
+                }
+            }
+            molecule_types->molecule_types.push_back(types); 
+        }
+    }
 }
 
 

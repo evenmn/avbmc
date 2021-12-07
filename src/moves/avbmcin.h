@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include "moves.h"
 
 
@@ -14,4 +15,5 @@ private:
     int n_in, type, npar_prev_prev;
     double r_below, r_above, r_below2, r_above2, v_in;
     std::string label;
+    class Molecule* molecule_in = nullptr;
 };

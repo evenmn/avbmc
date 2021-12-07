@@ -1,13 +1,14 @@
 #pragma once
 #include <iostream>
 #include <valarray>
+#include <vector>
 
 using namespace std;
 
 class Moves
 {
 public:
-    Moves(class Box* box_in);
+    Moves(class Box *);
 
     // declare pure virtual functions
     virtual void perform_move() = 0;
