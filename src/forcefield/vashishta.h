@@ -16,8 +16,8 @@ public:
     double comp_twobody_par(std::vector<class Particle *>, int);
     double comp_threebody_par(std::vector<class Particle *>, int, int);
 
-    double comp_energy_mol(std::vector<class Particle *>, class Molecule);
-    double comp_energy_par(std::vector<class Particle *>, class Particle* atom);
+    double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle *>, int);
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~Vashishta();
