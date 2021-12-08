@@ -22,17 +22,17 @@ AVBMCIn::AVBMCIn(Box* box_in, const double r_below_in, const double r_above_in)
     label = "Ar";  // this has to be generalized
 }
 
-std::vector<std::valarray<double> > AVBMCIn::rotate_molecule(std::vector<std::valarray> > positions_in)
+std::vector<std::valarray<double> > AVBMCIn::rotate_molecule(std::vector<std::valarray<double> > positions_in)
 {
     /* Rotate rotate by a random angle in all dimensions. Might send in positions
      * as a reference in the future, even though we still may need to copy the positions
      */
+    std::vector<std::valarray<double> > positions_out;
     if(box->ndim == 1){
         return positions_in;
     }
     else if(box->ndim == 2){
         double angle = 2 * pi * box->rng->next_double();
-        std::vector<std::valarray<double> > positions_out;
         for(std::valarray<double> position_in : positions_in){
             std::valarray<double> position_out = {position_in[0] * std::cos(angle) - position_in[1] * std::sin(angle), position_in[0] * std::sin(angle) + position_in[1] * std::cos(angle)};
             positions_out.push_back(position_out);
@@ -43,10 +43,9 @@ std::vector<std::valarray<double> > AVBMCIn::rotate_molecule(std::vector<std::va
         double anglex = 2 * pi * box->rng->next_double();
         double angley = 2 * pi * box->rng->next_double();
         double anglez = 2 * pi * box->rng->next_double();
-        std::vector<std::valarray<double> > positions_out;
         for(std::valarray<double> position_in : positions_in){
             std::valarray<double> position_out = {position_in[0] * (1 + std::cos(angley) + std::cos(anglez)) - position_in[2] * std::sin(anglez) + position_in[1] * std::sin(angley), position_in[0] * std::sin(angley) + position_in[1] * (1 + std::cos(anglex) + std::cos(anglez)) - position_in[2] * std::sin(anglex), - position_in[0] * std::sin(angley) + position_in[1] * std::sin(anglex) + position_in[2] * (1 + std::cos(anglex) + std::cos(angley))};
-            positions_out.push_back(positions_out);
+            positions_out.push_back(position_out);
         }
         return positions_out;
     }
@@ -64,17 +63,19 @@ void AVBMCIn::perform_move()
 
     // pick molecule type to be inserted
     int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
-    std::vector<std::valarray<double> > positions = box->molecule_types->default_mol[mol_idx];
+    std::vector<std::valarray<double> > positions = box->molecule_types->default_mols[mol_idx];
 
     // positions = rotate_molecule(positions)
     
     // pick particle among COM particles
     int type, i;
     int count = 0;
-    while(type != box->particles[box->molecule_types->atom_idx[box->molecule_types->coms[mol_idx]]]->type && count < box->npar){
-        i = box->rng->next_int(box->npar);
-        type = box->positions[i]->type;
-    }
+    //while(type != box->particles[box->molecule_types->molecule_types[box->molecule_types->coms[mol_idx]]]->type && count < box->npar){
+    //    i = box->rng->next_int(box->npar);
+    //    type = box->particles[i]->type;
+    //}
+    type = 0;
+    i = 0;
     std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
     n_in = neigh_listi.size();
     
@@ -105,19 +106,19 @@ void AVBMCIn::perform_move()
     for(std::valarray<double> &position : positions){
         position += box->particles[i]->r + dr;
     }
+    //Molecule* molecule_in = new Molecule(positions, box->molecule_types->coms[mol_idx]);
 
-    Molecule* molecule_in = new Molecule(positions, box->molecule_types->coms[mol_idx]);
-
-    du = - box->forcefield->comp_energy_mol(box->particles, molecule_in);
+    //du = - box->forcefield->comp_energy_mol(box->particles, molecule_in);
+    du = 1e10;
 
     //Particle *particle_in = new Particle(label, box->particles[i]->r + dr);
     //particle_in->type = type;
-    box->particles.push_back(particle_in);
-    box->npar += molecule_in->natom;
+    //box->particles.push_back(particle_in);
+    //box->npar += molecule_in->natom;
 
     // compute du
     //du = box->forcefield->comp_energy_par(box->particles, box->npar - 1);
-    box->poteng += du;
+    //box->poteng += du;
 }
 
 double AVBMCIn::accept(double temp, double chempot)
@@ -133,7 +134,7 @@ void AVBMCIn::reset()
     /* Set back to old state is move
      * is rejected
      */
-    box->npar --;
-    box->poteng -= du;
-    box->particles.erase(box->particles.begin() + box->npar);
+    //box->npar --;
+    //box->poteng -= du;
+    //box->particles.erase(box->particles.begin() + box->npar);
 }

@@ -1,3 +1,7 @@
+#include <vector>
+#include <valarray>
+#include <string>
+
 #include "box.h"
 #include "molecule.h"
 #include "particle.h"
@@ -33,7 +37,7 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
      * default_mol:
      *     molecule to be inserted by AVBMC insertation moves
      */
-    molecule_confs.push_back(elements);
+    molecule_elements.push_back(elements);
     rcs.push_back(rc);
     coms.push_back(com_atom);
     molecule_probs.push_back(molecule_prob);

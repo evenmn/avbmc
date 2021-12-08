@@ -1,8 +1,15 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <valarray>
+#include <cassert>
+#include <chrono>
+
 #include "box.h"
 #include "particle.h"
 #include "molecule.h"
 
-Box::Box(string working_dir_in, double temp_in, double chempot_in)
+Box::Box(std::string working_dir_in, double temp_in, double chempot_in)
 {
     //working_dir = working_dir_in;
     temp = temp_in;
@@ -270,9 +277,9 @@ void Box::check_particle_types()
     // Since particles are associated with types rather than labels,
     // also molecule configuration labels have to be converted to types
     for(int i=0; i<ntype; i++){
-        for(std::vector<std::string> molecule : molecule_types->molecule_types){
+        for(std::vector<std::string> elements : molecule_types->molecule_elements){
             std::vector<int> types;
-            for(std::string element : molecule){
+            for(std::string element : elements){
                 if(element == unique_labels[i]){
                     types.push_back(i);
                 }

@@ -12,6 +12,7 @@ public:
     void reset();
 
 private:
+    std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
     int n_in, type, npar_prev_prev;
     double r_below, r_above, r_below2, r_above2, v_in;
     std::string label;
