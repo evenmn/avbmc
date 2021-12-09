@@ -10,7 +10,7 @@ Sampler::Sampler(Box* box_in)
     acceptance_ratio = 0.;
 }
 
-class Moves* Sampler::propose_move(std::vector<Moves*> moves, std::vector<double> moves_prob)
+Moves* Sampler::propose_move(std::vector<Moves*> moves, std::vector<double> moves_prob)
 {
     /* Given a vector of moves and a vector of corresponding
      * probabilities, returning move
@@ -28,7 +28,7 @@ bool Sampler::accept_move(Moves* move, double temp, double chempot)
      */
 
     // check boundary condition
-    bool accept_boundary = box->boundary->correct_position();
+    bool accept_boundary = 1; //box->boundary->correct_position();
 
     // check move acceptance probability
     bool accept_sampler = move->accept(temp, chempot) > rng->next_double();

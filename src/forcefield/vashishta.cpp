@@ -8,6 +8,11 @@
 #include "../box.h"
 #include "../particle.h"
 
+
+/* -----------------------------------------------------------------
+   Vashishta constructor, which takes a parameter file 'params'
+-------------------------------------------------------------------- */
+
 Vashishta::Vashishta(Box* box_in, const std::string params)
     : ForceField(box_in)
 {
@@ -15,12 +20,14 @@ Vashishta::Vashishta(Box* box_in, const std::string params)
 }
 
 
-
 /* -----------------------------------------------------------------
    Read parameter file 'params' and store parameters
    globally. The file takes the following form:
    <label1> <label2> <label3> <H> <eta> <Zi> <Zj> <lambda1> <D> <lambda4>
                               <W> <rc> <B> <gamma> <r0> <C> <cos(theta)>
+   The file is inspired by LAMMPS, and for an explanation of the 
+   symbols and the way it is used, see the LAMMPS Vashishta
+   documentation.
 -------------------------------------------------------------------- */
 
 void Vashishta::read_param_file(const std::string params)
@@ -40,8 +47,8 @@ void Vashishta::read_param_file(const std::string params)
             // empty lines are allowed in parameter file
             continue;
         }
-        else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1 >> 
-                 D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
+        else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1
+                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
             label1_vec.push_back(label1);
             label2_vec.push_back(label2);
             label3_vec.push_back(label3);
@@ -105,7 +112,7 @@ void Vashishta::sort_params()
         bool assigned = false;
         for(int j=0; j<box->ntype; j++){
             if(label == box->unique_labels[j]){
-                types2_vec.push_back(j);
+                types3_vec.push_back(j);
                 assigned = true;
             }
         }
@@ -164,7 +171,7 @@ void Vashishta::sort_params()
     for(int i=0; i<nline; i++){
         type1 = types1_vec[i];
         type2 = types2_vec[i];
-        type3 = types2_vec[i];
+        type3 = types3_vec[i];
         H_mat[type1][type2][type3] = H_vec[i];
         H_mat[type1][type3][type2] = H_vec[i];
         H_mat[type2][type1][type3] = H_vec[i];
@@ -297,7 +304,42 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
     std::valarray<double> delij, delik;
 
     double energy = 0;
-    for(int j=0; j<box->npar; j++){
+    for(int j=0; j<i; j++){
+
+        // temporary ij quantities
+        typej = particles[j]->type;
+        delij = particles[j]->r - particles[i]->r;
+        rijsq = std::pow(delij, 2).sum();
+        rij = std::sqrt(rijsq);
+        rijinv = 1.0 / rij;
+        rijinv4 = 1.0 / (rijsq * rijsq);
+        rijinv6 = rijinv4 / rijsq;
+        expij = std::exp(gamma_mat[typei][typej][typej] / (rij - r0_mat[typei][typej][typej]));
+
+        if(rijsq < rc_sqrd_mat[typei][typej][typej]){
+            energy += H_mat[typei][typej][typej] * std::pow(rijinv, eta_mat[typei][typej][typej]);
+            energy += Zi_mat[typei][typej][typej] * Zj_mat[typei][typej][typej] * rijinv * std::exp(-rij/lambda1_mat[typei][typej][typej]);
+            energy -= D_mat[typei][typej][typej] * rijinv4 * std::exp(-rij/lambda4_mat[typei][typej][typek]);
+            energy -= W_mat[typei][typej][typej] * rijinv6;
+        }
+        for(int k=0; k<box->npar; k++){
+
+            // temporary ik quantities
+            typek = particles[k]->type;
+            delik = particles[k]->r - particles[i]->r;
+            riksq = std::pow(delik, 2).sum();
+            rik = std::sqrt(riksq);
+            expik = std::exp(gamma_mat[typei][typek][typek] / (rik - r0_mat[typei][typek][typek]));
+
+            if(rij < r0_mat[typei][typej][typej] && rik < r0_mat[typei][typek][typek]){
+                costhetaijk = (delij * delik).sum() / (rij * rik);
+                delcos = costheta_mat[typei][typej][typek] - costhetaijk;
+                delcossq = delcos * delcos;
+                energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
+            }
+        }
+    }
+    for(int j=i+1; j<box->npar; j++){
 
         // temporary ij quantities
         typej = particles[j]->type;
