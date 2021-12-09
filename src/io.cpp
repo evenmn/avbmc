@@ -1,11 +1,18 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+
 #include "io.h"
 #include "particle.h"
 
 
+/* ----------------------------------------------------
+   Split string by whitespace
+------------------------------------------------------- */
+
 std::vector<std::string> split(const std::string s)
 {
-    /* Split string by whitespace
-     */
     std::stringstream ss(s);
     std::istream_iterator<std::string> begin(ss);
     std::istream_iterator<std::string> end;
@@ -13,12 +20,16 @@ std::vector<std::string> split(const std::string s)
     return vstrings;
 }
 
+
+/* -----------------------------------------------------
+   Read xyz-file consisting of one time frame into 
+   vector of particle objects 
+-------------------------------------------------------- */
+
 std::vector<Particle *> read_xyz(const std::string filename)
 {
-    /* Read xyz-file consisting of one time frame into 
-     * vector of particle objects
-     */
     int npar, ndim;
+    std::cout << "read_xyz" << std::endl;
     std::vector<Particle *> particles;
     std::ifstream f(filename);
     if(f.is_open()){
@@ -26,6 +37,7 @@ std::vector<Particle *> read_xyz(const std::string filename)
         int line_num = 0;
         while(std::getline(f, line))
         {
+            std::cout << line << std::endl;
             if(line_num == 0){
                 // line containing number of particles
                 npar = std::stoi(line);
@@ -47,6 +59,7 @@ std::vector<Particle *> read_xyz(const std::string filename)
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
                 Particle *particle = new Particle(splitted[0], tmp_r);
+                particles.push_back(particle);
             }
             line_num ++;
         }
@@ -55,43 +68,19 @@ std::vector<Particle *> read_xyz(const std::string filename)
         cout << "Could not open file '" + filename + "'! Aborting." << endl;
         exit(0);
     }
+    std::cout << "end" << std::endl;
     return particles;
 }
 
-/*
-void write_xyz(const string filename, const mat positions, const vector<string> chem_symbols, const string info, const bool append)
+
+/* -----------------------------------------------------------------
+  Write matrix to file, assuming that all valarrays inside vector 
+  has the same length
+-------------------------------------------------------------------- */
+
+void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol, 
+               const std::vector<std::string> labels, const std::string info)
 {
-    // 
-    //
-    int npar = positions.n_rows;
-    int ndim = positions.n_cols;
-
-    ofstream f;
-    if(append){
-        f.open(filename, ofstream::out | ofstream::app);
-    }
-    else{
-        f.open(filename, ofstream::out);
-    }
-    f << npar << endl;
-    f << info << endl;;
-    for(int i=0; i<npar; i++){
-        f << chem_symbols[i];
-        for(int j=0; j<ndim; j++){
-            f << " " << positions(i, j);
-        }
-        f << endl;
-    }
-    f.close();
-}
-*/
-
-void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol, const std::vector<std::string> labels, const std::string info)
-{
-    /* Write matrix to file, assuming that all valarrays inside vector 
-     * has the same length
-     */
-
     f << nrow << endl;
     f << info << endl;;
     for(int i=0; i<nrow; i++){
