@@ -21,6 +21,7 @@
 
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
+#include "forcefield/vashishta.h"
 
 #include "sampler/sampler.h"
 #include "sampler/metropolis.h"

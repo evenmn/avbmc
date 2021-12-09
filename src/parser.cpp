@@ -85,9 +85,9 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
         if(forcefield == "lennardjones"){
             box.set_forcefield(new LennardJones(&box, paramfile));
         }
-        //else if(forcefield == "vashishta"){
-        //    box.set_forcefield(new Vashishta(&box, paramfile));
-        //}
+        else if(forcefield == "vashishta"){
+            box.set_forcefield(new Vashishta(&box, paramfile));
+        }
         else{
             std::cout << "Forcefield '" + forcefield + "' is not known! Aborting." << std::endl;
             exit(0);
