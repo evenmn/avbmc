@@ -1,6 +1,10 @@
 #pragma once
-#include <stdlib.h>
+
+#include <string>
+#include <vector>
+
 #include "forcefield.h"
+
 
 class LennardJones : public ForceField
 {

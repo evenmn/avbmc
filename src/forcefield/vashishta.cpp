@@ -1,3 +1,9 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "vashishta.h"
 #include "../box.h"
 #include "../particle.h"
@@ -8,14 +14,17 @@ Vashishta::Vashishta(Box* box_in, const std::string params)
     read_param_file(params);
 }
 
+
+
+/* -----------------------------------------------------------------
+   Read parameter file 'params' and store parameters
+   globally. The file takes the following form:
+   <label1> <label2> <label3> <H> <eta> <Zi> <Zj> <lambda1> <D> <lambda4>
+                              <W> <rc> <B> <gamma> <r0> <C> <cos(theta)>
+-------------------------------------------------------------------- */
+
 void Vashishta::read_param_file(const std::string params)
 {
-    /* Read parameter file and store parameters
-     * globally. It takes the following form:
-     * <label1> <label2> <label3> <H> <eta> <Zi> <Zj> <lambda1> <D> <lambda4>
-     *                            <W> <rc> <B> <gamma> <r0> <C> <cos(theta)>
-     */
-
     nline = 0;
     std::ifstream infile(params);
     std::string line, label1, label2, label3;
@@ -27,7 +36,12 @@ void Vashishta::read_param_file(const std::string params)
             // comments are allowed in parameter file
             continue;
         }
-        else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1 >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
+        else if (line.empty()){
+            // empty lines are allowed in parameter file
+            continue;
+        }
+        else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1 >> 
+                 D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
             label1_vec.push_back(label1);
             label2_vec.push_back(label2);
             label3_vec.push_back(label3);
@@ -55,9 +69,11 @@ void Vashishta::read_param_file(const std::string params)
 }
 
 
-/* Parameters have to be sorted with respect to
- * the particle types, and are stored in cubes.
- */
+/* -----------------------------------------------------------------
+   Parameters have to be sorted with respect to the particle
+   types, and are stored in three-dimensional arrays
+-------------------------------------------------------------------- */
+
 void Vashishta::sort_params()
 {
     // link list of chemical symbols to list of type indices
@@ -238,10 +254,12 @@ void Vashishta::sort_params()
 }
 
 
+/* ----------------------------------------------------------------
+   Compute two-body contribution to total energy for a particle 'i'
+------------------------------------------------------------------- */
+
 double Vashishta::comp_twobody_par(const std::vector<Particle *> particles, const int i)
 {
-    /* Compute two-body contribution to total energy for a particle i
-     */
     int typei = particles[i]->type;
     int typej;
     double sdist;
@@ -255,17 +273,20 @@ double Vashishta::comp_twobody_par(const std::vector<Particle *> particles, cons
 }
 
 
-/* Compute energy contribution from molecule consisting of
- * one or several atoms
- */
+/* ---------------------------------------------------------------
+   Compute energy contribution from molecule consisting of
+   one or several atoms
+------------------------------------------------------------------ */
 double Vashishta::comp_energy_mol(std::vector<Particle *> particles, Molecule* molecule)
 {
     return 0.;
 }
 
 
-/* Compute energy contribution of a particle i 
- */
+/* ---------------------------------------------------------------
+   Compute energy contribution of a particle i
+------------------------------------------------------------------ */
+
 double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
     // declare variables
@@ -314,6 +335,12 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
     return (energy);
 }
 
+
+/* ---------------------------------------------------------
+   Vashishta destructor, memory of all parameter arrays
+   are released. Do this in a more elegant way in the 
+   future
+------------------------------------------------------------ */
 
 Vashishta::~Vashishta()
 {

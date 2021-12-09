@@ -1,15 +1,7 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
+
 #include <string>
 #include <vector>
-#include <valarray>
-//#include <armadillo>
-
-//using namespace std;
-//using namespace arma;
 
 
 class ForceField

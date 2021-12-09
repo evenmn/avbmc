@@ -1,3 +1,6 @@
+#include <iostream>
+#include <vector>
+
 #include "forcefield.h"
 #include "../box.h"
 #include "../particle.h"

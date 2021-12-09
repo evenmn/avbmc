@@ -1,15 +1,22 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+
 #include "lennardjones.h"
 #include "../box.h"
 #include "../particle.h"
 #include "../molecule.h"
 
+
+/* -----------------------------------------------------
+   This is the default constructor when parameter
+   file is not given. It only works for pure Argon
+-------------------------------------------------------- */
+
 LennardJones::LennardJones(Box* box_in)
     : ForceField(box_in)
 {
-    /* This is the default constructor
-     * when parameter file is not given. It
-     * only works for pure Argon
-     */
     label1_vec = {"Ar"};
     label2_vec = {"Ar"};
     sigma_vec = {1.};
@@ -18,19 +25,27 @@ LennardJones::LennardJones(Box* box_in)
     nline = 1;
 }
 
+
+/* ------------------------------------------------------
+   This is the default constructor when a parameter
+   file 'params' is given.
+--------------------------------------------------------- */
+
 LennardJones::LennardJones(Box* box_in, const std::string params)
     : ForceField(box_in)
 {
     read_param_file(params);
 }
 
+
+/* ------------------------------------------------------
+   Read parameter file 'params' and store parameters 
+   globally. It takes the following form:
+       <label1> <label2> <sigma> <epsilon> <rc>
+--------------------------------------------------------- */
+
 void LennardJones::read_param_file(const std::string params)
 {
-    /* Read parameter file and store parameters
-     * globally. It takes the following form:
-     * <label1> <label2> <sigma> <epsilon> <rc>
-     */
-
     nline = 0;
     std::ifstream infile(params);
     std::string line, label1, label2;
@@ -40,6 +55,10 @@ void LennardJones::read_param_file(const std::string params)
         std::istringstream iss(line);
         if (line.rfind("#", 0) == 0){
             // comments are allowed in parameter file
+            continue;
+        }
+        else if(line.empty()){
+            // empty lines are allowed in parameter file
             continue;
         }
         else if (iss >> label1 >> label2 >> sigma >> epsilon >> rc){ 
@@ -58,13 +77,14 @@ void LennardJones::read_param_file(const std::string params)
 }
 
 
+/* ------------------------------------------------------
+   Parameters have to be sorted with respect to
+   the particle types, and are stored in matrices.
+--------------------------------------------------------- */
+
 void LennardJones::sort_params()
 {
-    /* Parameters have to be sorted with respect to
-     * the particle types, and are stored in matrices.
-     */
-
-    // link list of chemical symbols to list of type indices
+    // link list of labels to list of type indices
     std::vector<int> types1_vec;
     std::vector<int> types2_vec;
     for(std::string label : label1_vec){
@@ -225,10 +245,12 @@ std::vector<class Particle *> LennardJones::build_neigh_list(const std::vector<c
 */
 
 
+/* ------------------------------------------------------
+   Compute energy contribution from a molecule
+--------------------------------------------------------- */
+
 double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
 {
-    /* Compute energy contribution from a molecule
-     */
     double energy = 0.;
     for(int i : molecule->atoms_idx){
         energy += comp_energy_par(particles, i);
@@ -237,10 +259,12 @@ double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Mo
 }
 
 
+/* -------------------------------------------------------
+   Compute energy contribution from a particle 'i'
+---------------------------------------------------------- */
+
 double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
-    /*
-     */
     // declare variables
     int typei = particles[i]->type; 
     double sdist, ss6, ss12;
@@ -390,6 +414,12 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
     return energy_cum;
 }
 */
+
+
+/* --------------------------------------------------
+   LennardJones destructor, releasing memory of all
+   parameter arrays
+----------------------------------------------------- */
 
 LennardJones::~LennardJones()
 {
