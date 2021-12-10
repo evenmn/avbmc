@@ -3,10 +3,13 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cmath>
+#include <cassert>
 
 #include "vashishta.h"
 #include "../box.h"
 #include "../particle.h"
+#include "../molecule.h"
 
 
 /* -----------------------------------------------------------------
@@ -120,48 +123,37 @@ void Vashishta::sort_params()
     }
 
     // allocate memory for matrices
-    H_mat = new double**[box->ntype];
-    eta_mat = new double**[box->ntype];
-    Zi_mat = new double**[box->ntype];
-    Zj_mat = new double**[box->ntype];
-    lambda1_mat = new double**[box->ntype];
-    D_mat = new double**[box->ntype];
-    lambda4_mat = new double**[box->ntype];
-    W_mat = new double**[box->ntype];
-    rc_sqrd_mat = new double**[box->ntype];
+    H_mat = new double*[box->ntype];
+    eta_mat = new double*[box->ntype];
+    Zi_mat = new double*[box->ntype];
+    Zj_mat = new double*[box->ntype];
+    lambda1inv_mat = new double*[box->ntype];
+    D_mat = new double*[box->ntype];
+    lambda4inv_mat = new double*[box->ntype];
+    W_mat = new double*[box->ntype];
+    rc_mat = new double*[box->ntype];
+    gamma_mat = new double*[box->ntype];
+    r0_mat = new double*[box->ntype];
     B_mat = new double**[box->ntype];
-    gamma_mat = new double**[box->ntype];
-    r0_mat = new double**[box->ntype];
     C_mat = new double**[box->ntype];
     costheta_mat = new double**[box->ntype];
     for(int i=0; i<box->ntype; i++){
-        H_mat[i] = new double*[box->ntype];
-        eta_mat[i] = new double*[box->ntype];
-        Zi_mat[i] = new double*[box->ntype];
-        Zj_mat[i] = new double*[box->ntype];
-        lambda1_mat[i] = new double*[box->ntype];
-        D_mat[i] = new double*[box->ntype];
-        lambda4_mat[i] = new double*[box->ntype];
-        W_mat[i] = new double*[box->ntype];
-        rc_sqrd_mat[i] = new double*[box->ntype];
+        H_mat[i] = new double[box->ntype];
+        eta_mat[i] = new double[box->ntype];
+        Zi_mat[i] = new double[box->ntype];
+        Zj_mat[i] = new double[box->ntype];
+        lambda1inv_mat[i] = new double[box->ntype];
+        D_mat[i] = new double[box->ntype];
+        lambda4inv_mat[i] = new double[box->ntype];
+        W_mat[i] = new double[box->ntype];
+        rc_mat[i] = new double[box->ntype];
+        gamma_mat[i] = new double[box->ntype];
+        r0_mat[i] = new double[box->ntype];
         B_mat[i] = new double*[box->ntype];
-        gamma_mat[i] = new double*[box->ntype];
-        r0_mat[i] = new double*[box->ntype];
         C_mat[i] = new double*[box->ntype];
         costheta_mat[i] = new double*[box->ntype];
         for(int j=0; j<box->ntype; j++){
-            H_mat[i][j] = new double[box->ntype];
-            eta_mat[i][j] = new double[box->ntype];
-            Zi_mat[i][j] = new double[box->ntype];
-            Zj_mat[i][j] = new double[box->ntype];
-            lambda1_mat[i][j] = new double[box->ntype];
-            D_mat[i][j] = new double[box->ntype];
-            lambda4_mat[i][j] = new double[box->ntype];
-            W_mat[i][j] = new double[box->ntype];
-            rc_sqrd_mat[i][j] = new double[box->ntype];
             B_mat[i][j] = new double[box->ntype];
-            gamma_mat[i][j] = new double[box->ntype];
-            r0_mat[i][j] = new double[box->ntype];
             C_mat[i][j] = new double[box->ntype];
             costheta_mat[i][j] = new double[box->ntype];
         }
@@ -172,79 +164,39 @@ void Vashishta::sort_params()
         type1 = types1_vec[i];
         type2 = types2_vec[i];
         type3 = types3_vec[i];
-        H_mat[type1][type2][type3] = H_vec[i];
-        H_mat[type1][type3][type2] = H_vec[i];
-        H_mat[type2][type1][type3] = H_vec[i];
-        H_mat[type2][type3][type1] = H_vec[i];
-        H_mat[type3][type1][type2] = H_vec[i];
-        H_mat[type3][type2][type1] = H_vec[i];
-        eta_mat[type1][type2][type3] = eta_vec[i];
-        eta_mat[type1][type3][type2] = eta_vec[i];
-        eta_mat[type2][type1][type3] = eta_vec[i];
-        eta_mat[type2][type3][type1] = eta_vec[i];
-        eta_mat[type3][type1][type2] = eta_vec[i];
-        eta_mat[type3][type2][type1] = eta_vec[i];
-        Zi_mat[type1][type2][type3] = Zi_vec[i];
-        Zi_mat[type1][type3][type2] = Zi_vec[i];
-        Zi_mat[type2][type1][type3] = Zi_vec[i];
-        Zi_mat[type2][type3][type1] = Zi_vec[i];
-        Zi_mat[type3][type1][type2] = Zi_vec[i];
-        Zi_mat[type3][type2][type1] = Zi_vec[i];
-        Zj_mat[type1][type2][type3] = Zj_vec[i];
-        Zj_mat[type1][type3][type2] = Zj_vec[i];
-        Zj_mat[type2][type1][type3] = Zj_vec[i];
-        Zj_mat[type2][type3][type1] = Zj_vec[i];
-        Zj_mat[type3][type1][type2] = Zj_vec[i];
-        Zj_mat[type3][type2][type1] = Zj_vec[i];
-        lambda1_mat[type1][type2][type3] = lambda1_vec[i];
-        lambda1_mat[type1][type3][type2] = lambda1_vec[i];
-        lambda1_mat[type2][type1][type3] = lambda1_vec[i];
-        lambda1_mat[type2][type3][type1] = lambda1_vec[i];
-        lambda1_mat[type3][type1][type2] = lambda1_vec[i];
-        lambda1_mat[type3][type2][type1] = lambda1_vec[i];
-        D_mat[type1][type2][type3] = D_vec[i];
-        D_mat[type1][type3][type2] = D_vec[i];
-        D_mat[type2][type1][type3] = D_vec[i];
-        D_mat[type2][type3][type1] = D_vec[i];
-        D_mat[type3][type1][type2] = D_vec[i];
-        D_mat[type3][type2][type1] = D_vec[i];
-        lambda4_mat[type1][type2][type3] = lambda4_vec[i];
-        lambda4_mat[type1][type3][type2] = lambda4_vec[i];
-        lambda4_mat[type2][type1][type3] = lambda4_vec[i];
-        lambda4_mat[type2][type3][type1] = lambda4_vec[i];
-        lambda4_mat[type3][type1][type2] = lambda4_vec[i];
-        lambda4_mat[type3][type2][type1] = lambda4_vec[i];
-        W_mat[type1][type2][type3] = W_vec[i];
-        W_mat[type1][type3][type2] = W_vec[i];
-        W_mat[type2][type1][type3] = W_vec[i];
-        W_mat[type2][type3][type1] = W_vec[i];
-        W_mat[type3][type1][type2] = W_vec[i];
-        W_mat[type3][type2][type1] = W_vec[i];
-        double rc_sqrd = rc_vec[i] * rc_vec[i];
-        rc_sqrd_mat[type1][type2][type3] = rc_sqrd;
-        rc_sqrd_mat[type1][type3][type2] = rc_sqrd;
-        rc_sqrd_mat[type2][type1][type3] = rc_sqrd;
-        rc_sqrd_mat[type2][type3][type1] = rc_sqrd;
-        rc_sqrd_mat[type3][type1][type2] = rc_sqrd;
-        rc_sqrd_mat[type3][type2][type1] = rc_sqrd;
+
+        // two-body parameters
+        if (type2 == type3){  
+            H_mat[type1][type2] = H_vec[i];
+            H_mat[type2][type1] = H_vec[i];
+            eta_mat[type1][type2] = eta_vec[i];
+            eta_mat[type2][type1] = eta_vec[i];
+            Zi_mat[type1][type2] = Zi_vec[i];
+            Zi_mat[type2][type1] = Zi_vec[i];
+            Zj_mat[type1][type2] = Zj_vec[i];
+            Zj_mat[type2][type1] = Zj_vec[i];
+            lambda1inv_mat[type1][type2] = 1.0 / lambda1_vec[i];
+            lambda1inv_mat[type2][type1] = 1.0 / lambda1_vec[i];
+            D_mat[type1][type2] = D_vec[i];
+            D_mat[type2][type1] = D_vec[i];
+            lambda4inv_mat[type1][type2] = 1.0 / lambda4_vec[i];
+            lambda4inv_mat[type2][type1] = 1.0 / lambda4_vec[i];
+            W_mat[type1][type2] = W_vec[i];
+            W_mat[type2][type1] = W_vec[i];
+            rc_mat[type1][type2] = rc_vec[i];
+            rc_mat[type2][type1] = rc_vec[i];
+            gamma_mat[type1][type2] = gamma_vec[i];
+            gamma_mat[type2][type1] = gamma_vec[i];
+            r0_mat[type1][type2] = r0_vec[i];
+            r0_mat[type2][type1] = r0_vec[i];
+        }
+        // three-body parameters
         B_mat[type1][type2][type3] = B_vec[i];
         B_mat[type1][type3][type2] = B_vec[i];
         B_mat[type2][type1][type3] = B_vec[i];
         B_mat[type2][type3][type1] = B_vec[i];
         B_mat[type3][type1][type2] = B_vec[i];
         B_mat[type3][type2][type1] = B_vec[i];
-        gamma_mat[type1][type2][type3] = gamma_vec[i];
-        gamma_mat[type1][type3][type2] = gamma_vec[i];
-        gamma_mat[type2][type1][type3] = gamma_vec[i];
-        gamma_mat[type2][type3][type1] = gamma_vec[i];
-        gamma_mat[type3][type1][type2] = gamma_vec[i];
-        gamma_mat[type3][type2][type1] = gamma_vec[i];
-        r0_mat[type1][type2][type3] = r0_vec[i];
-        r0_mat[type1][type3][type2] = r0_vec[i];
-        r0_mat[type2][type1][type3] = r0_vec[i];
-        r0_mat[type2][type3][type1] = r0_vec[i];
-        r0_mat[type3][type1][type2] = r0_vec[i];
-        r0_mat[type3][type2][type1] = r0_vec[i];
         C_mat[type1][type2][type3] = C_vec[i];
         C_mat[type1][type3][type2] = C_vec[i];
         C_mat[type2][type1][type3] = C_vec[i];
@@ -265,18 +217,46 @@ void Vashishta::sort_params()
    Compute two-body contribution to total energy for a particle 'i'
 ------------------------------------------------------------------- */
 
-double Vashishta::comp_twobody_par(const std::vector<Particle *> particles, const int i)
+double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij)
 {
-    int typei = particles[i]->type;
-    int typej;
-    double sdist;
+    double rijinv, rijinv2, rijinv4, rijinv6, energy;
 
-    double energy = 0;
-    for(int j=0; j<box->npar; j++){
-        sdist = std::pow(particles[j]->r - particles[i]->r, 2).sum();
-        typej = particles[j]->type;
-        energy += 1;
+    energy = 0.0;
+    if(rij < rc_mat[typei][typej]){
+        rijinv = 1.0 / rij;
+        rijinv2 = rijinv * rijinv;
+        rijinv4 = rijinv2 * rijinv2;
+        rijinv6 = rijinv4 * rijinv2;
+        energy += H_mat[typei][typej] * std::pow(rijinv, eta_mat[typei][typej]);
+        energy += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv * std::exp(-rij * lambda1inv_mat[typei][typej]);
+        energy -= D_mat[typei][typej] * rijinv4 * std::exp(-rij * lambda4inv_mat[typei][typej]);
+        energy -= W_mat[typei][typej] * rijinv6;
     }
+    return energy;
+}
+
+
+/* ---------------------------------------------------------------
+   Compute three-body contribution ot total energy for a particle 'i'
+------------------------------------------------------------------ */
+
+double Vashishta::comp_threebody_par(const int typei, const int typej, const int typek,
+        const std::valarray<double> delij, const std::valarray<double> delik, const double rij)
+{
+    double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
+
+    rik = std::sqrt(std::pow(delik, 2).sum());
+
+    energy = 0.0;
+    if(rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
+        costhetaijk = (delij * delik).sum() / (rij * rik);
+        expij = std::exp(gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]));
+        expik = std::exp(gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]));
+        delcos = costheta_mat[typei][typej][typek] - costhetaijk;
+        delcossq = delcos * delcos;
+        energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
+    }
+    return energy;
 }
 
 
@@ -284,9 +264,14 @@ double Vashishta::comp_twobody_par(const std::vector<Particle *> particles, cons
    Compute energy contribution from molecule consisting of
    one or several atoms
 ------------------------------------------------------------------ */
-double Vashishta::comp_energy_mol(std::vector<Particle *> particles, Molecule* molecule)
+
+double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
 {
-    return 0.;
+    double energy = 0.0;
+    for (int i : molecule->atoms_idx){
+        energy += comp_energy_par(particles, i);
+    }
+    return energy;
 }
 
 
@@ -299,79 +284,40 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
     // declare variables
     int typei = particles[i]->type; 
     int typej, typek;
-    double rij, rik, rijsq, riksq, expij, expik, rijinv, rijinv4, rijinv6;
-    double costhetaijk, delcos, delcossq;
+    double rij, energy;
     std::valarray<double> delij, delik;
 
-    double energy = 0;
+    energy = 0.0;
     for(int j=0; j<i; j++){
-
         // temporary ij quantities
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rijsq = std::pow(delij, 2).sum();
-        rij = std::sqrt(rijsq);
-        rijinv = 1.0 / rij;
-        rijinv4 = 1.0 / (rijsq * rijsq);
-        rijinv6 = rijinv4 / rijsq;
-        expij = std::exp(gamma_mat[typei][typej][typej] / (rij - r0_mat[typei][typej][typej]));
+        rij = std::sqrt(std::pow(delij, 2).sum());
 
-        if(rijsq < rc_sqrd_mat[typei][typej][typej]){
-            energy += H_mat[typei][typej][typej] * std::pow(rijinv, eta_mat[typei][typej][typej]);
-            energy += Zi_mat[typei][typej][typej] * Zj_mat[typei][typej][typej] * rijinv * std::exp(-rij/lambda1_mat[typei][typej][typej]);
-            energy -= D_mat[typei][typej][typej] * rijinv4 * std::exp(-rij/lambda4_mat[typei][typej][typek]);
-            energy -= W_mat[typei][typej][typej] * rijinv6;
-        }
+        energy += comp_twobody_par(typei, typej, rij);
         for(int k=0; k<box->npar; k++){
+            if (k==i || k == j) continue;
 
             // temporary ik quantities
             typek = particles[k]->type;
             delik = particles[k]->r - particles[i]->r;
-            riksq = std::pow(delik, 2).sum();
-            rik = std::sqrt(riksq);
-            expik = std::exp(gamma_mat[typei][typek][typek] / (rik - r0_mat[typei][typek][typek]));
-
-            if(rij < r0_mat[typei][typej][typej] && rik < r0_mat[typei][typek][typek]){
-                costhetaijk = (delij * delik).sum() / (rij * rik);
-                delcos = costheta_mat[typei][typej][typek] - costhetaijk;
-                delcossq = delcos * delcos;
-                energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
-            }
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
         }
     }
     for(int j=i+1; j<box->npar; j++){
-
         // temporary ij quantities
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rijsq = std::pow(delij, 2).sum();
-        rij = std::sqrt(rijsq);
-        rijinv = 1.0 / rij;
-        rijinv4 = 1.0 / (rijsq * rijsq);
-        rijinv6 = rijinv4 / rijsq;
-        expij = std::exp(gamma_mat[typei][typej][typej] / (rij - r0_mat[typei][typej][typej]));
+        rij = std::sqrt(std::pow(delij, 2).sum());
 
-        if(rijsq < rc_sqrd_mat[typei][typej][typej]){
-            energy += H_mat[typei][typej][typej] * std::pow(rijinv, eta_mat[typei][typej][typej]);
-            energy += Zi_mat[typei][typej][typej] * Zj_mat[typei][typej][typej] * rijinv * std::exp(-rij/lambda1_mat[typei][typej][typej]);
-            energy -= D_mat[typei][typej][typej] * rijinv4 * std::exp(-rij/lambda4_mat[typei][typej][typek]);
-            energy -= W_mat[typei][typej][typej] * rijinv6;
-        }
+        energy += comp_twobody_par(typei, typej, rij);
         for(int k=0; k<box->npar; k++){
+            if (k==i || k == j) continue;
 
             // temporary ik quantities
             typek = particles[k]->type;
             delik = particles[k]->r - particles[i]->r;
-            riksq = std::pow(delik, 2).sum();
-            rik = std::sqrt(riksq);
-            expik = std::exp(gamma_mat[typei][typek][typek] / (rik - r0_mat[typei][typek][typek]));
-
-            if(rij < r0_mat[typei][typej][typej] && rik < r0_mat[typei][typek][typek]){
-                costhetaijk = (delij * delik).sum() / (rij * rik);
-                delcos = costheta_mat[typei][typej][typek] - costhetaijk;
-                delcossq = delcos * delcos;
-                energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
-            }
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
         }
     }
     return (energy);
@@ -388,18 +334,7 @@ Vashishta::~Vashishta()
 {
     for(int i = 0; i < box->ntype; i++){
         for(int j = 0; j < box->ntype; j++){
-            delete H_mat[i][j];
-            delete eta_mat[i][j];
-            delete Zi_mat[i][j];
-            delete Zj_mat[i][j];
-            delete lambda1_mat[i][j];
-            delete D_mat[i][j];
-            delete lambda4_mat[i][j];
-            delete W_mat[i][j];
-            delete rc_sqrd_mat[i][j];
             delete B_mat[i][j];
-            delete gamma_mat[i][j];
-            delete r0_mat[i][j];
             delete C_mat[i][j];
             delete costheta_mat[i][j];
         }
@@ -407,11 +342,11 @@ Vashishta::~Vashishta()
         delete eta_mat[i];
         delete Zi_mat[i];
         delete Zj_mat[i];
-        delete lambda1_mat[i];
+        delete lambda1inv_mat[i];
         delete D_mat[i];
-        delete lambda4_mat[i];
+        delete lambda4inv_mat[i];
         delete W_mat[i];
-        delete rc_sqrd_mat[i];
+        delete rc_mat[i];
         delete B_mat[i];
         delete gamma_mat[i];
         delete r0_mat[i];
@@ -422,11 +357,11 @@ Vashishta::~Vashishta()
     delete eta_mat;
     delete Zi_mat;
     delete Zj_mat;
-    delete lambda1_mat;
+    delete lambda1inv_mat;
     delete D_mat;
-    delete lambda4_mat;
+    delete lambda4inv_mat;
     delete W_mat;
-    delete rc_sqrd_mat;
+    delete rc_mat;
     delete B_mat;
     delete gamma_mat;
     delete r0_mat;
