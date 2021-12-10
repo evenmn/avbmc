@@ -38,10 +38,8 @@ public:
     void add_particle(class Particle*);
     void add_particle(std::string, std::valarray<double>);
     void add_particles(std::vector<class Particle *>);
-    //void add_particles(const string chem_symbol, const mat positions_in);
-    //void add_particles(const string chem_symbol, const mat positions_in, const mat velocities_in);
-    //void add_particles(const vector<string> chem_symbols_in, const mat positions_in);
-    //void add_particles(const vector<string> chem_symbols_in, const mat positions_in, const mat velocities_in);
+    void add_molecule_type(std::string, double);
+    void add_molecule_type(std::vector<std::string>, double, double, std::vector<std::valarray<double> >, int = 0);
 
     void snapshot(std::string);
     void set_dump(int, std::string, std::vector<std::string>);

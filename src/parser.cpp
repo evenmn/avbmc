@@ -376,6 +376,109 @@ void add(Box& box, const vector<string> splitted, const int argc)
             std::cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << std::endl;
         }
     }
+    else if (keyword == "moleculetype"){
+        assert (argc > 3);
+        std::vector<std::string> elements;
+        std::vector<std::valarray<double> > default_mol;
+        elements.push_back(splitted[2]);
+        if (argc == 4){  // one atom, ex. H 1.0
+            double molecule_prob = std::stod(splitted[3]);
+            box.add_molecule_type(splitted[2], molecule_prob);
+        }
+        else if (argc == 8){ // two atoms, one dimension, ex. O O 1.5 1.0 0.0 1.0
+            elements.push_back(splitted[3]);
+            double rc = std::stod(splitted[4]);
+            double molecule_prob = std::stod(splitted[5]);
+            double x1 = std::stod(splitted[6]);
+            double x2 = std::stod(splitted[7]);
+            default_mol.push_back({x1});
+            default_mol.push_back({x2});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 10){ // two atoms, two dimensions or three atoms, one dimension
+            // ex. O O 1.5 1.0 0.0 0.0 1.0 0.0
+            // or  O H H 1.5 1.0 -1.0 0.0 1.0
+            try {
+                elements.push_back(splitted[3]);
+                double rc = std::stod(splitted[4]);
+                double molecule_prob = std::stod(splitted[5]);
+                double x1 = std::stod(splitted[6]);
+                double y1 = std::stod(splitted[7]);
+                double x2 = std::stod(splitted[8]);
+                double y2 = std::stod(splitted[9]);
+                default_mol.push_back({x1, y1});
+                default_mol.push_back({x2, y2});
+                box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+            }
+            catch(...) {
+                elements.push_back(splitted[3]);
+                elements.push_back(splitted[4]);
+                double rc = std::stod(splitted[5]);
+                double molecule_prob = std::stod(splitted[6]);
+                double x1 = std::stod(splitted[7]);
+                double x2 = std::stod(splitted[8]);
+                double x3 = std::stod(splitted[9]);
+                default_mol.push_back({x1});
+                default_mol.push_back({x2});
+                default_mol.push_back({x3});
+                box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+            }
+        }
+        else if (argc == 12){ // two atoms, three dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[4]);
+            double molecule_prob = std::stod(splitted[5]);
+            double x1 = std::stod(splitted[6]);
+            double y1 = std::stod(splitted[7]);
+            double z1 = std::stod(splitted[8]);
+            double x2 = std::stod(splitted[9]);
+            double y2 = std::stod(splitted[10]);
+            double z2 = std::stod(splitted[11]);
+            default_mol.push_back({x1, y1, z1});
+            default_mol.push_back({x2, y2, z2});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 13){ // three atoms, two dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[5]);
+            double molecule_prob = std::stod(splitted[6]);
+            double x1 = std::stod(splitted[7]);
+            double y1 = std::stod(splitted[8]);
+            double x2 = std::stod(splitted[9]);
+            double y2 = std::stod(splitted[10]);
+            double x3 = std::stod(splitted[11]);
+            double y3 = std::stod(splitted[12]);
+            default_mol.push_back({x1, y1});
+            default_mol.push_back({x2, y2});
+            default_mol.push_back({x3, y3});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 16){ // three atoms, three dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[5]);
+            double molecule_prob = std::stod(splitted[6]);
+            double x1 = std::stod(splitted[7]);
+            double y1 = std::stod(splitted[8]);
+            double z1 = std::stod(splitted[9]);
+            double x2 = std::stod(splitted[10]);
+            double y2 = std::stod(splitted[11]);
+            double z2 = std::stod(splitted[12]);
+            double x3 = std::stod(splitted[13]);
+            double y3 = std::stod(splitted[14]);
+            double z3 = std::stod(splitted[15]);
+            default_mol.push_back({x1, y1, z1});
+            default_mol.push_back({x2, y2, z2});
+            default_mol.push_back({x3, y3, z3});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else{
+            std::cout << "'add moleculetype' does not support " + std::to_string(argc - 3) + " arguments. Aborting." << std::endl;
+            exit(0);
+        }
+    }
     else{
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
