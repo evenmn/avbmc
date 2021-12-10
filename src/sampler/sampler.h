@@ -1,28 +1,27 @@
 #pragma once
-#include <iostream>
-#include <functional>
 #include <vector>
-
-using namespace std;
 
 
 class Sampler
 {
 public:
-    Sampler(class Box* box_in);
+    Sampler(class Box*);
 
     // declare pure virtual functions
-    virtual double w(int npar) = 0;
+    virtual double w(int) = 0;
     virtual ~Sampler() = default;
     
     // declare public functions
-    class Moves* propose_move(std::vector<class Moves*> moves, std::vector<double> move_probs);
-    bool accept_move(class Moves* move, const double temp, const double chempot);
-    void sample(int nmoves);
+    void sample(int);
 
     // declare public variables
     int move_idx;
     double acceptance_ratio;
+
+private:
+    // declare private functions
+    class Moves* propose_move(std::vector<class Moves*>, std::vector<double>);
+    bool accept_move(class Moves*, double, double);
 
 protected:
     class Box* box = nullptr;
