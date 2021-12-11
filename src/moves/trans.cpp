@@ -1,7 +1,17 @@
+#include <iostream>
+#include <cmath>
+#include <valarray>
+
 #include "trans.h"
 #include "../box.h"
 #include "../particle.h"
 
+
+/*---------------------------------------------------
+  Constructor of naive translational move, with
+  'dx_in' being the maximum step length (in any
+  direction)
+----------------------------------------------------- */
 
 Trans::Trans(Box* box_in, double dx_in)
     : Moves(box_in) 
@@ -9,13 +19,14 @@ Trans::Trans(Box* box_in, double dx_in)
     dx = dx_in;
 }
 
+
+/* ---------------------------------------------------
+   Propose particle to move and new position randomly.
+------------------------------------------------------ */
+
 void Trans::perform_move()
 {
-    /* Propose naive translation move of particle i
-     */
-
-    // compute initial energy contribution from particle i
-    i = box->rng->next_int(box->npar);
+    i = box->rng->next_int(box->npar); // particle to move
     double u0 = box->forcefield->comp_energy_par(box->particles, i);
 
     // move particle i
@@ -31,19 +42,25 @@ void Trans::perform_move()
     box->poteng += du;
 }
 
+
+/* -----------------------------------------------------
+   Compute acceptance probability of translational 
+   move
+-------------------------------------------------------- */
+
 double Trans::accept(double temp, double /*chempot*/)
 {
-     /* Gives the acceptance probability
-      * of the translational move
-     */
     return std::exp(-du/temp);
 }
 
+
+/* -----------------------------------------------------
+   Set back to old state before move if move was
+   rejected
+-------------------------------------------------------- */
+
 void Trans::reset()
 {
-    /* Set back to old state if 
-     * move is rejected
-     */
     box->particles[i]->r = pos_old;
     box->poteng -= du;
 }

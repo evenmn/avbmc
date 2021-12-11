@@ -20,7 +20,7 @@
 class Box
 {
 public:
-    Box(std::string working_dir_in="", double temp_in=1., double chempot_in=0.); 
+    Box(std::string  = "", double = 1., double = 0.); 
 
     // methods
     void set_forcefield(class ForceField*);

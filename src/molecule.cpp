@@ -79,7 +79,7 @@ Molecule* MoleculeTypes::construct_molecule(const int i)
         count ++;
     }
     Molecule* molecule = nullptr; 
-    if(count == box->npar){
+    if(count == box->npar - 1){
         std::vector<int> atoms;
         molecule = new Molecule(atoms, 0);
     }

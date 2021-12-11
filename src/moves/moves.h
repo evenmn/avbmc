@@ -3,7 +3,6 @@
 #include <valarray>
 #include <vector>
 
-using namespace std;
 
 class Moves
 {
