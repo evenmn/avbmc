@@ -34,39 +34,6 @@ AVBMCInMol::AVBMCInMol(Box* box_in, const double r_below_in, const double r_abov
 }
 
 
-/* --------------------------------------------------------
-   Rotate molecule by a random angle in all dimensions. Might
-   send in positions as a reference in the future, even
-   though we still may need to copy the positions
------------------------------------------------------------ */
-   
-std::vector<std::valarray<double> > AVBMCInMol::rotate_molecule(std::vector<std::valarray<double> > positions_in)
-{
-    std::vector<std::valarray<double> > positions_out;
-    if(box->ndim == 1){
-        return positions_in;
-    }
-    else if(box->ndim == 2){
-        double angle = 2 * pi * box->rng->next_double();
-        for(std::valarray<double> position_in : positions_in){
-            std::valarray<double> position_out = {position_in[0] * std::cos(angle) - position_in[1] * std::sin(angle), position_in[0] * std::sin(angle) + position_in[1] * std::cos(angle)};
-            positions_out.push_back(position_out);
-        }
-        return positions_out;
-    }
-    else{
-        double anglex = 2 * pi * box->rng->next_double();
-        double angley = 2 * pi * box->rng->next_double();
-        double anglez = 2 * pi * box->rng->next_double();
-        for(std::valarray<double> position_in : positions_in){
-            std::valarray<double> position_out = {position_in[0] * (1 + std::cos(angley) + std::cos(anglez)) - position_in[2] * std::sin(anglez) + position_in[1] * std::sin(angley), position_in[0] * std::sin(angley) + position_in[1] * (1 + std::cos(anglex) + std::cos(anglez)) - position_in[2] * std::sin(anglex), - position_in[0] * std::sin(angley) + position_in[1] * std::sin(anglex) + position_in[2] * (1 + std::cos(anglex) + std::cos(angley))};
-            positions_out.push_back(position_out);
-        }
-        return positions_out;
-    }
-}
-
-
 /* ------------------------------------------------------------
    Insert molecule into the bonded region of an equivalent
    molecule
@@ -78,63 +45,63 @@ void AVBMCInMol::perform_move()
     int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
     std::vector<std::valarray<double> > positions = box->molecule_types->default_mols[mol_idx];
     natom = box->molecule_types->molecule_elements[mol_idx].size();
+    int com_type = box->molecule_types->molecule_types[mol_idx][0];
 
-    // positions = rotate_molecule(positions)
+    // rotate molecule arbitrary
+    positions = rotate_molecule(positions);
     
-    // pick particle among COM particles
-    //int type, i;
-    //int count = 0;
-    //while(type != box->particles[box->molecule_types->molecule_types[box->molecule_types->coms[mol_idx]]]->type && count < box->npar){
-    //    i = box->rng->next_int(box->npar);
-    //    type = box->particles[i]->type;
-    //}
-    //type = 0;
-    //i = 0;
-    //std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
-    //n_in = neigh_listi.size();
-    
+    // search for COM particle (first particle)
+    int type, i;
+    int count = 0;
+    while(type != com_type && count < box->npar){
+        i = box->rng->next_int(box->npar);
+        type = box->particles[i]->type;
+        count ++;
+    }
 
-    // pick particle i and create local neighbor list of particle
-    //int i = box->rng->next_int(box->npar);
-    //std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
-    //n_in = neigh_listi.size();
+    if (type == com_type){
+        reject_move = false;
 
-    // compute norm
-    auto norm = [] (std::valarray<double> x) -> double { 
-        double sqrd_sum = 0.;
-        for(double x_ : x){
-            sqrd_sum += x_ * x_;
+        // compute norm
+        auto norm = [] (std::valarray<double> x) -> double { 
+            double sqrd_sum = 0.;
+            for(double x_ : x){
+                sqrd_sum += x_ * x_;
+            }
+            return sqrd_sum;
+        };
+
+        // construct new molecule
+        std::valarray<double> dr(box->ndim);
+        double norm_ = norm(dr);
+        while(norm_ > r_above2 || norm_ < r_below2){
+            for(double &d : dr){
+                d = 2 * box->rng->next_double() - 1;
+            }
+            norm_ = norm(dr);
         }
-        return sqrd_sum;
-    };
-
-    // construct new particle
-    std::valarray<double> dr(box->ndim);
-    double norm_ = norm(dr);
-    while(norm_ > r_above2 || norm_ < r_below2){
-        for(double &d : dr){
-            d = 2 * box->rng->next_double() - 1;
+        for(int j=0; j < natom; j++){
+            positions[j] += box->particles[i]->r + dr;
+            std::string element = box->molecule_types->molecule_elements[mol_idx][j];
+            Particle* particle = new Particle(element, positions[j]);
+            for(int k=0; k<box->ntype; k++){
+                if (box->unique_labels[k] == element){
+                    particle->type = k;
+                }
+            }
+            box->particles.push_back(particle);
+            box->npar ++;
         }
-        norm_ = norm(dr);
-    }
-    for(int j=0; j < natom; j++){
-        positions[j] += box->particles[j]->r + dr;
-        Particle* particle = new Particle(box->molecule_types->molecule_elements[mol_idx][j], positions[j]);
-        box->particles.push_back(particle);
-    }
-    //molecule_in = new Molecule(positions, box->molecule_types->coms[mol_idx]);
 
-    //du = -box->forcefield->comp_energy_mol(box->particles, molecule_in);
-
-    du = 0.0;
-    for(int j=0; j < natom; j++){
-        du += box->forcefield->comp_energy_par(box->particles, box->npar + j);
+        // compute energy difference
+        du = 0.0;
+        for(int j=0; j < natom; j++){
+            du += box->forcefield->comp_energy_par(box->particles, box->npar - j - 1);
+        }
     }
-
-    //Particle *particle_in = new Particle(label, box->particles[i]->r + dr);
-    //particle_in->type = type;
-    //box->particles.push_back(particle_in);
-    box->npar += natom;
+    else {  // reject move if target COM atom (molecule) was not found
+        reject_move = true;
+    }
 }
 
 
@@ -144,8 +111,13 @@ void AVBMCInMol::perform_move()
 
 double AVBMCInMol::accept(double temp, double chempot)
 {
-    double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar - natom);
-    return (v_in * box->npar) / ((n_in + 1) * (box->npar + natom)) * std::exp(-(du-chempot+dw)/temp);
+    if (reject_move) {
+        return 0.0;
+    }
+    else {
+        double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar - natom);
+        return (v_in * box->npar) / ((n_in + 1) * (box->npar + natom)) * std::exp(-(du-chempot+dw)/temp);
+    }
 }
 
 
@@ -155,7 +127,9 @@ double AVBMCInMol::accept(double temp, double chempot)
 
 void AVBMCInMol::reset()
 {
-    box->npar -= natom;
-    box->poteng -= du;
-    box->particles.erase(box->particles.begin() + box->npar);
+    if (!reject_move) {
+        box->npar -= natom;
+        box->poteng -= du;
+        box->particles.erase(box->particles.begin() + box->npar);
+    }
 }

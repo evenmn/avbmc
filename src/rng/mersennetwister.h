@@ -4,6 +4,7 @@
 
 #include "rng.h"
 
+
 class MersenneTwister : public RandomNumberGenerator
 {
 public:

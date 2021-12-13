@@ -21,7 +21,6 @@ AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
     r_above = r_above_in;
     r_above2 = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
-    not_accept = false;
 }
 
 
@@ -33,10 +32,10 @@ AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
 void AVBMCOut::perform_move()
 {
     if(box->npar < 2){
-        not_accept = true;
+        reject_move = true;
     }
     else{
-        not_accept = false;
+        reject_move = false;
         // create local neighbor list of particle i
 
         int i = box->rng->next_int(box->npar);
@@ -54,7 +53,7 @@ void AVBMCOut::perform_move()
             box->npar --;
         }
         else{
-            not_accept = true;
+            reject_move = true;
         }
     }
 }
@@ -67,8 +66,8 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
-    if(not_accept){
-        return 0;
+    if(reject_move){
+        return 0.;
     }
     else{
         double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar+1);
@@ -83,7 +82,9 @@ double AVBMCOut::accept(double temp, double chempot)
 
 void AVBMCOut::reset()
 {
-    box->npar += 1;
-    box->poteng -= du;
-    box->particles.push_back(particle_out);
+    if (!reject_move){
+        box->npar += 1;
+        box->poteng -= du;
+        box->particles.push_back(particle_out);
+    }
 }

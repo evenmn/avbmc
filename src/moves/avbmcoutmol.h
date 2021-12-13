@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include "moves.h"
 
 
@@ -11,7 +13,7 @@ public:
     void reset();
 
 private:
-    bool not_accept;
+    bool reject_move;
     int n_in;
     double r_above, r_above2, v_in;
     std::vector<class Particle *> particles_old;

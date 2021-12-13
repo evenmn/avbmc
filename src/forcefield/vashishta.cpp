@@ -214,7 +214,9 @@ void Vashishta::sort_params()
 
 
 /* ----------------------------------------------------------------
-   Compute two-body contribution to total energy for a particle 'i'
+   Compute two-body interaction energy between two particles
+   i and j of types 'typei' and 'typej', respectively, 
+   separated by a distance 'rij'.
 ------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij)
@@ -237,7 +239,11 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 
 
 /* ---------------------------------------------------------------
-   Compute three-body contribution ot total energy for a particle 'i'
+   Compute three-body interaction energy between three 
+   particles i, j and k of types 'typei', 'typej' and 'typek',
+   respectively. 'delij' is the distance vector from i to j,
+   while 'delik' is the distance vector from i to k. 'rij'
+   is the actual distance between particle i and j.
 ------------------------------------------------------------------ */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej, const int typek,
@@ -262,7 +268,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
 
 /* ---------------------------------------------------------------
    Compute energy contribution from molecule consisting of
-   one or several atoms
+   one or several atoms. This function might be redundant.
 ------------------------------------------------------------------ */
 
 double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
@@ -276,7 +282,8 @@ double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molec
 
 
 /* ---------------------------------------------------------------
-   Compute energy contribution of a particle i
+   Compute energy contribution of a particle 'i', given a 
+   vector containing all particles.
 ------------------------------------------------------------------ */
 
 double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const int i)
@@ -289,32 +296,33 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
 
     energy = 0.0;
     for(int j=0; j<i; j++){
-        // temporary ij quantities
+        // two-body
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(std::pow(delij, 2).sum());
-
+        rij = std::sqrt(std::pow(delij, 2).sum());  // might be a good idea to write this out instead
         energy += comp_twobody_par(typei, typej, rij);
+
         for(int k=0; k<box->npar; k++){
             if (k==i || k == j) continue;
 
-            // temporary ik quantities
+            // three-body
             typek = particles[k]->type;
             delik = particles[k]->r - particles[i]->r;
             energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
         }
     }
+
     for(int j=i+1; j<box->npar; j++){
-        // temporary ij quantities
+        // two-body
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(std::pow(delij, 2).sum());
-
+        rij = std::sqrt(std::pow(delij, 2).sum());  // might be a good idea to write this out instead
         energy += comp_twobody_par(typei, typej, rij);
+
         for(int k=0; k<box->npar; k++){
             if (k==i || k == j) continue;
 
-            // temporary ik quantities
+            // three-body
             typek = particles[k]->type;
             delik = particles[k]->r - particles[i]->r;
             energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
@@ -326,7 +334,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
 
 /* ---------------------------------------------------------
    Vashishta destructor, memory of all parameter arrays
-   are released. Do this in a more elegant way in the 
+   is released. Do this in a more elegant way in the 
    future
 ------------------------------------------------------------ */
 

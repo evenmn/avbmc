@@ -11,7 +11,7 @@ public:
     void reset();
 
 private:
-    bool not_accept;
+    bool reject_move;
     int n_in;
     double r_above, r_above2, v_in;
     class Particle* particle_out = nullptr;

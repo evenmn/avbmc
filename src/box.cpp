@@ -144,7 +144,8 @@ void Box::add_particles(std::vector<Particle *> particles_in)
 
 
 /* ------------------------------------------------------
-   Add new molecule type
+   Add new molecule type when molecule is defined by
+   one atom.
 --------------------------------------------------------- */
 
 void Box::add_molecule_type(std::string element, const double molecule_prob)
@@ -154,6 +155,11 @@ void Box::add_molecule_type(std::string element, const double molecule_prob)
     std::vector<std::valarray<double> > default_mol = {default_atom};
     molecule_types->add_molecule_type(elements, 0.0, 0, molecule_prob, default_mol);
 }
+
+
+/* ------------------------------------------------------
+   Add new molecule type consisting of several atoms
+--------------------------------------------------------- */
 
 void Box::add_molecule_type(std::vector<std::string> elements, const double rc, const double molecule_prob,
                             std::vector<std::valarray<double> > default_mol, const int com_atom)
@@ -226,23 +232,22 @@ void Box::check_particle_types()
     if (!molecule_types->configured)
     {
         for(std::string label : unique_labels){
-            std::vector<std::string> labels = {label};
-            molecule_types->add_molecule_type(labels, 0.0, 0, 1./ntype, {{0., 0., 0.}});
+            add_molecule_type(label, 1./ntype);
         }
     }
 
     // Since particles are associated with types rather than labels,
     // also molecule configuration labels have to be converted to types
-    for(int i=0; i<ntype; i++){
-        for(std::vector<std::string> elements : molecule_types->molecule_elements){
-            std::vector<int> types;
+    for(std::vector<std::string> elements : molecule_types->molecule_elements){
+        std::vector<int> types;
+        for (int i=0; i < ntype; i++){
             for(std::string element : elements){
                 if(element == unique_labels[i]){
                     types.push_back(i);
                 }
             }
-            molecule_types->molecule_types.push_back(types); 
         }
+        molecule_types->molecule_types.push_back(types); 
     }
 }
 

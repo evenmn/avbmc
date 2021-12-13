@@ -21,7 +21,6 @@ AVBMCOutMol::AVBMCOutMol(Box* box_in, const double r_above_in)
     r_above = r_above_in;
     r_above2 = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
-    not_accept = false;
 }
 
 
@@ -35,15 +34,20 @@ void AVBMCOutMol::perform_move()
     // pick molecule to be removed
     int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
     molecule_out = box->molecule_types->construct_molecule(mol_idx);
-    if(box->npar < 2 * molecule_out->natom){
-        not_accept = true;
+    if(molecule_out->natom != box->molecule_types->molecule_types[mol_idx].size()){
+        reject_move = true;
+    }
+    else if(box->npar < 2 * molecule_out->natom){
+        reject_move = true;
     }
     else{
-        not_accept = false;
+        reject_move = false;
         du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
         particles_old = box->particles;
-        for(int atom : molecule_out->atoms_idx){
-            box->particles.erase(box->particles.begin() + atom);
+        std::vector<int> atoms_idx = molecule_out->atoms_idx;
+        std::sort(atoms_idx.begin(), atoms_idx.end(), std::greater<int>()); // sort in decending order
+        for(int atom_idx : atoms_idx){
+            box->particles.erase(box->particles.begin() + atom_idx);
         }
         box->npar -= molecule_out->natom;
     }
@@ -57,8 +61,8 @@ void AVBMCOutMol::perform_move()
 
 double AVBMCOutMol::accept(double temp, double chempot)
 {
-    if(not_accept){
-        return 0;
+    if(reject_move){
+        return 0.;
     }
     else{
         double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar + molecule_out->natom);
@@ -73,7 +77,9 @@ double AVBMCOutMol::accept(double temp, double chempot)
 
 void AVBMCOutMol::reset()
 {
-    box->npar += molecule_out->natom;
-    box->poteng -= du;
-    box->particles = particles_old;
+    if (!reject_move) {
+        box->npar += molecule_out->natom;
+        box->poteng -= du;
+        box->particles = particles_old;
+    }
 }
