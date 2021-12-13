@@ -42,6 +42,7 @@ void AVBMCOutMol::perform_move()
     }
     else{
         reject_move = false;
+        n_in = 1;
         du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
         particles_old = box->particles;
         std::vector<int> atoms_idx = molecule_out->atoms_idx;
