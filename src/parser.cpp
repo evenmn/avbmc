@@ -11,6 +11,7 @@
 #include "io.h"
 #include "box.h"
 #include "init_position.h"
+#include "particle.h"
 //#include "init_velocity.h"
 
 //#include "integrator/integrator.h"
@@ -481,6 +482,18 @@ void add(Box& box, const vector<string> splitted, const int argc)
         if (argc == 4){  // one atom, ex. H 1.0
             double molecule_prob = std::stod(splitted[3]);
             box.add_molecule_type(splitted[2], molecule_prob);
+        }
+        else if (argc == 5){ // read default molecule from xyz-file
+            elements.clear();
+            double rc = std::stod(splitted[2]);
+            double molecule_prob = std::stod(splitted[3]);
+            std::string filename = splitted[4];
+            std::vector<Particle *> default_particles = read_xyz(filename);
+            for(Particle* particle : default_particles){
+                elements.push_back(particle->label);
+                default_mol.push_back(particle->r);
+            }
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
         }
         else if (argc == 8){ // two atoms, one dimension, ex. O O 1.5 1.0 0.0 1.0
             elements.push_back(splitted[3]);
