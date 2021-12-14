@@ -91,3 +91,17 @@ void AVBMCIn::reset()
     box->poteng -= du;
     box->particles.erase(box->particles.begin() + box->npar);
 }
+
+
+/* -----------------------------------------------------
+   Represent move in a clean way
+-------------------------------------------------------- */
+
+std::string AVBMCIn::repr()
+{
+    std::string move_info;
+    move_info += "AVBMC particle insertion move\n";
+    move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
+    move_info += "    Radius of inner sphere: " + std::to_string(r_below) + "\n";
+    return move_info;
+}

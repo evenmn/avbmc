@@ -1,5 +1,6 @@
 #pragma once
 #include <cmath>
+#include <string>
 #include "moves.h"
 
 
@@ -10,6 +11,7 @@ public:
     void perform_move();
     double accept(double, double);
     void reset();
+    std::string repr();
 
 private:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);

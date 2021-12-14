@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <vector>
 
 #include "moves.h"
@@ -11,6 +12,7 @@ public:
     void perform_move();
     double accept(double, double);
     void reset();
+    std::string repr();
 
 private:
     bool reject_move;

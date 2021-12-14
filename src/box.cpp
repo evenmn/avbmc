@@ -7,6 +7,7 @@
 
 #include "box.h"
 #include "dump.h"
+#include "moves/moves.h"
 #include "particle.h"
 #include "molecule.h"
 
@@ -22,7 +23,7 @@ Box::Box(std::string working_dir_in, double temp_in, double chempot_in)
     chempot = chempot_in;
 
     time = poteng = 0.;
-    npar = ntype = nmove = step = 0;
+    npar = ntype = nmove = nprocess = step = 0;
     ndim = 3;
 
     rng = new MersenneTwister();
@@ -279,18 +280,86 @@ int Box::get_maxiter(const int nsteps)
 
 
 /* -------------------------------------------------------
+   Print logo header
+---------------------------------------------------------- */
+
+void Box::print_logo()
+{
+    std::cout << std::endl;
+    std::cout << " █████╗ ██╗   ██╗██████╗ ███╗   ███╗ ██████╗" << std::endl;
+    std::cout << "██╔══██╗██║   ██║██╔══██╗████╗ ████║██╔════╝" << std::endl;
+    std::cout << "███████║██║   ██║██████╔╝██╔████╔██║██║     " << std::endl;
+    std::cout << "██╔══██║╚██╗ ██╔╝██╔══██╗██║╚██╔╝██║██║     " << std::endl;
+    std::cout << "██║  ██║ ╚████╔╝ ██████╔╝██║ ╚═╝ ██║╚██████╗" << std::endl;
+    std::cout << "╚═╝  ╚═╝  ╚═══╝  ╚═════╝ ╚═╝     ╚═╝ ╚═════╝" << std::endl;
+    std::cout << std::endl;
+}
+
+
+/* -------------------------------------------------------
    Print information about simulation
 ---------------------------------------------------------- */
 
 void Box::print_info()
 {
-    std::cout << "-----------------------------------" << std::endl;
-    std::cout << "Num particles: " << npar << std::endl;
-    std::cout << "Num dimensions: " << ndim << std::endl;
-    std::cout << "Num moves: " << nmove << std::endl;
-    std::cout << "Num types: " << ntype << std::endl;
-    std::cout << "-----------------------------------\n" << std::endl;
+    std::time_t start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::cout << "Started computation at " << std::ctime(&start_time)
+              << "Running on " << nprocess << " CPU threads using MPI" << std::endl;
+
+    //std::cout << std::fixed;
+    //std::cout << std::boolalpha;
+    //std::cout << std::setprecision(6);
+    std::cout << std::endl;
+    std::cout << std::endl;
+    std::cout << "            Box Information " << std::endl;
+    std::cout << "=========================================" << std::endl;
+    std::cout << "Number of particles:      " << npar << std::endl;
+    std::cout << "Number of dimensions:     " << ndim << std::endl;
+    std::cout << "Number of particle types: " << ntype << std::endl;
+    //std::cout << "Forcefield:               " << forcefield->label << std::endl;
+    //std::cout << "Random number generator:  " << rng->label << std::endl;
+    std::cout << std::endl;
+    std::cout << "Unique particle types:";
+    for(int i=0; i < ntype; i++){
+        std::cout << " " << unique_labels[i];
+    }
+    std::cout << std::endl;
+    for(int i=0; i < molecule_types->ntype; i++){
+        std::cout << "  Molecule type " + std::to_string(i+1) + ":" << std::endl;
+        std::cout << "    Atoms:            ";
+        for(std::string element : molecule_types->molecule_elements[i]){
+            std::cout << " " << element;
+        }
+        std::cout << std::endl;
+        std::cout << "    Critical distance: " << std::to_string(molecule_types->rcs[i]) << std::endl;
+        std::cout << "    Probability:       " << std::to_string(molecule_types->molecule_probs[i]) << std::endl;
+    }
+    std::cout << std::endl;
 }
+
+
+/* --------------------------------------------------------
+   Print Monte Carlo information
+----------------------------------------------------------- */
+
+void Box::print_mc_info()
+{
+    std::cout << std::endl;
+    std::cout << "           Monte Carlo information " << std::endl;
+    std::cout << "=========================================" << std::endl;
+    std::cout << "Temperature:              " << temp << std::endl;
+    std::cout << "Chemical potential:       " << chempot << std::endl;
+    //std::cout << "Sampling method:          " << sampler->label << std::endl;
+    std::cout << "Number of move types:     " << nmove << std::endl;
+    std::cout << std::endl;
+    for(int i=0; i < nmove; i++){
+        std::cout << "  Move type " + std::to_string(i+1) + ": ";
+        std::cout << moves[i]->repr();
+        std::cout << "    Probability: " << std::to_string(moves_prob[i]) << std::endl;
+    }
+    std::cout << std::endl;
+}
+
 
 /*
 void Box::run_md(const int nsteps)
@@ -324,7 +393,9 @@ void Box::run_md(const int nsteps)
 
 void Box::run_mc(const int nsteps, const int nmoves)
 {
+    print_logo();
     print_info();
+    print_mc_info();
     check_particle_types();
     init_simulation();
 

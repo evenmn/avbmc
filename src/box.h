@@ -48,7 +48,9 @@ public:
     void check_particle_types();
     void init_simulation();
     int get_maxiter(int);
+    void print_logo();
     void print_info();
+    void print_mc_info();
 
     void run_md(int);
     void run_mc(int, int);
@@ -64,7 +66,7 @@ public:
     //class Velocity* velocity = nullptr;
     class MoleculeTypes* molecule_types = nullptr;
 
-    int npar, ndim, ntype, nmove, step;
+    int npar, ndim, ntype, nmove, nprocess, step;
     double temp, chempot, poteng, time;
 
     std::vector<class Particle *> particles;

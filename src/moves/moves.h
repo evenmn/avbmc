@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <valarray>
+#include <string>
 #include <vector>
 
 
@@ -13,6 +14,7 @@ public:
     virtual void perform_move() = 0;
     virtual double accept(double, double) = 0;
     virtual void reset() = 0;
+    virtual std::string repr() = 0;
     virtual ~Moves() = default;
 
 protected:

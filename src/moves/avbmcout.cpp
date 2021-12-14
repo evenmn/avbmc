@@ -88,3 +88,16 @@ void AVBMCOut::reset()
         box->particles.push_back(particle_out);
     }
 }
+
+
+/* -----------------------------------------------------
+   Represent move in a clean way
+-------------------------------------------------------- */
+
+std::string AVBMCOut::repr()
+{
+    std::string move_info;
+    move_info += "AVBMC particle deletion move\n";
+    move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
+    return move_info;
+}

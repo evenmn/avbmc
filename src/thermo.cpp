@@ -1,41 +1,92 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <functional>
+
 #include "thermo.h"
 #include "../box.h"
 
 
+/* ---------------------------------------------
+   Get current step
+------------------------------------------------ */
 
 auto step = [] (Box* box) -> double {
     return box->step;
 };
 
+
+/* ---------------------------------------------
+   Get current time (for molecular dynamics)
+------------------------------------------------ */
+
 auto time_ = [] (Box* box) -> double {
     return box->time;
 };
+
+
+/* ---------------------------------------------
+   Get current number of atoms
+------------------------------------------------ */
 
 auto atoms = [] (Box* box) -> double {
     return box->npar;
 };
 
+
+/* ---------------------------------------------
+   Get current number of atom types
+------------------------------------------------ */
+
 auto types = [] (Box* box) -> double {
     return box->ntype;
 };
 
+/* --------------------------------------------- 
+   Get current potential energy
+------------------------------------------------ */
+
 auto poteng = [] (Box* box) -> double {
     return box->poteng;
 };
+
+
+/* ----------------------------------------------
+   Get current kinetic energy (for molecular
+   dynamics simulations)
+------------------------------------------------- */
 /*
 auto kineng = [] (Box* box) -> double {
     vec vel = box->velocities;
     return sum(sum(vel % vel));
 };
 */
+
+/* ---------------------------------------------- 
+   Get acceptance ratio of current cycle (for
+   Monte Carlo simulations)
+------------------------------------------------- */
+
 auto acceptance_ratio = [] (Box* box) -> double {
     return box->sampler->acceptance_ratio;
 };
+
+
+/* ----------------------------------------------
+   Get index of current move
+------------------------------------------------- */
 
 auto move_idx = [] (Box* box) -> double {
     return box->sampler->move_idx;
 };
 
+
+/* ----------------------------------------------
+   Constructor of thermo class. Takes dump
+   frequency, 'freq_in', thermo output filename
+   'filename' and vector of quantities to output
+   'outputs_in' as arguments.
+------------------------------------------------- */
 
 Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
 {
@@ -83,10 +134,12 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename, const
 }
 
 
+/* ------------------------------------------------------
+   Print header of thermo outputs
+--------------------------------------------------------- */
+
 void Thermo::print_header()
 {
-    /* Print header of thermo outputs
-     */
     f << "# ";
     for(std::string i : outputs){
         std::cout << i << " ";
@@ -97,12 +150,15 @@ void Thermo::print_header()
 }
 
 
+/* ------------------------------------------------------
+   Print thermo outputs of current step
+--------------------------------------------------------- */
+
 void Thermo::print_line()
 {
-    /* Print thermo output at the current
-     * step
-     */
     if(box->step % freq == 0){
+        //std::cout << std::fixed; // << std::setprecision(6);
+        f << std::scientific;
         for(auto func : output_functions){
             std::cout << func(box) << " ";
             f << func(box) << " ";
@@ -111,6 +167,11 @@ void Thermo::print_line()
         f << std::endl;
     }
 }
+
+
+/* ------------------------------------------------------
+  Thermo destructor, closing output file.
+--------------------------------------------------------- */
 
 Thermo::~Thermo()
 {

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <string>
 #include <valarray>
 
 #include "trans.h"
@@ -63,4 +64,17 @@ void Trans::reset()
 {
     box->particles[i]->r = pos_old;
     box->poteng -= du;
+}
+
+
+/* -----------------------------------------------------
+   Represent move in a clean way
+-------------------------------------------------------- */
+
+std::string Trans::repr()
+{
+    std::string move_info;
+    move_info += "Naive translational move\n";
+    move_info += "    Maximum move length: " + std::to_string(dx) + "\n";
+    return move_info;
 }
