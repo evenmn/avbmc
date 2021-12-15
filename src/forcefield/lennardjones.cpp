@@ -128,11 +128,13 @@ void LennardJones::sort_params()
         sigma_mat[type2][type1] = sigma_vec[i];
         epsilon_mat[type1][type2] = epsilon_vec[i];
         epsilon_mat[type2][type1] = epsilon_vec[i];
-        double rc = rc_vec[i];
-        rc_sqrd_mat[type1][type2] = rc * rc;
-        rc_sqrd_mat[type2][type1] = rc * rc;
-        shift_mat[type1][type2] = std::pow(rc, 12) - std::pow(rc, 6);
-        shift_mat[type2][type1] = std::pow(rc, 12) - std::pow(rc, 6);
+        double rcsq = rc_vec[i] * rc_vec[i];
+        rc_sqrd_mat[type1][type2] = rcsq;
+        rc_sqrd_mat[type2][type1] = rcsq;
+        double s6 = std::pow(sigma_vec[i] / rcsq, 3);
+        double s12 = s6 * s6;
+        shift_mat[type1][type2] = s12 - s6;
+        shift_mat[type2][type1] = s12 - s6;
     }
 }
 
@@ -244,6 +246,32 @@ std::vector<class Particle *> LennardJones::build_neigh_list(const std::vector<c
 }
 */
 
+/* ------------------------------------------------------
+   Compute interaction energy between two particles of
+   types 'typei' and 'typej', respectively, separated
+   by a distance vector 'delij'. Updates a force array
+   'force' if 'comp_force' is true.
+--------------------------------------------------------- */
+
+double LennardJones::comp_twobody_par(const int typei, const int typej, const std::valarray<double> delij,
+                                      std::valarray<double> &force, const bool comp_force)
+{
+    double rijsq, rijinvsq, s6, s12;
+
+    double energy = 0.;
+    rijsq = std::pow(delij, 2).sum();
+    if(rijsq < rc_sqrd_mat[typei][typej]){
+        rijinvsq = 1. / rijsq;
+        s6 = std::pow(sigma_mat[typei][typej] * rijinvsq, 3);
+        s12 = s6 * s6;
+        energy = epsilon_mat[typei][typej] * (s12 - s6 - shift_mat[typei][typej]);
+        if(comp_force){
+            force += epsilon_mat[typei][typej] * (2 * s6 - s12) * delij * rijinvsq;
+        }
+    }
+    return energy;
+}
+
 
 /* ------------------------------------------------------
    Compute energy contribution from a molecule
@@ -265,31 +293,49 @@ double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Mo
 
 double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
+    std::valarray<double> force;
+    return (comp_energy_par(particles, i, force, false));
+}
+
+
+double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i,
+                                     std::valarray<double> &force, const bool comp_force)
+{
     // declare variables
-    int typei = particles[i]->type; 
-    double sdist, ss6, ss12;
+    int typei = particles[i]->type;
+    std::valarray<double> delij;
+    force.resize(box->ndim, 0.);
 
     double energy = 0.;
     for(int j=0; j<i; j++){
-        sdist = std::pow(particles[j]->r - particles[i]->r, 2).sum();
         int typej = particles[j]->type;
-        if(sdist < rc_sqrd_mat[typei][typej]){
-            ss6 = std::pow(sigma_mat[typei][typej] / sdist, 3);
-            ss12 = ss6 * ss6;
-            energy += epsilon_mat[typei][typej] * (ss12 - ss6 - shift_mat[typei][typej]);
-        }
+        delij = particles[j]->r - particles[i]->r;
+        energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
     for(int j=i+1; j<box->npar; j++){
-        sdist = std::pow(particles[j]->r - particles[i]->r, 2).sum();
         int typej = particles[j]->type;
-        if(sdist < rc_sqrd_mat[typei][typej]){
-            ss6 = std::pow(sigma_mat[typei][typej] / sdist, 3);
-            ss12 = ss6 * ss6;
-            energy += epsilon_mat[typei][typej] * (ss12 - ss6 - shift_mat[typei][typej]);
-        }
+        delij = particles[j]->r - particles[i]->r;
+        energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
+    force *= 24;
     return (4 * energy);
 }
+
+
+/* -------------------------------------------------------------------
+   Compute system energy and force acting on each particle. This is
+   needed my molecular dynamics simulations
+---------------------------------------------------------------------- */
+/*
+double LennardJones::comp_energy_all()
+{
+    double energy = 0.;
+    for(int i=0; i < box->npar; i++){
+        energy += comp_energy_par(box->particles, i, box->particles->f, true);
+    }
+    return energy;
+}
+*/
 
 /*
 double LennardJones::update_force_par(const mat positions, const int i)
@@ -424,14 +470,14 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
 LennardJones::~LennardJones()
 {
     for(int i = 0; i < box->ntype; i++){
-        delete (sigma_mat[i]);
-        delete (epsilon_mat[i]);
-        delete (rc_sqrd_mat[i]);
-        delete (shift_mat[i]);
+        delete[] sigma_mat[i];
+        delete[] epsilon_mat[i];
+        delete[] rc_sqrd_mat[i];
+        delete[] shift_mat[i];
     }
-    delete (sigma_mat);
-    delete (epsilon_mat);
-    delete (rc_sqrd_mat);
-    delete (shift_mat);
+    delete[] sigma_mat;
+    delete[] epsilon_mat;
+    delete[] rc_sqrd_mat;
+    delete[] shift_mat;
 }
 
