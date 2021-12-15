@@ -31,7 +31,7 @@ private:
     int nline;
 
     // vectors to store raw data from param file
-    std::vector<std::string> label1_vec, label2_vec;
+    //std::vector<std::string> label1_vec, label2_vec;
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params

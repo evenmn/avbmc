@@ -45,8 +45,9 @@ public:
     void set_dump(int, std::string, std::vector<std::string>);
     void set_thermo(int, std::string, std::vector<std::string>);
 
-    void check_particle_types();
+    void check_masses();
     void init_simulation();
+    void init_molecules();
     int get_maxiter(int);
     void print_logo();
     void print_info();
@@ -66,12 +67,14 @@ public:
     //class Velocity* velocity = nullptr;
     class MoleculeTypes* molecule_types = nullptr;
 
+    bool initialized;
     int npar, ndim, ntype, nmove, nprocess, step;
     double temp, chempot, poteng, time;
 
     std::vector<class Particle *> particles;
     std::vector<std::string> unique_labels;
-    std::vector<double> unique_masses;
+    std::vector<std::string> mass_labels;
+    std::vector<double> masses;
     std::vector<class Moves*> moves;
     std::vector<double> moves_prob;
 };

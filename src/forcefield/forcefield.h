@@ -7,10 +7,10 @@
 class ForceField
 {
 public:
-    ForceField(class Box* box_in);
+    ForceField(class Box*);
 
     // Declare pure virtual functions
-    virtual void read_param_file(const std::string params) = 0;
+    virtual void read_param_file(std::string) = 0;
     virtual void sort_params() = 0;
     //virtual void build_neigh_lists() = 0;
     //virtual double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy=false) = 0;
@@ -34,7 +34,7 @@ public:
     //void rm_distance_par(const int i);
     //void tmp_to_state();
     //void state_to_tmp();
-    std::vector<int> build_neigh_list(const int i, const double r_sqrd);
+    std::vector<int> build_neigh_list(int, double);
 
     // Store state properties to avoid unnecessary computations
     // Matrices have dimensionality (npar, npar)
@@ -50,6 +50,8 @@ public:
     //std::vector<std::string> tmp_chem_symbols;
     //std::vector<int> tmp_particle_types;
     //std::vector<double> tmp_particle_masses;
+    
+    std::vector<std::string> label1_vec, label2_vec;
 
 protected:
     class Box* box = nullptr;

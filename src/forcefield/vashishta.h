@@ -34,7 +34,7 @@ private:
     int nline;
 
     // vectors to store raw data from param file
-    std::vector<std::string> label1_vec, label2_vec, label3_vec;
+    std::vector<std::string> label3_vec; // label1_vec, label2_vec;
     std::vector<double> H_vec, eta_vec, Zi_vec, Zj_vec, lambda1_vec, D_vec, lambda4_vec;
     std::vector<double> W_vec, rc_vec, B_vec, gamma_vec, r0_vec, C_vec, costheta_vec;
 

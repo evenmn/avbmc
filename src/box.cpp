@@ -22,6 +22,7 @@ Box::Box(std::string working_dir_in, double temp_in, double chempot_in)
     temp = temp_in;
     chempot = chempot_in;
 
+    initialized = false;
     time = poteng = 0.;
     npar = ntype = nmove = nprocess = step = 0;
     ndim = 3;
@@ -63,41 +64,72 @@ void Box::set_chempot(const double chempot_in)
 
 /* --------------------------------------------------------
    Set mass of chemical symbol. Masses of all chemical symbols
-   have to be given, as the software does not look up the
-   masses in a table.
+   have to be given if running molecular dynamics simulations,
+   as the software does not look up the masses in a table.
 ----------------------------------------------------------- */
 
 void Box::set_mass(const std::string label, const double mass)
 {
-    ntype ++;
-    unique_labels.push_back(label);
-    unique_masses.push_back(mass);
+    mass_labels.push_back(label);
+    masses.push_back(mass);
 }
+
+
+/* --------------------------------------------------------
+   Overwrite default forcefield object
+----------------------------------------------------------- */
 
 void Box::set_forcefield(class ForceField* forcefield_in)
 {
     forcefield = forcefield_in;
 }
+
+
+/* --------------------------------------------------------
+   Overwrite default forcefield object, velocity Verlet
+----------------------------------------------------------- */
 /*
 void Box::set_integrator(class Integrator* integrator_in)
 {
     integrator = integrator_in;
 }
 */
+
+/* --------------------------------------------------------
+   Overwrite default sampler, Metropolis
+----------------------------------------------------------- */
+
 void Box::set_sampler(class Sampler* sampler_in)
 {
     sampler = sampler_in;
 }
+
+
+/* --------------------------------------------------------
+   Overwrite default random number generator, Mersenne
+   Twister
+----------------------------------------------------------- */
 
 void Box::set_rng(class RandomNumberGenerator* rng_in)
 {
     rng = rng_in;
 }
 
+
+/* --------------------------------------------------------
+   Set box boundaries
+----------------------------------------------------------- */
+
 void Box::set_boundary(class Boundary* boundary_in)
 {
     boundary = boundary_in;
 }
+
+
+/* --------------------------------------------------------
+   Set velocity of particles in molecular dynamics 
+   simulations
+----------------------------------------------------------- */
 /*
 void Box::set_velocity(class Velocity* velocity_in)
 {
@@ -105,39 +137,53 @@ void Box::set_velocity(class Velocity* velocity_in)
     velocities = velocity->get_velocity(npar, ndim);
 }
 */
-void Box::add_move(class Moves* move, double prob)
+
+/* --------------------------------------------------
+   Add move type and the corresponding probability.
+   The probabilities have to add up to 1.
+----------------------------------------------------- */
+
+void Box::add_move(Moves* move, double prob)
 {
-    /* Add move type and the corresponding probability.
-     * The sum of the probabilities have to be 1.
-     */
     nmove ++;
     moves.push_back(move);
     moves_prob.push_back(prob);
 }
 
+
+/* --------------------------------------------------
+   Add a single particle from a particle object
+----------------------------------------------------- */
+
 void Box::add_particle(class Particle* particle)
 {
-    /* Add single particle
-     */
     npar ++;
     ndim = particle->r.size();
     particles.push_back(particle);
 }
 
+
+/* --------------------------------------------------
+   Add a single particle given a label 'label' and
+   initial position 'r'
+----------------------------------------------------- */
+   
 void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
-    /*
-     */
     npar ++;
     ndim = r.size();
     Particle *particle = new Particle(label, r);
     particles.push_back(particle);
 }
 
+
+/* --------------------------------------------------
+   Add a set of particles, stored in a vector of
+   particle objects 'particles_in'.
+----------------------------------------------------- */
+
 void Box::add_particles(std::vector<Particle *> particles_in)
 {
-    /*
-     */
     npar += particles_in.size();
     ndim = particles_in[0]->r.size();
     particles.insert(particles.end(), particles_in.begin(), particles_in.end());
@@ -208,26 +254,28 @@ void Box::set_thermo(const int freq, const std::string filename, const std::vect
    simulation is started.
 -------------------------------------------------------- */
 
-void Box::check_particle_types()
+void Box::check_masses()
 {
     // Check that all particles are assigned a mass
-    bool not_assigned_mass_all = 0;
-    for(Particle *particle : particles){
-        bool assigned_mass = false;
-        for(int j=0; j<ntype; j++){
-            if(particle->label == unique_labels[j]){
-                particle->type = j;
-                particle->mass = unique_masses[j];
-                assigned_mass = true;
+    for (std::string unique_label : unique_labels){
+        bool label_covered = false;
+        for (std::string mass_label : mass_labels){
+            if (unique_label == mass_label){
+                label_covered = true;
             }
         }
-        not_assigned_mass_all += !assigned_mass;
+        std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
+        assert ((msg, label_covered));
     }
-    assert(!not_assigned_mass_all);
+}
 
-    // Sort forcefield parameters according to particle types
-    forcefield->sort_params();
 
+/* ----------------------------------------------------
+   Initialize molecules used by AVBMCMol types of moves
+------------------------------------------------------- */
+
+void Box::init_molecules()
+{
     // If molecule configuration is not set, let all single particles
     // be considered as molecules
     if (!molecule_types->configured)
@@ -256,9 +304,29 @@ void Box::check_particle_types()
 /* -------------------------------------------------------
    Initialize variables needed before simulation
 ---------------------------------------------------------- */
+
 void Box::init_simulation()
 {
-    thermo->print_header();
+    // ensure that all particles are covered by 
+    // parameter file. All forcefields should have a
+    // label1_vec
+    unique_labels = forcefield->label1_vec;
+    std::sort( unique_labels.begin(), unique_labels.end() );
+    unique_labels.erase( std::unique( unique_labels.begin(), unique_labels.end() ), unique_labels.end() );
+    ntype = unique_labels.size();
+    for (Particle* particle : particles){
+        bool particle_covered = false;
+        for (int j=0; j < ntype; j++) {
+            if (particle->label == unique_labels[j]) {
+                particle->type = j;
+                particle_covered = true;
+            }
+        }
+        std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
+        assert ((msg, particle_covered));
+    }
+    // Sort forcefield parameters according to particle types
+    forcefield->sort_params();
 }
 
 
@@ -366,9 +434,10 @@ void Box::run_md(const int nsteps)
 {
     // Run molecular dynamics simulation
     //
-    print_info();
-    check_particle_types();
     init_simulation();
+    check_masses();
+    print_info();
+    thermo->print_header();
 
     int maxiter = get_maxiter(nsteps);
 
@@ -393,11 +462,12 @@ void Box::run_md(const int nsteps)
 
 void Box::run_mc(const int nsteps, const int nmoves)
 {
+    init_simulation();
+    init_molecules();
     print_logo();
     print_info();
     print_mc_info();
-    check_particle_types();
-    init_simulation();
+    thermo->print_header();
 
     int maxiter = get_maxiter(nsteps);
 
