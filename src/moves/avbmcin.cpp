@@ -40,20 +40,9 @@ void AVBMCIn::perform_move()
     std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
-    /*
-    // compute norm
-    auto norm = [] (std::valarray<double> x) -> double { 
-        double sqrd_sum = 0.;
-        for(double x_ : x){
-            sqrd_sum += x_ * x_;
-        }
-        return sqrd_sum;
-    };
-    */
-
     // construct new particle
     std::valarray<double> dr(box->ndim);
-    double normsq = std::pow(dr, 2).sum(); //norm(dr);
+    double normsq = std::pow(dr, 2).sum();
     while(normsq > r_abovesq || normsq < r_belowsq){
         for(double &d : dr){
             d = 2 * box->rng->next_double() - 1;

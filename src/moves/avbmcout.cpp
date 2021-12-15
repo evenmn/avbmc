@@ -37,7 +37,6 @@ void AVBMCOut::perform_move()
     else{
         reject_move = false;
         // create local neighbor list of particle i
-
         int i = box->rng->next_int(box->npar);
         std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
         n_in = neigh_listi.size();

@@ -45,7 +45,6 @@ void AVBMCInMol::perform_move()
     int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
     std::vector<std::valarray<double> > positions = box->molecule_types->default_mols[mol_idx];
     natom = box->molecule_types->molecule_elements[mol_idx].size();
-    //int com_type = box->molecule_types->molecule_types[mol_idx][0];
 
     // rotate molecule arbitrary
     positions = rotate_molecule(positions);
@@ -63,33 +62,9 @@ void AVBMCInMol::perform_move()
         int n_in = neigh_listi.size();
         nmolavg = (double) n_in / natom;
 
-    /*
-    // search for COM particle (first particle)
-    int type, i;
-    int count = 0;
-    while(type != com_type && count < box->npar){
-        i = box->rng->next_int(box->npar);
-        type = box->particles[i]->type;
-        count ++;
-    }
-
-    if (type == com_type){
-        reject_move = false;
-    */
-        // compute norm
-        /*
-        auto norm = [] (std::valarray<double> x) -> double { 
-            double sqrd_sum = 0.;
-            for(double x_ : x){
-                sqrd_sum += x_ * x_;
-            }
-            return sqrd_sum;
-        };
-        */
-
         // shift out molecule relative to target molecule
         std::valarray<double> dr(box->ndim);
-        double normsq = std::pow(dr, 2).sum(); //norm(dr);
+        double normsq = std::pow(dr, 2).sum();
         while(normsq > r_abovesq || normsq < r_belowsq){
             for(double &d : dr){
                 d = r_above * (2 * box->rng->next_double() - 1);
@@ -116,6 +91,7 @@ void AVBMCInMol::perform_move()
         for(int j=0; j < natom; j++){
             du += box->forcefield->comp_energy_par(box->particles, box->npar - j - 1);
         }
+        box->poteng += du;
     }
 }
 

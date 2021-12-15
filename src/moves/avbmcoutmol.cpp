@@ -49,24 +49,30 @@ void AVBMCOutMol::perform_move()
             int n_in = neigh_listi.size();
             nmolavg = (double) n_in / natom;
 
-            std::vector<Particle *> particles;
-            for (int j=0; j < n_in; j++){
-                particles.push_back(box->particles[j]);
-            }
-            constructed = false;
-            molecule_out = box->molecule_types->construct_molecule(mol_idx, particles, constructed);
-            if (!constructed) {
+            if (n_in < natom) {
                 reject_move = true;
             }
             else {
-                du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
-                particles_old = box->particles;
-                std::vector<int> atoms_idx = molecule_out->atoms_idx;
-                std::sort(atoms_idx.begin(), atoms_idx.end(), std::greater<int>()); // sort in decending order
-                for(int atom_idx : atoms_idx){
-                    box->particles.erase(box->particles.begin() + atom_idx);
+                std::vector<Particle *> particles;
+                for (int j=0; j < n_in; j++){
+                    particles.push_back(box->particles[j]);
                 }
-                box->npar -= molecule_out->natom;
+                constructed = false;
+                molecule_out = box->molecule_types->construct_molecule(mol_idx, particles, constructed);
+                if (!constructed) {
+                    reject_move = true;
+                }
+                else {
+                    du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
+                    particles_old = box->particles;
+                    std::vector<int> atoms_idx = molecule_out->atoms_idx;
+                    std::sort(atoms_idx.begin(), atoms_idx.end(), std::greater<int>()); // sort in decending order
+                    for(int atom_idx : atoms_idx){
+                        box->particles.erase(box->particles.begin() + atom_idx);
+                    }
+                    box->poteng += du;
+                    box->npar -= molecule_out->natom;
+                }
             }
         }
     }
