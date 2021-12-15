@@ -31,7 +31,7 @@ make run
 The two build options above require different ways of configurating the simulations: With or without an input script.
 
 ### From input script
-The input script might looks like this:
+An input script might look like this:
 ```bash
 # initialize box
 set temp 0.7
