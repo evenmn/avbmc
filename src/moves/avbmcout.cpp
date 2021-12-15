@@ -19,7 +19,7 @@ AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
     : Moves(box_in)
 {
     r_above = r_above_in;
-    r_above2 = r_above * r_above;
+    r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 }
 
@@ -39,7 +39,7 @@ void AVBMCOut::perform_move()
         // create local neighbor list of particle i
 
         int i = box->rng->next_int(box->npar);
-        std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_above2);
+        std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
         n_in = neigh_listi.size();
 
         if(n_in > 0){

@@ -16,8 +16,8 @@ public:
 
 private:
     bool reject_move;
-    int n_in, natom;
+    int natom;
     std::string label;
-    double r_below, r_above, r_below2, r_above2, v_in;
+    double r_below, r_above, r_belowsq, r_abovesq, v_in, nmolavg;
     class Molecule* molecule_in = nullptr;
 };

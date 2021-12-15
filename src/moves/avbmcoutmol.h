@@ -16,8 +16,7 @@ public:
 
 private:
     bool reject_move;
-    int n_in;
-    double r_above, r_above2, v_in;
+    double r_above, r_abovesq, v_in, nmolavg;
     std::vector<class Particle *> particles_old;
     class Molecule* molecule_out = nullptr;
 };

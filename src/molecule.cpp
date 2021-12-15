@@ -32,6 +32,7 @@ MoleculeTypes::MoleculeTypes(Box* box_in)
 {
     box = box_in;
     configured = false;
+    ntype = 0;
 }
 
 
@@ -64,6 +65,7 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
     molecule_probs.push_back(molecule_prob);
     default_mols.push_back(default_mol);
     configured = true;
+    ntype ++;
 }
 
 
@@ -90,25 +92,31 @@ void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count, std
    atom among the elements and checking the neighbor list
 ------------------------------------------------------------------ */
 
-Molecule* MoleculeTypes::construct_molecule(const int i)
+Molecule* MoleculeTypes::construct_molecule(const int i, const std::vector<Particle *> particles,
+                                            bool &constructed)
 {
+    int npar, count;
     std::vector<int> elm_idx;
-    int count = 0;
-    while(count < box->npar){
+    npar = particles.size();
+    count = 0;
+    while (count < npar)
+    {
         elm_idx.clear();
-        int k = box->rng->next_int(box->npar);     // pick particle
+        int k = box->rng->next_int(npar);     // pick initial particle
         check_neighbors(k, i, 0, elm_idx);
         if(elm_idx.size() == molecule_types[i].size()){
+            constructed = true;
             break;
         }
         count ++;
     }
     Molecule* molecule = nullptr; 
-    if(count == box->npar - 1){
+    if (!constructed)
+    {
         std::vector<int> atoms;
         molecule = new Molecule(atoms, 0);
     }
-    else{
+    else {
         molecule = new Molecule(elm_idx, coms[i]);
     }
     return molecule;
