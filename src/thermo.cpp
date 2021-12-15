@@ -160,8 +160,8 @@ void Thermo::print_line()
         //std::cout << std::fixed; // << std::setprecision(6);
         f << std::scientific;
         for(auto func : output_functions){
-            std::cout << func(box) << " ";
-            f << func(box) << " ";
+            std::cout << func(box) << "\t ";
+            f << func(box) << "\t ";
         }
         std::cout << std::endl;
         f << std::endl;

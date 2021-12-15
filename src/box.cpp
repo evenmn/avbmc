@@ -464,6 +464,8 @@ void Box::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
     init_molecules();
+    sampler->ndrawn.resize(nmove, 0);
+    sampler->naccepted.resize(nmove, 0);
     print_logo();
     print_info();
     print_mc_info();
@@ -482,4 +484,13 @@ void Box::run_mc(const int nsteps, const int nmoves)
     auto t2 = chrono::high_resolution_clock::now();
     double duration_seconds = chrono::duration<double>(t2 - t1).count();
     cout << "Elapsed time: " << duration_seconds << "s" << endl;
+
+    std::cout << "Move idx #drawn\t #accepted\t acceptance ratio" << std::endl;
+    for(int i=0; i < nmove; i++){
+        std::cout << std::to_string(i+1) << "\t "
+                  << std::to_string(sampler->ndrawn[i]) << "\t "
+                  << std::to_string(sampler->naccepted[i]) << "\t "
+                  << std::to_string((double) sampler->naccepted[i] / sampler->ndrawn[i])
+                  << std::endl;
+    }
 }

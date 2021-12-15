@@ -62,12 +62,16 @@ void Sampler::sample(int nmoves)
 
     // sample nmoves moves
     for(int i=0; i<nmoves; i++){
-        Moves* move = propose_move(box->moves, box->moves_prob);
+        move_idx = rng->choice(box->moves_prob);
+        ndrawn[move_idx] ++;
+        Moves* move = box->moves[move_idx];
+        //Moves* move = propose_move(box->moves, box->moves_prob);
         move->perform_move();
         if(!accept_move(move, box->temp, box->chempot)){
             move->reset();
         }
         else{
+            naccepted[move_idx] ++;
             acceptance_counter ++;
         }
     }

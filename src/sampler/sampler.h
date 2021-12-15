@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <valarray>
 
 
 class Sampler
@@ -17,6 +18,9 @@ public:
     // declare public variables
     int move_idx;
     double acceptance_ratio;
+
+    std::valarray<int> ndrawn;
+    std::valarray<int> naccepted;
 
 private:
     // declare private functions

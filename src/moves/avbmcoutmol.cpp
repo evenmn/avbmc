@@ -30,53 +30,47 @@ AVBMCOutMol::AVBMCOutMol(Box* box_in, const double r_above_in)
 
 void AVBMCOutMol::perform_move()
 {
-    // pick molecule to be removed
+    reject_move = true;
+    // pick molecule type to be removed
     int mol_idx = box->rng->choice(box->molecule_types->molecule_probs);
     int natom = box->molecule_types->molecule_types[mol_idx].size();
-    if (box->npar < 2 * natom){
-        reject_move = true;
-    }
-    else {  // pick target molecule
-        bool constructed = false;
-        Molecule* molecule_target = box->molecule_types->construct_molecule(mol_idx, box->particles, constructed);
-        if (!constructed){
-            reject_move = true;
-        }
-        else {
-            reject_move = false;
-            int i = molecule_target->atoms_idx[0];  // center atom
-            std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
-            int n_in = neigh_listi.size();
-            nmolavg = (double) n_in / natom;
+    if (box->npar > 2 * natom){
+        bool constructed_out = false;
+        int count = 0;
+        while (!constructed_out || count < box->npar){
+            bool constructed_target = false;
+            Molecule* molecule_target = box->molecule_types->construct_molecule(mol_idx, box->particles, constructed_target);
+            if (constructed_target){
+                int i = molecule_target->atoms_idx[0];  // center atom
+                std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);  // neigh list of i
+                int n_in = neigh_listi.size();  // number of neighbors of i
 
-            if (n_in < natom) {
-                reject_move = true;
-            }
-            else {
-                std::vector<Particle *> particles;
-                for (int j=0; j < n_in; j++){
-                    particles.push_back(box->particles[j]);
-                }
-                constructed = false;
-                molecule_out = box->molecule_types->construct_molecule(mol_idx, particles, constructed);
-                if (!constructed) {
-                    reject_move = true;
-                }
-                else {
-                    du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
-                    particles_old = box->particles;
-                    std::vector<int> atoms_idx = molecule_out->atoms_idx;
-                    std::sort(atoms_idx.begin(), atoms_idx.end(), std::greater<int>()); // sort in decending order
-                    for(int atom_idx : atoms_idx){
-                        box->particles.erase(box->particles.begin() + atom_idx);
+                if (n_in >= natom) {  // check that i has enough neighbors to potentially remove molecule
+                    std::vector<Particle *> particles;
+                    for (int j=0; j < n_in; j++){
+                        particles.push_back(box->particles[neigh_listi[j]]);
                     }
-                    box->poteng += du;
-                    box->npar -= molecule_out->natom;
-                }
-            }
-        }
-    }
-}
+                    molecule_out = box->molecule_types->construct_molecule(mol_idx, particles, constructed_out);
+                    if (constructed_out) {
+                        du = -box->forcefield->comp_energy_mol(box->particles, molecule_out);
+                        particles_old = box->particles;
+                        std::vector<int> atoms_idx = molecule_out->atoms_idx;
+                        std::sort(atoms_idx.begin(), atoms_idx.end(), std::greater<int>()); // sort in decending order
+                        for(int atom_idx : atoms_idx){
+                            box->particles.erase(box->particles.begin() + atom_idx);
+                        }
+                        box->poteng += du;
+                        box->npar -= molecule_out->natom;
+                        nmolavg = (double) n_in / natom;
+                        reject_move = false;
+                        break;
+                    }  // end 
+                }  // end if n_in
+            }  // end if constructed_target
+            count ++;
+        }  // end while
+    }  // end if npar
+}  // end perform_move
 
 
 /* -------------------------------------------------------------
@@ -86,10 +80,10 @@ void AVBMCOutMol::perform_move()
 
 double AVBMCOutMol::accept(double temp, double chempot)
 {
-    if(reject_move){
+    if (reject_move){
         return 0.;
     }
-    else{
+    else {
         double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar + molecule_out->natom);
         return nmolavg * box->npar / (v_in * (box->npar - molecule_out->natom)) * std::exp(-(du+chempot+dw)/temp);
     }

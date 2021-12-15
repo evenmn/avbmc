@@ -25,7 +25,7 @@ public:
 
     std::valarray<double> r;
     std::valarray<double> v;
-    std::valarray<double> a;
+    std::valarray<double> f;
 
     int type;
     double mass;
