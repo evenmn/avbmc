@@ -42,12 +42,12 @@ void AVBMCIn::perform_move()
 
     // construct new particle
     std::valarray<double> dr(box->ndim);
-    double normsq = std::pow(dr, 2).sum();
+    double normsq = norm(dr);
     while(normsq > r_abovesq || normsq < r_belowsq){
         for(double &d : dr){
             d = 2 * box->rng->next_double() - 1;
         }
-        normsq = std::pow(dr, 2).sum();
+        normsq = norm(dr);
     }
 
     Particle *particle_in = new Particle(label, box->particles[i]->r + dr);

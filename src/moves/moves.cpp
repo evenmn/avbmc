@@ -63,3 +63,17 @@ std::vector<std::valarray<double> > Moves::rotate_molecule(std::vector<std::vala
     }
 }
 
+
+/* -------------------------------------------------------------
+   Compute the squared norm of a valarray 'array'
+---------------------------------------------------------------- */
+
+double Moves::norm(std::valarray<double> array)
+{
+    double normsq = 0.;
+    for (int i=0; i < array.size(); i++)
+    {
+        normsq += array[i] * array[i];
+    }
+    return normsq;
+}

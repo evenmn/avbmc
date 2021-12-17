@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cassert>
 
 #include "lennardjones.h"
 #include "../box.h"
@@ -259,7 +260,7 @@ double LennardJones::comp_twobody_par(const int typei, const int typej, const st
     double rijsq, rijinvsq, s6, s12;
 
     double energy = 0.;
-    rijsq = std::pow(delij, 2).sum();
+    rijsq = norm(delij); 
     if(rijsq < rc_sqrd_mat[typei][typej]){
         rijinvsq = 1. / rijsq;
         s6 = std::pow(sigma_mat[typei][typej] * rijinvsq, 3);

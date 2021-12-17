@@ -19,6 +19,7 @@ public:
 
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
+    double norm(std::valarray<double>);
 
     double pi = 3.14159265358979323846;
     double du;

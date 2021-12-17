@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <valarray>
 
 
 class ForceField
@@ -35,6 +36,7 @@ public:
     //void tmp_to_state();
     //void state_to_tmp();
     std::vector<int> build_neigh_list(int, double);
+    double norm(std::valarray<double>);
 
     // Store state properties to avoid unnecessary computations
     // Matrices have dimensionality (npar, npar)

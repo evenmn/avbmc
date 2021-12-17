@@ -251,7 +251,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
 {
     double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
 
-    rik = std::sqrt(std::pow(delik, 2).sum());
+    rik = std::sqrt(norm(delik));
 
     energy = 0.0;
     if(rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
@@ -299,7 +299,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
         // two-body
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(std::pow(delij, 2).sum());  // might be a good idea to write this out instead
+        rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij);
 
         for(int k=0; k<box->npar; k++){
@@ -316,7 +316,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
         // two-body
         typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(std::pow(delij, 2).sum());  // might be a good idea to write this out instead
+        rij = std::sqrt(norm(delij));  // might be a good idea to write this out instead
         energy += comp_twobody_par(typei, typej, rij);
 
         for(int k=0; k<box->npar; k++){

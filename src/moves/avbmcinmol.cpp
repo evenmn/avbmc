@@ -64,12 +64,12 @@ void AVBMCInMol::perform_move()
 
         // shift out molecule relative to target molecule
         std::valarray<double> dr(box->ndim);
-        double normsq = std::pow(dr, 2).sum();
+        double normsq = norm(dr);
         while(normsq > r_abovesq || normsq < r_belowsq){
             for(double &d : dr){
                 d = r_above * (2 * box->rng->next_double() - 1);
             }
-            normsq = std::pow(dr, 2).sum();
+            normsq = norm(dr);
         }
 
         // construct new particles
