@@ -37,7 +37,7 @@ void AVBMCOutMol::perform_move()
     if (box->npar > 2 * natom){
         bool constructed_out = false;
         int count = 0;
-        while (!constructed_out || count < box->npar){
+        while (!constructed_out && count < box->npar){
             bool constructed_target = false;
             Molecule* molecule_target = box->molecule_types->construct_molecule(mol_idx, box->particles, constructed_target);
             if (constructed_target){
