@@ -1,5 +1,4 @@
 #pragma once
-
 #include <string>
 #include <vector>
 #include <valarray>
@@ -23,6 +22,7 @@ public:
 
     double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
     double comp_energy_par(std::vector<class Particle *>, int);
+
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~Vashishta();
@@ -41,8 +41,6 @@ private:
     // matrices to store sorted params
     double **H_mat, **eta_mat, **Zi_mat, **Zj_mat, **lambda1inv_mat, **D_mat, **lambda4inv_mat;
     double **W_mat, **rc_mat, ***B_mat, **gamma_mat, **r0_mat, ***C_mat, ***costheta_mat;
-    //double ***H_mat, ***eta_mat, ***Zi_mat, ***Zj_mat, ***lambda1_mat, ***D_mat, ***lambda4_mat;
-    //double ***W_mat, ***rc_sqrd_mat, ***B_mat, ***gamma_mat, ***r0_mat, ***C_mat, ***costheta_mat;
 
     std::vector<std::vector<int> > neigh_lists;
 };
