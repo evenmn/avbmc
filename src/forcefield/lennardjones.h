@@ -1,6 +1,11 @@
 #pragma once
-#include <stdlib.h>
+
+#include <string>
+#include <vector>
+#include <valarray>
+
 #include "forcefield.h"
+
 
 class LennardJones : public ForceField
 {
@@ -14,7 +19,10 @@ public:
     //double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy);
     //double comp_force_par(const rowvec pos, rowvec& acc);
     
-    double comp_energy_par(const std::vector<class Particle *> particles, const int i);
+    double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
+    double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle *>, int);
+    double comp_energy_par(std::vector<class Particle *>, int, std::valarray<double> &, bool);
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~LennardJones();
@@ -26,11 +34,11 @@ private:
     int nline;
 
     // vectors to store raw data from param file
-    std::vector<std::string> label1_vec, label2_vec;
+    //std::vector<std::string> label1_vec, label2_vec;
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params
-    double **sigma_mat, **epsilon_mat, **rc_sqrd_mat;
+    double **sigma_mat, **epsilon_mat, **rc_sqrd_mat, **shift_mat;
 
     std::vector<std::vector<int> > neigh_lists;
 };

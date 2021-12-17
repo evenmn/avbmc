@@ -1,24 +1,72 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <functional> 
+#include <cassert>
+#include <iterator>
+#include <vector>
+
 #include "parser.h"
+#include "io.h"
+#include "box.h"
+#include "init_position.h"
+#include "particle.h"
+//#include "init_velocity.h"
+
+//#include "integrator/integrator.h"
+//#include "integrator/euler.h"
+//#include "integrator/eulercromer.h"
+//#include "integrator/velocityverlet.h"
+//#include "integrator/rungekutta4.h"
+
+#include "forcefield/forcefield.h"
+#include "forcefield/lennardjones.h"
+#include "forcefield/vashishta.h"
+
+#include "sampler/sampler.h"
+#include "sampler/metropolis.h"
+#include "sampler/umbrella.h"
+
+#include "moves/moves.h"
+#include "moves/trans.h"
+//#include "moves/transmh.h"
+#include "moves/avbmc.h"
+#include "moves/avbmcin.h"
+#include "moves/avbmcout.h"
+#include "moves/avbmcmol.h"
+#include "moves/avbmcinmol.h"
+#include "moves/avbmcoutmol.h"
+
+#include "boundary/boundary.h"
+//#include "boundary/fixed.h"
+#include "boundary/stillinger.h"
+
+
+
+/* -----------------------------------------------
+   Primary parser. Checks what kind of command
+   that is given (set, add, take, run, thermo
+   or dump) and calls the correct function
+-------------------------------------------------- */
 
 void parser(int argc, char** argv)
 {
-    /* Parser main function
-     */
-    if(argc >= 2){
+    if (argc >= 2){  // check if input script is given
         std::string filename = argv[1];
         std::ifstream f(filename);
 
         if (f.is_open()){ 
-            Box box("", 300., 0.);
+            Box box("");  // initialize box where everything will be added
             std::string line;
             while (std::getline(f, line))
             {
                 if (line.empty()) {
-                    /* Continue if line is blank */
+                    // Continue if line is blank
                     continue;
                 }
-                else if(line.rfind("#", 0) == 0){
-                    /* Continue if line is commented out */
+                else if (line.rfind("#", 0) == 0){
+                    // Continue if line is commented out
                     continue;
                 }
                 else{
@@ -51,16 +99,23 @@ void parser(int argc, char** argv)
             }
         }
         else{
-            std::cout << "Could not open the file!" << std::endl;
+            std::cout << "Could not open the file '" + filename + "'!" << std::endl;
             exit(0);
         }
     }
-    else{
+    else {  // printing some information if no input script is given
         std::cout << "avbmc version 0.0.1" << std::endl;
         std::cout << "Author: Even M. Nordhagen" << std::endl;
         std::cout << "url: github.com/evenmn/avbmc" << std::endl;
     }
 }
+
+
+/* ----------------------------------------------------
+   This function takes care of the set-commands. The 
+   set commands are used to set box properties, and
+   overwrite the previous value
+------------------------------------------------------- */
 
 void set(Box& box, const std::vector<std::string> splitted, const int argc)
 {
@@ -85,9 +140,9 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
         if(forcefield == "lennardjones"){
             box.set_forcefield(new LennardJones(&box, paramfile));
         }
-        //else if(forcefield == "vashishta"){
-        //    box.set_forcefield(new Vashishta(&box, paramfile));
-        //}
+        else if(forcefield == "vashishta"){
+            box.set_forcefield(new Vashishta(&box, paramfile));
+        }
         else{
             std::cout << "Forcefield '" + forcefield + "' is not known! Aborting." << std::endl;
             exit(0);
@@ -243,6 +298,12 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
 }
 
 
+/* ----------------------------------------------------------------
+   This functions takes care of the add-commands in the input
+   script. The add commands are used to append a property to 
+   a vector (particles, moves, molecule types etc..)
+------------------------------------------------------------------- */
+
 void add(Box& box, const vector<string> splitted, const int argc)
 {
     assert(argc > 1);
@@ -314,6 +375,43 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCOut(&box, r_below), prob);
             }
         }
+        else if(move == "avbmcmol"){
+            if(argc == 4){
+                box.add_move(new AVBMCMol(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = std::stod(splitted[4]);
+                box.add_move(new AVBMCMol(&box, r_below), prob);
+            }
+            else{
+                double r_below = std::stod(splitted[4]);
+                double r_above = std::stod(splitted[5]);
+                box.add_move(new AVBMCMol(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcinmol"){
+            if(argc == 4){
+                box.add_move(new AVBMCInMol(&box), prob);
+            }
+            else if(argc == 5){
+                double r_below = std::stod(splitted[4]);
+                box.add_move(new AVBMCInMol(&box, r_below), prob);
+            }
+            else{
+                double r_below = std::stod(splitted[4]);
+                double r_above = std::stod(splitted[5]);
+                box.add_move(new AVBMCInMol(&box, r_below, r_above), prob);
+            }
+        }
+        else if(move == "avbmcoutmol"){
+            if(argc == 4){
+                box.add_move(new AVBMCOutMol(&box), prob);
+            }
+            else{
+                double r_below = std::stod(splitted[4]);
+                box.add_move(new AVBMCOutMol(&box, r_below), prob);
+            }
+        }
         else{
             std::cout << "Move '" + move + "' is not known! Aborting." << std::endl;
             exit(0);
@@ -376,11 +474,133 @@ void add(Box& box, const vector<string> splitted, const int argc)
             std::cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << std::endl;
         }
     }
+    else if (keyword == "moleculetype"){
+        assert (argc > 3);
+        std::vector<std::string> elements;
+        std::vector<std::valarray<double> > default_mol;
+        elements.push_back(splitted[2]);
+        if (argc == 4){  // one atom, ex. H 1.0
+            double molecule_prob = std::stod(splitted[3]);
+            box.add_molecule_type(splitted[2], molecule_prob);
+        }
+        else if (argc == 5){ // read default molecule from xyz-file
+            elements.clear();
+            double rc = std::stod(splitted[2]);
+            double molecule_prob = std::stod(splitted[3]);
+            std::string filename = splitted[4];
+            std::vector<Particle *> default_particles = read_xyz(filename);
+            for(Particle* particle : default_particles){
+                elements.push_back(particle->label);
+                default_mol.push_back(particle->r);
+            }
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 8){ // two atoms, one dimension, ex. O O 1.5 1.0 0.0 1.0
+            elements.push_back(splitted[3]);
+            double rc = std::stod(splitted[4]);
+            double molecule_prob = std::stod(splitted[5]);
+            double x1 = std::stod(splitted[6]);
+            double x2 = std::stod(splitted[7]);
+            default_mol.push_back({x1});
+            default_mol.push_back({x2});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 10){ // two atoms, two dimensions or three atoms, one dimension
+            // ex. O O 1.5 1.0 0.0 0.0 1.0 0.0
+            // or  O H H 1.5 1.0 -1.0 0.0 1.0
+            try {
+                elements.push_back(splitted[3]);
+                double rc = std::stod(splitted[4]);
+                double molecule_prob = std::stod(splitted[5]);
+                double x1 = std::stod(splitted[6]);
+                double y1 = std::stod(splitted[7]);
+                double x2 = std::stod(splitted[8]);
+                double y2 = std::stod(splitted[9]);
+                default_mol.push_back({x1, y1});
+                default_mol.push_back({x2, y2});
+                box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+            }
+            catch(...) {
+                elements.push_back(splitted[3]);
+                elements.push_back(splitted[4]);
+                double rc = std::stod(splitted[5]);
+                double molecule_prob = std::stod(splitted[6]);
+                double x1 = std::stod(splitted[7]);
+                double x2 = std::stod(splitted[8]);
+                double x3 = std::stod(splitted[9]);
+                default_mol.push_back({x1});
+                default_mol.push_back({x2});
+                default_mol.push_back({x3});
+                box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+            }
+        }
+        else if (argc == 12){ // two atoms, three dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[4]);
+            double molecule_prob = std::stod(splitted[5]);
+            double x1 = std::stod(splitted[6]);
+            double y1 = std::stod(splitted[7]);
+            double z1 = std::stod(splitted[8]);
+            double x2 = std::stod(splitted[9]);
+            double y2 = std::stod(splitted[10]);
+            double z2 = std::stod(splitted[11]);
+            default_mol.push_back({x1, y1, z1});
+            default_mol.push_back({x2, y2, z2});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 13){ // three atoms, two dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[5]);
+            double molecule_prob = std::stod(splitted[6]);
+            double x1 = std::stod(splitted[7]);
+            double y1 = std::stod(splitted[8]);
+            double x2 = std::stod(splitted[9]);
+            double y2 = std::stod(splitted[10]);
+            double x3 = std::stod(splitted[11]);
+            double y3 = std::stod(splitted[12]);
+            default_mol.push_back({x1, y1});
+            default_mol.push_back({x2, y2});
+            default_mol.push_back({x3, y3});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else if (argc == 16){ // three atoms, three dimensions
+            elements.push_back(splitted[3]);
+            elements.push_back(splitted[4]);
+            double rc = std::stod(splitted[5]);
+            double molecule_prob = std::stod(splitted[6]);
+            double x1 = std::stod(splitted[7]);
+            double y1 = std::stod(splitted[8]);
+            double z1 = std::stod(splitted[9]);
+            double x2 = std::stod(splitted[10]);
+            double y2 = std::stod(splitted[11]);
+            double z2 = std::stod(splitted[12]);
+            double x3 = std::stod(splitted[13]);
+            double y3 = std::stod(splitted[14]);
+            double z3 = std::stod(splitted[15]);
+            default_mol.push_back({x1, y1, z1});
+            default_mol.push_back({x2, y2, z2});
+            default_mol.push_back({x3, y3, z3});
+            box.add_molecule_type(elements, rc, molecule_prob, default_mol);
+        }
+        else{
+            std::cout << "'add moleculetype' does not support " + std::to_string(argc - 3) + " arguments. Aborting." << std::endl;
+            exit(0);
+        }
+    }
     else{
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
 }
+
+
+/* -------------------------------------------------------------
+   This function takes care of the 'take snapshot'-command. 
+   Thinking about other commands that would make sense to add
+   here, but have no idea right now
+---------------------------------------------------------------- */
 
 void take(Box& box, const std::vector<std::string> splitted, const int argc)
 {
@@ -396,6 +616,12 @@ void take(Box& box, const std::vector<std::string> splitted, const int argc)
         exit(0);
     }
 }
+
+
+/* ---------------------------------------------------------------
+   This function takes care of the run-commands, including 
+   run_mc and run_md. 
+------------------------------------------------------------------ */
 
 void run(Box& box, const std::vector<std::string> splitted, const int argc)
 {
@@ -418,10 +644,13 @@ void run(Box& box, const std::vector<std::string> splitted, const int argc)
     }
 }
 
+
+/* ---------------------------------------------------------------
+   This function takes care of the thermo output command
+------------------------------------------------------------------ */
+
 void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
 {
-    /* Thermo output
-     */
     assert(argc > 3);
     int freq = stoi(splitted[1]);
     std::string filename = splitted[2];
@@ -432,10 +661,13 @@ void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
     box.set_thermo(freq, filename, outputs);
 }
 
+
+/* -------------------------------------------------------------- 
+   This function takes care of the dump output command
+----------------------------------------------------------------- */
+
 void dump(Box& box, const std::vector<std::string> splitted, const int argc)
 {
-    /* Dump output
-     */
     assert(argc > 3);
     int freq = std::stoi(splitted[1]);
     std::string filename = splitted[2];

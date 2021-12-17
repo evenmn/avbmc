@@ -1,6 +1,10 @@
 #pragma once
-#include <stdlib.h>
+#include <string>
+#include <vector>
+#include <valarray>
+
 #include "forcefield.h"
+
 
 class Vashishta : public ForceField
 {
@@ -13,7 +17,12 @@ public:
     //double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy);
     //double comp_force_par(const rowvec pos, rowvec& acc);
     
-    double comp_energy_par(const std::vector<class Particle *> particles, const int i);
+    double comp_twobody_par(int, int, double);
+    double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double);
+
+    double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle *>, int);
+
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~Vashishta();
@@ -25,13 +34,13 @@ private:
     int nline;
 
     // vectors to store raw data from param file
-    std::vector<std::string> label1_vec, label2_vec, label3_vec;
-    std::vector<double> H_vec, eta_vec, zi_vec, zj_vec, lambda1_vec, D_vec, lambda4_vec;
+    std::vector<std::string> label3_vec; // label1_vec, label2_vec;
+    std::vector<double> H_vec, eta_vec, Zi_vec, Zj_vec, lambda1_vec, D_vec, lambda4_vec;
     std::vector<double> W_vec, rc_vec, B_vec, gamma_vec, r0_vec, C_vec, costheta_vec;
 
     // matrices to store sorted params
-    double ***H_mat, ***eta_mat, ***zi_mat, ***zj_mat, ***lambda1_mat, ***D_mat, ***lambda4_mat;
-    double ***W_mat, ***rc_sqrd_mat, ***B_mat, ***gamma_mat, ***r0_mat, ***C_mat, ***costheta_mat;
+    double **H_mat, **eta_mat, **Zi_mat, **Zj_mat, **lambda1inv_mat, **D_mat, **lambda4inv_mat;
+    double **W_mat, **rc_mat, ***B_mat, **gamma_mat, **r0_mat, ***C_mat, ***costheta_mat;
 
     std::vector<std::vector<int> > neigh_lists;
 };

@@ -1,3 +1,7 @@
+#include <iostream>
+#include <vector>
+#include <valarray>
+
 #include "forcefield.h"
 #include "../box.h"
 #include "../particle.h"
@@ -196,5 +200,21 @@ std::vector<int> ForceField::build_neigh_list(const int i, const double r_sqrd)
     }
     return neigh_list;
 }
+
+
+/* -------------------------------------------------------------
+   Compute the squared norm of a valarray 'array'
+---------------------------------------------------------------- */
+
+double ForceField::norm(std::valarray<double> array)
+{
+    double normsq = 0.;
+    for (int i=0; i < array.size(); i++)
+    {
+        normsq += array[i] * array[i];
+    }
+    return normsq;
+}
+
 
 //ForceField::~ForceField() {}

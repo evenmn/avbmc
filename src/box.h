@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 #include <valarray>
-#include <cassert>
-#include <chrono>
 
 //#include "tqdm/tqdm.h"
 
@@ -22,40 +20,41 @@
 class Box
 {
 public:
-    Box(std::string working_dir_in="", double temp_in=1., double chempot_in=0.); 
+    Box(std::string  = "", double = 1., double = 0.); 
 
     // methods
-    void set_forcefield(class ForceField* forcefield_in);
+    void set_forcefield(class ForceField*);
     //void set_integrator(class Integrator* integrator_in);
-    void set_sampler(class Sampler* sampler_in);
-    void set_rng(class RandomNumberGenerator* rng_in);
-    void set_boundary(class Boundary* boundary_in);
+    void set_sampler(class Sampler*);
+    void set_rng(class RandomNumberGenerator*);
+    void set_boundary(class Boundary*);
     //void set_velocity(class Velocity* velocity_in);
         
-    void set_temp(const double temp_in);
-    void set_chempot(const double chempot_in);
-    void set_mass(const std::string label, const double mass);
+    void set_temp(double);
+    void set_chempot(double);
+    void set_mass(std::string, double);
 
-    void add_move(class Moves* move, const double prob);
-    void add_particle(class Particle *particle);
-    void add_particle(const std::string label, const std::valarray<double> r);
-    void add_particles(std::vector<class Particle *> particles);
-    //void add_particles(const string chem_symbol, const mat positions_in);
-    //void add_particles(const string chem_symbol, const mat positions_in, const mat velocities_in);
-    //void add_particles(const vector<string> chem_symbols_in, const mat positions_in);
-    //void add_particles(const vector<string> chem_symbols_in, const mat positions_in, const mat velocities_in);
+    void add_move(class Moves*, double);
+    void add_particle(class Particle*);
+    void add_particle(std::string, std::valarray<double>);
+    void add_particles(std::vector<class Particle *>);
+    void add_molecule_type(std::string, double);
+    void add_molecule_type(std::vector<std::string>, double, double, std::vector<std::valarray<double> >, int = 0);
 
-    void snapshot(const std::string filename);
-    void set_dump(const int freq, const std::string filename, const std::vector<std::string> outputs);
-    void set_thermo(const int freq, const std::string filename, const std::vector<std::string> outputs);
+    void snapshot(std::string);
+    void set_dump(int, std::string, std::vector<std::string>);
+    void set_thermo(int, std::string, std::vector<std::string>);
 
-    void check_particle_types();
+    void check_masses();
     void init_simulation();
-    int get_maxiter(const int nsteps);
+    void init_molecules();
+    int get_maxiter(int);
+    void print_logo();
     void print_info();
+    void print_mc_info();
 
-    void run_md(const int nsteps);
-    void run_mc(const int nsteps, const int nmoves);
+    void run_md(int);
+    void run_mc(int, int);
 
     // variables
     class ForceField* forcefield = nullptr;
@@ -66,13 +65,16 @@ public:
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
     //class Velocity* velocity = nullptr;
+    class MoleculeTypes* molecule_types = nullptr;
 
-    int npar, ndim, ntype, nmove, step, npar_prev;
+    bool initialized;
+    int npar, ndim, ntype, nmove, nprocess, step;
     double temp, chempot, poteng, time;
 
     std::vector<class Particle *> particles;
     std::vector<std::string> unique_labels;
-    std::vector<double> unique_masses;
+    std::vector<std::string> mass_labels;
+    std::vector<double> masses;
     std::vector<class Moves*> moves;
     std::vector<double> moves_prob;
 };

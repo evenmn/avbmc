@@ -1,29 +1,41 @@
+#include <iostream>
+#include <cmath>
+#include <string>
+#include <valarray>
+
 #include "trans.h"
 #include "../box.h"
 #include "../particle.h"
 
 
-Trans::Trans(Box* box_in, double dx_in)
+/*---------------------------------------------------
+  Constructor of naive translational move, with
+  'dx_in' being the maximum step length (in any
+  direction)
+----------------------------------------------------- */
+
+Trans::Trans(Box* box_in, const double dx_in)
     : Moves(box_in) 
 {
     dx = dx_in;
 }
 
+
+/* ---------------------------------------------------
+   Propose particle to move and new position randomly.
+------------------------------------------------------ */
+
 void Trans::perform_move()
 {
-    /* Propose naive translation move of particle i
-     */
-
-    // compute initial energy contribution from particle i
-    i = box->rng->next_int(box->npar);
+    i = box->rng->next_int(box->npar); // particle to move
     double u0 = box->forcefield->comp_energy_par(box->particles, i);
 
     // move particle i
     std::valarray<double> dr(box->ndim);
-    for(double &j : dr)
-        j = rng->next_double();
+    for(double &d : dr)
+        d = 2 * (rng->next_double() - 0.5);
     pos_old = box->particles[i]->r;
-    box->particles[i]->r += 2 * (rng->next_double() - 0.5) * dx * dr;
+    box->particles[i]->r += dx * dr;
 
     // compute new energy contribution from particle i
     double u1 = box->forcefield->comp_energy_par(box->particles, i);
@@ -31,19 +43,38 @@ void Trans::perform_move()
     box->poteng += du;
 }
 
+
+/* -----------------------------------------------------
+   Compute acceptance probability of translational 
+   move
+-------------------------------------------------------- */
+
 double Trans::accept(double temp, double /*chempot*/)
 {
-     /* Gives the acceptance probability
-      * of the translational move
-     */
     return std::exp(-du/temp);
 }
 
+
+/* -----------------------------------------------------
+   Set back to old state before move if move was
+   rejected
+-------------------------------------------------------- */
+
 void Trans::reset()
 {
-    /* Set back to old state if 
-     * move is rejected
-     */
     box->particles[i]->r = pos_old;
     box->poteng -= du;
+}
+
+
+/* -----------------------------------------------------
+   Represent move in a clean way
+-------------------------------------------------------- */
+
+std::string Trans::repr()
+{
+    std::string move_info;
+    move_info += "Naive translational move\n";
+    move_info += "    Maximum move length: " + std::to_string(dx) + "\n";
+    return move_info;
 }

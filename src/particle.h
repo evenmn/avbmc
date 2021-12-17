@@ -21,11 +21,11 @@ struct Particle
 class Particle
 {
 public:
-    Particle(const std::string, const std::valarray<double>);
+    Particle(std::string, std::valarray<double>);
 
     std::valarray<double> r;
     std::valarray<double> v;
-    std::valarray<double> a;
+    std::valarray<double> f;
 
     int type;
     double mass;

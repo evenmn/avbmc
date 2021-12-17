@@ -1,6 +1,7 @@
 #include <iostream>
+#include <string>
 
-#include "avbmc.h"
+#include "avbmcmol.h"
 #include "../box.h"
 
 
@@ -9,8 +10,8 @@
    50% deletion moves. 
 -------------------------------------------------------------- */
 
-AVBMC::AVBMC(Box* box_in, const double r_below_in, const double r_above_in)
-    : AVBMCIn(box_in, r_below_in, r_above_in), AVBMCOut(box_in, r_above_in), Moves(box_in) 
+AVBMCMol::AVBMCMol(Box* box_in, const double r_below_in, const double r_above_in)
+    : AVBMCInMol(box_in, r_below_in, r_above_in), AVBMCOutMol(box_in, r_above_in), Moves(box_in) 
 {
     r_below = r_below_in;
     r_above = r_above_in;
@@ -21,19 +22,19 @@ AVBMC::AVBMC(Box* box_in, const double r_below_in, const double r_above_in)
    Pick in or out moves with the same probability
 -------------------------------------------------------------- */
 
-void AVBMC::perform_move()
+void AVBMCMol::perform_move()
 {
-    if(AVBMCIn::box->npar < 2){
+    if(AVBMCInMol::box->npar < 2){
         move_in = true;
     }
     else{
-        move_in = AVBMCIn::box->rng->next_int(2);
+        move_in = AVBMCInMol::box->rng->next_int(2);
     }
     if(move_in){
-        AVBMCIn::perform_move();
+        AVBMCInMol::perform_move();
     }
     else{
-        AVBMCOut::perform_move();
+        AVBMCOutMol::perform_move();
     }
 }
 
@@ -42,13 +43,13 @@ void AVBMC::perform_move()
    Get acceptance probability
 -------------------------------------------------------------- */
 
-double AVBMC::accept(const double temp, const double chempot)
+double AVBMCMol::accept(const double temp, const double chempot)
 {
     if(move_in){
-        return AVBMCIn::accept(temp, chempot);
+        return AVBMCInMol::accept(temp, chempot);
     }
     else{
-        return AVBMCOut::accept(temp, chempot);
+        return AVBMCOutMol::accept(temp, chempot);
     }
 }
 
@@ -57,13 +58,13 @@ double AVBMC::accept(const double temp, const double chempot)
    Set back to old state before move as performed
 -------------------------------------------------------------- */
 
-void AVBMC::reset()
+void AVBMCMol::reset()
 {
     if(move_in){
-        AVBMCIn::reset();
+        AVBMCInMol::reset();
     }
     else{
-        AVBMCOut::reset();
+        AVBMCOutMol::reset();
     }
 }
 
@@ -72,10 +73,10 @@ void AVBMC::reset()
    Represent move in a clean way
 -------------------------------------------------------- */
 
-std::string AVBMC::repr()
+std::string AVBMCMol::repr()
 {
     std::string move_info;
-    move_info += "AVBMC particle moves\n";
+    move_info += "AVBMC molecule moves\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
     move_info += "    Radius of inner sphere: " + std::to_string(r_below) + "\n";
     return move_info;

@@ -1,11 +1,20 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <iterator>
+
 #include "io.h"
 #include "particle.h"
 
 
+/* ----------------------------------------------------
+   Split string 's' by whitespace
+------------------------------------------------------- */
+
 std::vector<std::string> split(const std::string s)
 {
-    /* Split string by whitespace
-     */
     std::stringstream ss(s);
     std::istream_iterator<std::string> begin(ss);
     std::istream_iterator<std::string> end;
@@ -13,11 +22,14 @@ std::vector<std::string> split(const std::string s)
     return vstrings;
 }
 
+
+/* -----------------------------------------------------
+   Read xyz-file 'filename' consisting of one time 
+   frame into vector of particle objects 
+-------------------------------------------------------- */
+
 std::vector<Particle *> read_xyz(const std::string filename)
 {
-    /* Read xyz-file consisting of one time frame into 
-     * vector of particle objects
-     */
     int npar, ndim;
     std::vector<Particle *> particles;
     std::ifstream f(filename);
@@ -47,58 +59,43 @@ std::vector<Particle *> read_xyz(const std::string filename)
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
                 Particle *particle = new Particle(splitted[0], tmp_r);
+                particles.push_back(particle);
             }
             line_num ++;
         }
     }
     else{
-        cout << "Could not open file '" + filename + "'! Aborting." << endl;
+        std::cout << "Could not open file '" + filename + "'! Aborting." << std::endl;
         exit(0);
     }
     return particles;
 }
 
-/*
-void write_xyz(const string filename, const mat positions, const vector<string> chem_symbols, const string info, const bool append)
+
+/* -----------------------------------------------------------------
+  Write particle properties (i.e. positions) to xyz-file. This is
+  mainly used by the dump class.
+
+  Arguments:
+      f : out file stream to write to
+      data : matrix of size (npar, noutputs) containing data to write
+      nrow : number of particles to write out to file
+      ncol : number of outputs
+      labels : vector containing labels of all involved particles
+      info : information to put in info line, empty by default
+
+-------------------------------------------------------------------- */
+
+void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol, 
+               const std::vector<std::string> labels, const std::string info = "")
 {
-    // 
-    //
-    int npar = positions.n_rows;
-    int ndim = positions.n_cols;
-
-    ofstream f;
-    if(append){
-        f.open(filename, ofstream::out | ofstream::app);
-    }
-    else{
-        f.open(filename, ofstream::out);
-    }
-    f << npar << endl;
-    f << info << endl;;
-    for(int i=0; i<npar; i++){
-        f << chem_symbols[i];
-        for(int j=0; j<ndim; j++){
-            f << " " << positions(i, j);
-        }
-        f << endl;
-    }
-    f.close();
-}
-*/
-
-void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol, const std::vector<std::string> labels, const std::string info)
-{
-    /* Write matrix to file, assuming that all valarrays inside vector 
-     * has the same length
-     */
-
-    f << nrow << endl;
-    f << info << endl;;
+    f << nrow << std::endl;
+    f << info << std::endl;;
     for(int i=0; i<nrow; i++){
         f << labels[i];
         for(int j=0; j<ncol; j++){
             f << " " << data[i][j];
         }
-        f << endl;
+        f << std::endl;
     }
 }

@@ -1,18 +1,21 @@
 #pragma once
+#include <string>
+
 #include "moves.h"
 
 
 class AVBMCOut : virtual public Moves
 {
 public:
-    AVBMCOut(class Box* box_in, const double r_above_in=3.0);
+    AVBMCOut(class Box*, double = 3.0);
     void perform_move();
     double accept(double, double);
     void reset();
+    std::string repr();
 
 private:
-    bool not_accept;
-    int n_in, npar_prev_prev;
-    double r_above, r_above2, v_in;
-    class Particle * particle_out;
+    bool reject_move;
+    int n_in;
+    double r_above, r_abovesq, v_in;
+    class Particle* particle_out = nullptr;
 };

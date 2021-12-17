@@ -1,24 +1,17 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cmath>
+
 #include <string>
 #include <vector>
 #include <valarray>
-//#include <armadillo>
-
-//using namespace std;
-//using namespace arma;
 
 
 class ForceField
 {
 public:
-    ForceField(class Box* box_in);
+    ForceField(class Box*);
 
     // Declare pure virtual functions
-    virtual void read_param_file(const std::string params) = 0;
+    virtual void read_param_file(std::string) = 0;
     virtual void sort_params() = 0;
     //virtual void build_neigh_lists() = 0;
     //virtual double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy=false) = 0;
@@ -27,7 +20,8 @@ public:
     //virtual double comp_force_par(const rowvec pos, rowvec& acc) = 0;
     //virtual double update_force_par(const mat positions, const int i) = 0;
     //virtual double update_force_all() = 0;
-    virtual double comp_energy_par(std::vector<class Particle *> particles, const int i) = 0;
+    virtual double comp_energy_mol(std::vector<class Particle *>, class Molecule *) = 0;
+    virtual double comp_energy_par(std::vector<class Particle *>, int) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
@@ -41,7 +35,8 @@ public:
     //void rm_distance_par(const int i);
     //void tmp_to_state();
     //void state_to_tmp();
-    std::vector<int> build_neigh_list(const int i, const double r_sqrd);
+    std::vector<int> build_neigh_list(int, double);
+    double norm(std::valarray<double>);
 
     // Store state properties to avoid unnecessary computations
     // Matrices have dimensionality (npar, npar)
@@ -54,10 +49,11 @@ public:
     //mat tmp_distance_mat, tmp_poteng_mat, tmp_accelerations;
     //cube tmp_distance_dir_cube, tmp_force_mat;
 
-    int tmp_npar;
     //std::vector<std::string> tmp_chem_symbols;
     //std::vector<int> tmp_particle_types;
     //std::vector<double> tmp_particle_masses;
+    
+    std::vector<std::string> label1_vec, label2_vec;
 
 protected:
     class Box* box = nullptr;
