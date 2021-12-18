@@ -466,6 +466,9 @@ void Box::run_mc(const int nsteps, const int nmoves)
     init_molecules();
     sampler->ndrawn.resize(nmove, 0);
     sampler->naccepted.resize(nmove, 0);
+    sampler->nsystemsize.resize(npar + 1);
+    sampler->nsystemsize[npar] ++;
+
     print_logo();
     print_info();
     print_mc_info();

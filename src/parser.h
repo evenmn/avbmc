@@ -10,3 +10,5 @@ void take(class Box &, std::vector<std::string>, int);
 void run(class Box &, std::vector<std::string>, int);
 void thermo(class Box &, std::vector<std::string>, int);
 void dump(class Box &, std::vector<std::string>, int);
+void write(class Box &, std::vector<std::string>, int);
+void rm(class Box &, std::vector<std::string>, int);

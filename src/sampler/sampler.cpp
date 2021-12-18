@@ -23,13 +23,13 @@ Sampler::Sampler(Box* box_in)
    Given a vector of moves and a vector of corresponding 
    probabilities, returning move
 --------------------------------------------------------- */
-
+/*
 Moves* Sampler::propose_move(std::vector<Moves*> moves, std::vector<double> moves_prob)
 {
     move_idx = rng->choice(moves_prob);
     return moves[move_idx];
 }
-
+*/
 
 /* ------------------------------------------------------
    Decide if move should be accepted or rejected. This
@@ -61,19 +61,23 @@ void Sampler::sample(int nmoves)
     int acceptance_counter = 0;
 
     // sample nmoves moves
-    for(int i=0; i<nmoves; i++){
+    for (int i=0; i<nmoves; i++){
         move_idx = rng->choice(box->moves_prob);
         ndrawn[move_idx] ++;
         Moves* move = box->moves[move_idx];
         //Moves* move = propose_move(box->moves, box->moves_prob);
         move->perform_move();
-        if(!accept_move(move, box->temp, box->chempot)){
+        if (!accept_move(move, box->temp, box->chempot)){
             move->reset();
         }
         else{
             naccepted[move_idx] ++;
             acceptance_counter ++;
         }
+        if (box->npar - 1 > nsystemsize.size()) {
+            nsystemsize.resize(box->npar + 1);
+        }
+        nsystemsize[box->npar] ++;
     }
     acceptance_ratio = (double)(acceptance_counter)/nmoves;
 }

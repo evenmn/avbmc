@@ -21,6 +21,7 @@ public:
 
     std::valarray<int> ndrawn;
     std::valarray<int> naccepted;
+    std::vector<int> nsystemsize;
 
 private:
     // declare private functions

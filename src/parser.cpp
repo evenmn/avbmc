@@ -91,6 +91,12 @@ void parser(int argc, char** argv)
                     else if(cmd_cat == "dump"){
                         dump(box, splitted, argc);
                     }
+                    else if(cmd_cat == "write"){
+                        write(box, splitted, argc);
+                    }
+                    else if(cmd_cat == "rm"){
+                        rm(box, splitted, argc);
+                    }
                     else{
                         std::cout << "There is no category '" + cmd_cat + "'! Aborting." << std::endl;
                         exit(0);
@@ -676,4 +682,38 @@ void dump(Box& box, const std::vector<std::string> splitted, const int argc)
         outputs.push_back(splitted[i]);
     }
     box.set_dump(freq, filename, outputs);
+}
+
+
+/* -------------------------------------------------------------- 
+   This function takes care of the write output command
+----------------------------------------------------------------- */
+
+void write(Box& box, const std::vector<std::string> splitted, const int argc)
+{
+    assert(argc > 2);
+    std::string keyword = splitted[1];
+    if (keyword == "nsystemsize") {
+        std::string filename = splitted[2];
+        std::ofstream f(filename);
+        for (int i=0; i < box.sampler->nsystemsize.size(); i++){
+            f << box.sampler->nsystemsize[i] << std::endl;
+        }
+        f.close();
+    }
+    else {
+        std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
+        exit(0);
+    }
+}
+
+
+/* -------------------------------------------------------------- 
+   This function takes care of the remove output command
+----------------------------------------------------------------- */
+
+void rm(Box& box, const std::vector<std::string> splitted, const int argc)
+{
+    assert(argc > 1);
+    std::cout << "Remove is not yet implemented in the parser" << std::endl;
 }
