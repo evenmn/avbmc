@@ -13,7 +13,9 @@
 
 MersenneTwister::MersenneTwister()
     : RandomNumberGenerator(), generator(seed())
-{}
+{
+    label = "Mersenne-Twister";
+}
 
 
 /* ---------------------------------------------------------

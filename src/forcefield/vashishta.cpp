@@ -20,6 +20,8 @@ Vashishta::Vashishta(System* system_in, const std::string params)
     : ForceField(system_in)
 {
     read_param_file(params);
+    label = "Vashishta";
+    paramfile = params;
 }
 
 

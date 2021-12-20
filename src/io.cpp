@@ -109,9 +109,10 @@ void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol,
 void write_vector(std::vector<int> vec, std::string filename, std::string delim)
 {
     std::ofstream f(filename);
-    for (int element : vec)
+    for (int i=0; i < vec.size(); i++)
+    //for (int element : vec)
     {
-        f << element << delim;
+        f << i << " " << vec[i] << delim;
     }
     f.close();
 }

@@ -19,6 +19,7 @@ Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in, con
     f = f_in;
     maxpar = maxpar_in;
     tabulated = tabulate(f_in, maxpar_in);
+    label = "Umbrella";
 }
 
 

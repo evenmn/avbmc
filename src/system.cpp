@@ -9,6 +9,7 @@
 
 #include "system.h"
 #include "box.h"
+#include "boundary/boundary.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
 #include "rng/mersennetwister.h"
@@ -172,6 +173,7 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
 void System::add_box(Box* box_in)
 {
     boxes.push_back(box_in);
+    nbox ++;
 }
 
 
@@ -312,24 +314,32 @@ void System::print_info()
     std::cout << "            System Information " << std::endl;
     std::cout << "=========================================" << std::endl;
     std::cout << "Number of dimensions:     " << ndim << std::endl;
-    std::cout << "Number of particle types: " << ntype << std::endl;
-    //std::cout << "Forcefield:               " << forcefield->label << std::endl;
-    //std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << std::endl;
+    std::cout << "Number of boxes:          " << nbox << std::endl;
+    for(int i=0; i < nbox; i++){
+        std::cout << "  Box " << i+1 << ":" << std::endl;
+        std::cout << "    Number of atoms:   " << boxes[i]->npar << std::endl;
+        std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "Number of particle types: " << ntype << std::endl;
+    std::cout << "Forcefield:               " << forcefield->label 
+              << " " << forcefield->paramfile << std::endl;
+    std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << "Unique particle types:";
     for(int i=0; i < ntype; i++){
         std::cout << " " << unique_labels[i];
     }
     std::cout << std::endl;
     for(int i=0; i < molecule_types->ntype; i++){
-        std::cout << "  Molecule type " + std::to_string(i+1) + ":" << std::endl;
+        std::cout << "  Molecule type " << i+1 << ":" << std::endl;
         std::cout << "    Atoms:            ";
         for(std::string element : molecule_types->molecule_elements[i]){
             std::cout << " " << element;
         }
         std::cout << std::endl;
-        std::cout << "    Critical distance: " << std::to_string(molecule_types->rcs[i]) << std::endl;
-        std::cout << "    Probability:       " << std::to_string(molecule_types->molecule_probs[i]) << std::endl;
+        std::cout << "    Critical distance: " << molecule_types->rcs[i] << std::endl;
+        std::cout << "    Probability:       " << molecule_types->molecule_probs[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -342,11 +352,11 @@ void System::print_info()
 void System::print_mc_info()
 {
     std::cout << std::endl;
-    std::cout << "           Monte Carlo information " << std::endl;
+    std::cout << "           Monte Carlo Information " << std::endl;
     std::cout << "=========================================" << std::endl;
     std::cout << "Temperature:              " << temp << std::endl;
     std::cout << "Chemical potential:       " << chempot << std::endl;
-    //std::cout << "Sampling method:          " << sampler->label << std::endl;
+    std::cout << "Sampling method:          " << sampler->label << std::endl;
     std::cout << "Number of move types:     " << nmove << std::endl;
     std::cout << std::endl;
     for(int i=0; i < nmove; i++){
@@ -420,6 +430,8 @@ void System::run_mc(const int nsteps, const int nmoves)
     std::cout << "Elapsed time: " << duration_seconds << "s" << std::endl;
 
     std::cout << std::endl;
+    std::cout << "          Acceptance Ratio" << std::endl;
+    std::cout << "=====================================" << std::endl;
     std::cout << "Move idx #drawn\t #accepted\t acceptance ratio" << std::endl;
     for(int i=0; i < nmove; i++){
         std::cout << std::to_string(i+1) << "\t "

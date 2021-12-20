@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <valarray>
+#include <string>
 
 
 class Sampler
@@ -19,6 +20,7 @@ public:
     int move_idx;
     double acceptance_ratio;
 
+    std::string label;
     std::valarray<int> ndrawn;
     std::valarray<int> naccepted;
     std::vector<int> nsystemsize;

@@ -7,7 +7,10 @@
 ------------------------------------------ */
 
 Metropolis::Metropolis(System* system_in)
-    : Sampler(system_in) {}
+    : Sampler(system_in) 
+{
+    label = "Metropolis";
+}
 
 
 /* ---------------------------------------

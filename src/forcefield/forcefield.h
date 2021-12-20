@@ -53,6 +53,8 @@ public:
     //std::vector<int> tmp_particle_types;
     //std::vector<double> tmp_particle_masses;
     
+    std::string label;
+    std::string paramfile;
     std::vector<std::string> label1_vec, label2_vec;
 
 protected:

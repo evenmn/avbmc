@@ -17,6 +17,7 @@ Stillinger::Stillinger(Box* box_in, double r_c_in)
 {
     r_csq = r_c_in * r_c_in;
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
+    label = "Stillinger";
 }
 
 

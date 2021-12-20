@@ -1,7 +1,5 @@
 #include <iostream>
-#include <string>
-#include <valarray>
-#include <vector>
+#include <functional>
 
 #include "box.h"
 #include "system.h"
@@ -29,6 +27,7 @@ int main()
     Box box(&system);
     box.set_boundary(new Stillinger(&box, 1.5));
     box.add_particle("Ar", {0, 0, 0});
+    system.add_box(&box);
 
     // initialize translation and AVBMC moves
     system.add_move(new Trans(&system, &box, 0.01), 0.94);
@@ -40,7 +39,7 @@ int main()
 
     // run Monte Carlo simulation
     box.snapshot("initial.xyz");
-    //system.run_mc(10000, 1);
+    system.run_mc(1000000, 1);
     box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

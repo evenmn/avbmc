@@ -24,6 +24,8 @@ LennardJones::LennardJones(System* system_in)
     epsilon_vec = {1.};
     rc_vec = {5.};
     nline = 1;
+    label = "Lennard-Jones";
+    paramfile = "";
 }
 
 
@@ -36,6 +38,8 @@ LennardJones::LennardJones(System* system_in, const std::string params)
     : ForceField(system_in)
 {
     read_param_file(params);
+    label = "Lennard-Jones";
+    paramfile = params;
 }
 
 
