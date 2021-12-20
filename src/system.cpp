@@ -301,7 +301,7 @@ void System::print_logo()
 void System::print_info()
 {
     std::time_t start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    std::cout << "Started computation at " << std::ctime(&start_time)
+    std::cout << "Started computation on " << std::ctime(&start_time)
               << "Running on " << nprocess << " CPU threads using MPI" << std::endl;
 
     //std::cout << std::fixed;
@@ -358,9 +358,9 @@ void System::print_mc_info()
     std::cout << "Number of move types:     " << nmove << std::endl;
     std::cout << std::endl;
     for(int i=0; i < nmove; i++){
-        std::cout << "  Move type " + std::to_string(i+1) + ": ";
+        std::cout << "  Move type " << i+1 << ": ";
         std::cout << moves[i]->repr();
-        std::cout << "    Probability: " << std::to_string(moves_prob[i]) << std::endl;
+        std::cout << "    Probability: " << moves_prob[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -408,35 +408,39 @@ void System::run_mc(const int nsteps, const int nmoves)
         box->nsystemsize[box->npar] ++;
     }
 
-    print_logo();
-    print_info();
-    print_mc_info();
+    if (rank == 0) {
+        print_logo();
+        print_info();
+        print_mc_info();
+    }
     //thermo->print_header();
 
-    int maxiter = get_maxiter(nsteps);
+    //int maxiter = get_maxiter(nsteps);
+    int maxiter = nsteps/nprocess + nsteps % nprocess;
 
     // run Monte Carlo simulation
-    auto t1 = std::chrono::high_resolution_clock::now();
+    double start = MPI_Wtime();
     while(step < maxiter){
         //box->dump->print_frame(step);
         //box->thermo->print_line(step);
         sampler->sample(nmoves);
         step ++;
     }
-    auto t2 = std::chrono::high_resolution_clock::now();
-    double duration_seconds = std::chrono::duration<double>(t2 - t1).count();
-    std::cout << "Elapsed time: " << duration_seconds << "s" << std::endl;
-
-    std::cout << std::endl;
-    std::cout << "          Acceptance Ratio" << std::endl;
-    std::cout << "=====================================" << std::endl;
-    std::cout << "Move type #drawn\t #accepted\t acceptance ratio" << std::endl;
-    for(int i=0; i < nmove; i++){
-        std::cout << std::to_string(i+1) << "\t "
-                  << std::to_string(sampler->ndrawn[i]) << "\t "
-                  << std::to_string(sampler->naccepted[i]) << "\t "
-                  << std::to_string((double) sampler->naccepted[i] / sampler->ndrawn[i])
-                  << std::endl;
+    MPI_Barrier(MPI_COMM_WORLD);
+    double end = MPI_Wtime();
+    if (rank == 0) {
+        std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
+        std::cout << std::endl;
+        std::cout << "          Acceptance Ratio" << std::endl;
+        std::cout << "=====================================" << std::endl;
+        std::cout << "Move type #drawn\t #accepted\t acceptance ratio" << std::endl;
+        for(int i=0; i < nmove; i++){
+            std::cout << std::to_string(i+1) << "\t "
+                      << std::to_string(sampler->ndrawn[i]) << "\t "
+                      << std::to_string(sampler->naccepted[i]) << "\t "
+                      << std::to_string((double) sampler->naccepted[i] / sampler->ndrawn[i])
+                      << std::endl;
+        }
     }
 }
 
