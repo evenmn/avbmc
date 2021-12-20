@@ -312,6 +312,16 @@ void System::print_info()
     std::cout << "            System Information " << std::endl;
     std::cout << "=========================================" << std::endl;
     std::cout << "Number of dimensions:     " << ndim << std::endl;
+    std::cout << "Forcefield:               " << forcefield->label 
+              << " " << forcefield->paramfile << std::endl;
+    std::cout << "Random number generator:  " << rng->label << std::endl;
+    std::cout << std::endl;
+    std::cout << "Number of particle types: " << ntype << std::endl;
+    std::cout << "Unique particle types:";
+    for(int i=0; i < ntype; i++){
+        std::cout << " " << unique_labels[i];
+    }
+    std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "Number of boxes:          " << nbox << std::endl;
     for(int i=0; i < nbox; i++){
@@ -320,15 +330,7 @@ void System::print_info()
         std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
     }
     std::cout << std::endl;
-    std::cout << "Number of particle types: " << ntype << std::endl;
-    std::cout << "Forcefield:               " << forcefield->label 
-              << " " << forcefield->paramfile << std::endl;
-    std::cout << "Random number generator:  " << rng->label << std::endl;
-    std::cout << "Unique particle types:";
-    for(int i=0; i < ntype; i++){
-        std::cout << " " << unique_labels[i];
-    }
-    std::cout << std::endl;
+    std::cout << "Number of molecule types: " << molecule_types->ntype << std::endl;
     for(int i=0; i < molecule_types->ntype; i++){
         std::cout << "  Molecule type " << i+1 << ":" << std::endl;
         std::cout << "    Atoms:            ";
@@ -355,8 +357,8 @@ void System::print_mc_info()
     std::cout << "Temperature:              " << temp << std::endl;
     std::cout << "Chemical potential:       " << chempot << std::endl;
     std::cout << "Sampling method:          " << sampler->label << std::endl;
-    std::cout << "Number of move types:     " << nmove << std::endl;
     std::cout << std::endl;
+    std::cout << "Number of move types:     " << nmove << std::endl;
     for(int i=0; i < nmove; i++){
         std::cout << "  Move type " << i+1 << ": ";
         std::cout << moves[i]->repr();
