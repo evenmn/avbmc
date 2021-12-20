@@ -432,7 +432,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     std::cout << std::endl;
     std::cout << "          Acceptance Ratio" << std::endl;
     std::cout << "=====================================" << std::endl;
-    std::cout << "Move idx #drawn\t #accepted\t acceptance ratio" << std::endl;
+    std::cout << "Move type #drawn\t #accepted\t acceptance ratio" << std::endl;
     for(int i=0; i < nmove; i++){
         std::cout << std::to_string(i+1) << "\t "
                   << std::to_string(sampler->ndrawn[i]) << "\t "

@@ -34,13 +34,13 @@ int main()
     system.add_move(new AVBMC(&system, &box, 0.9, 1.5), 0.06);
 
     // set sampling outputs
-    box.set_dump(1, "mc.xyz", {"x", "y", "z"});
-    box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
+    //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
+    //box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
 
     // run Monte Carlo simulation
-    box.snapshot("initial.xyz");
+    //box.snapshot("initial.xyz");
     system.run_mc(1000000, 1);
-    box.snapshot("final.xyz");
+    //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
     box.write_nsystemsize("nsystemsize.txt");

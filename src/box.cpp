@@ -152,5 +152,7 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 
 void Box::write_nsystemsize(std::string filename)
 {
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Gather(nsystemsize.data(), nsystemsize.size(), MPI_INT,  
     write_vector(nsystemsize, filename, "\n");
 }
