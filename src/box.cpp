@@ -5,6 +5,7 @@
 #include <cassert>
 #include <chrono>
 
+#include "io.h"
 #include "box.h"
 #include "dump.h"
 #include "thermo.h"
@@ -141,4 +142,15 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
         }
     }
     return neigh_list;
+}
+
+
+/* ----------------------------------------------------------
+   Write number of times each system size has occured to
+   file 'filename'
+------------------------------------------------------------- */
+
+void Box::write_nsystemsize(std::string filename)
+{
+    write_vector(nsystemsize, filename, "\n");
 }

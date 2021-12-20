@@ -99,3 +99,30 @@ void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol,
         f << std::endl;
     }
 }
+
+
+/* -------------------------------------------------------------------
+   Write vector 'vec' to file 'filename' with instances separated
+   by 'delim'.
+---------------------------------------------------------------------- */
+
+void write_vector(std::vector<int> vec, std::string filename, std::string delim)
+{
+    std::ofstream f(filename);
+    for (int element : vec)
+    {
+        f << element << delim;
+    }
+    f.close();
+}
+
+
+void write_vector(std::vector<double> vec, std::string filename, std::string delim)
+{
+    std::ofstream f(filename);
+    for (double element : vec)
+    {
+        f << element << delim;
+    }
+    f.close();
+}

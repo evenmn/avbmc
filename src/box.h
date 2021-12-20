@@ -20,6 +20,7 @@ public:
     void set_dump(int, std::string, std::vector<std::string>);
     void set_thermo(int, std::string, std::vector<std::string>);
     std::vector<int> build_neigh_list(int, double);
+    void write_nsystemsize(std::string);
 
     class Dump* dump = nullptr;
     class Thermo* thermo = nullptr;
