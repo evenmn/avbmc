@@ -5,7 +5,7 @@
 #include <cassert>
 #include <chrono>
 
-//#include <mpi.h>
+#include <mpi.h>
 
 #include "system.h"
 #include "box.h"
@@ -42,7 +42,6 @@ System::System(std::string working_dir_in)
     molecule_types = new MoleculeTypes(this);
 
     // initialize MPI
-    /*
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
     if (!initialized_mpi) {
@@ -50,7 +49,6 @@ System::System(std::string working_dir_in)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    */
 }
 
 
@@ -449,5 +447,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
-    //MPI_Finalize();
+    MPI_Finalize();
 }

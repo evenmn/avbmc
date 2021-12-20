@@ -5,6 +5,8 @@
 #include <cassert>
 #include <chrono>
 
+#include <mpi.h>
+
 #include "io.h"
 #include "box.h"
 #include "dump.h"
@@ -152,7 +154,17 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 
 void Box::write_nsystemsize(std::string filename)
 {
-    //MPI_Barrier(MPI_COMM_WORLD);
-    //MPI_Gather(nsystemsize.data(), nsystemsize.size(), MPI_INT,  
-    write_vector(nsystemsize, filename, "\n");
+    int maxsize;
+    MPI_Barrier(MPI_COMM_WORLD);
+    //MPI_Reduce(num, &result, 6, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
+    int size = nsystemsize.size();
+    MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    nsystemsize.resize(maxsize);
+    int* nsystemsizetot = new int[maxsize];
+    MPI_Reduce(nsystemsize.data(), &nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    if (system->rank == 0)
+    {
+        write_array(nsystemsizetot, maxsize, filename, "\n");
+    }
 }
