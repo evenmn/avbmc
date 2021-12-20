@@ -7,15 +7,19 @@
 
 #include "box.h"
 #include "dump.h"
-//#include "moves/moves.h"
+#include "thermo.h"
+#include "system.h"
 #include "particle.h"
+//#include "moves/moves.h"
+#include "boundary/stillinger.h"
+//#include "velocity/zero.h"
 
 
 /* -------------------------------------------------------
    Box constructor 
 ---------------------------------------------------------- */
 
-Box::Box(System system_in)
+Box::Box(System* system_in)
 {
     system = system_in;
 
@@ -30,9 +34,6 @@ Box::Box(System system_in)
     dump = new Dump(this, 0, "", outputs);
     outputs = {"step", "atoms", "poteng"};
     thermo = new Thermo(this, 1, "", outputs);
-}
-
-    integrator = integrator_in;
 }
 
 
@@ -53,7 +54,7 @@ void Box::set_boundary(class Boundary* boundary_in)
 void Box::add_particle(Particle* particle)
 {
     npar ++;
-    ndim = particle->r.size();
+    system->ndim = particle->r.size();
     particles.push_back(particle);
 }
 
@@ -66,7 +67,7 @@ void Box::add_particle(Particle* particle)
 void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
     npar ++;
-    ndim = r.size();
+    system->ndim = r.size();
     Particle *particle = new Particle(label, r);
     particles.push_back(particle);
 }
@@ -80,7 +81,7 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
 void Box::add_particles(std::vector<Particle *> particles_in)
 {
     npar += particles_in.size();
-    ndim = particles_in[0]->r.size();
+    system->ndim = particles_in[0]->r.size();
     particles.insert(particles.end(), particles_in.begin(), particles_in.end());
 }
 
@@ -93,7 +94,7 @@ void Box::snapshot(const std::string filename)
 {
     std::vector<std::string> outputs = {"xyz"};
     Dump* tmp_dump = new Dump(this, 1, filename, outputs);
-    tmp_dump->print_frame();
+    tmp_dump->print_frame(0);
     delete tmp_dump;
 }
 
@@ -114,4 +115,30 @@ void Box::set_dump(const int freq, const std::string filename, const std::vector
 void Box::set_thermo(const int freq, const std::string filename, const std::vector<std::string> outputs)
 {
     thermo = new Thermo(this, freq, filename, outputs);
+}
+
+
+/* -------------------------------------------------------------
+   Build neighbor list of particle 'i' with maximum neighbor
+   distance squared 'rsq'
+---------------------------------------------------------------- */
+
+std::vector<int> Box::build_neigh_list(const int i, const double rsq)
+{
+    double rijsq;
+    std::valarray<double> ri = particles[i]->r;
+    std::vector<int> neigh_list;
+    for(int j=0; j<i; j++){
+        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    for(int j=i+1; j<npar; j++){
+        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
 }

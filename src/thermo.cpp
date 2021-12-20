@@ -66,20 +66,20 @@ auto kineng = [] (Box* box) -> double {
    Get acceptance ratio of current cycle (for
    Monte Carlo simulations)
 ------------------------------------------------- */
-
+/*
 auto acceptance_ratio = [] (Box* box) -> double {
     return box->sampler->acceptance_ratio;
 };
-
+*/
 
 /* ----------------------------------------------
    Get index of current move
 ------------------------------------------------- */
-
+/*
 auto move_idx = [] (Box* box) -> double {
     return box->sampler->move_idx;
 };
-
+*/
 
 /* ----------------------------------------------
    Constructor of thermo class. Takes dump
@@ -88,7 +88,8 @@ auto move_idx = [] (Box* box) -> double {
    'outputs_in' as arguments.
 ------------------------------------------------- */
 
-Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
+Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
+               const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
@@ -119,13 +120,13 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename, const
         else if(i == "kineng"){
             output_functions.push_back(kineng);
         }
-        */
         else if(i == "acceptanceratio"){
             output_functions.push_back(acceptance_ratio);
         }
         else if(i == "move"){
             output_functions.push_back(move_idx);
         }
+        */
         else{
             std::cout << "No output style '" + i + "' exists! Aborting." << std::endl;
             exit(0);
@@ -154,9 +155,9 @@ void Thermo::print_header()
    Print thermo outputs of current step
 --------------------------------------------------------- */
 
-void Thermo::print_line()
+void Thermo::print_line(const int step)
 {
-    if(box->step % freq == 0){
+    if(step % freq == 0){
         //std::cout << std::fixed; // << std::setprecision(6);
         f << std::scientific;
         for(auto func : output_functions){

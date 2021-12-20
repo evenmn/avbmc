@@ -10,9 +10,9 @@
 class LennardJones : public ForceField
 {
 public:
-    LennardJones(class Box* box_in);
-    LennardJones(class Box* box_in, std::string params);
-    void read_param_file(std::string params);
+    LennardJones(class System *);
+    LennardJones(class System *, std::string);
+    void read_param_file(std::string);
     void sort_params();
     //double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy);
     //double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy);

@@ -6,7 +6,7 @@
 class Sampler
 {
 public:
-    Sampler(class Box*);
+    Sampler(class System*);
 
     // declare pure virtual functions
     virtual double w(int) = 0;
@@ -29,6 +29,6 @@ private:
     bool accept_move(class Moves*, double, double);
 
 protected:
-    class Box* box = nullptr;
+    class System* system = nullptr;
     class RandomNumberGenerator* rng = nullptr;
 };

@@ -8,7 +8,7 @@
 class ForceField
 {
 public:
-    ForceField(class Box*);
+    ForceField(class System *);
 
     // Declare pure virtual functions
     virtual void read_param_file(std::string) = 0;
@@ -56,5 +56,5 @@ public:
     std::vector<std::string> label1_vec, label2_vec;
 
 protected:
-    class Box* box = nullptr;
+    class System* system = nullptr;
 };

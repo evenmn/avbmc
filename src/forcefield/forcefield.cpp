@@ -3,12 +3,12 @@
 #include <valarray>
 
 #include "forcefield.h"
-#include "../box.h"
+#include "../system.h"
 #include "../particle.h"
 
-ForceField::ForceField(class Box* box_in)
+ForceField::ForceField(System* system_in)
 {
-    box = box_in;
+    system = system_in;
 }
 
 /*
@@ -178,16 +178,18 @@ void ForceField::distance_matrix(const mat positions)
 }
 */
 
-std::vector<int> ForceField::build_neigh_list(const int i, const double r_sqrd)
+/* -------------------------------------------------------------
+   Build neighbor list of particle 'i' with maximum neighbor
+   distance squared 'rsq'
+---------------------------------------------------------------- */
+/*
+std::vector<int> ForceField::build_neigh_list(const int i, const double rsq)
 {
-    /* Build neighbor list of particle i for a cutoff distance
-     * (squared) r_sqrd.
-     */
-    double sdist;
-    std::valarray<double> posi = box->particles[i]->r;
+    double rijsq;
+    std::valarray<double> ri = box->particles[i]->r;
     std::vector<int> neigh_list;
     for(int j=0; j<i; j++){
-        sdist = std::pow(box->particles[j]->r - posi, 2).sum();
+        rijsq = std::pow(box->particles[j]->r - posi, 2).sum();
         if(sdist < r_sqrd){
             neigh_list.push_back(j);
         }
@@ -200,7 +202,7 @@ std::vector<int> ForceField::build_neigh_list(const int i, const double r_sqrd)
     }
     return neigh_list;
 }
-
+*/
 
 /* -------------------------------------------------------------
    Compute the squared norm of a valarray 'array'

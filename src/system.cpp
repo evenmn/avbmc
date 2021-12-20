@@ -5,10 +5,16 @@
 #include <cassert>
 #include <chrono>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "system.h"
-//#include "moves/moves.h"
+#include "box.h"
+#include "forcefield/forcefield.h"
+#include "forcefield/lennardjones.h"
+#include "rng/mersennetwister.h"
+//#include "integrator/velocityverlet.h"
+#include "sampler/metropolis.h"
+#include "moves/moves.h"
 #include "particle.h"
 #include "molecule.h"
 
@@ -29,12 +35,13 @@ System::System(std::string working_dir_in)
 
     // set default objects
     rng = new MersenneTwister();
-    integrator = new VelocityVerlet(this);
+    //integrator = new VelocityVerlet(this);
     forcefield = new LennardJones(this);
     sampler = new Metropolis(this);
     molecule_types = new MoleculeTypes(this);
 
     // initialize MPI
+    /*
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
     if (!initialized_mpi) {
@@ -42,6 +49,7 @@ System::System(std::string working_dir_in)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    */
 }
 
 
@@ -91,12 +99,12 @@ void System::set_forcefield(class ForceField* forcefield_in)
 /* --------------------------------------------------------
    Overwrite default forcefield object, velocity Verlet
 ----------------------------------------------------------- */
-
+/*
 void System::set_integrator(class Integrator* integrator_in)
 {
     integrator = integrator_in;
 }
-
+*/
 
 /* --------------------------------------------------------
    Overwrite default sampler, Metropolis
@@ -142,7 +150,7 @@ void System::add_molecule_type(std::string element, const double molecule_prob)
     std::vector<std::string> elements = {element};
     std::valarray<double> default_atom(0.0, ndim);
     std::vector<std::valarray<double> > default_mol = {default_atom};
-    molecule_types->add_molecule_type(elements, 0.0, 0, molecule_prob, default_mol);
+    molecule_types->add_molecule_type(elements, 0.0, molecule_prob, default_mol);
 }
 
 
@@ -151,9 +159,9 @@ void System::add_molecule_type(std::string element, const double molecule_prob)
 --------------------------------------------------------- */
 
 void System::add_molecule_type(std::vector<std::string> elements, const double rc, const double molecule_prob,
-                            std::vector<std::valarray<double> > default_mol, const int com_atom)
+                            std::vector<std::valarray<double> > default_mol)
 {
-    molecule_types->add_molecule_type(elements, rc, com_atom, molecule_prob, default_mol);
+    molecule_types->add_molecule_type(elements, rc, molecule_prob, default_mol);
 }
 
 
@@ -185,7 +193,7 @@ void System::check_masses()
             }
         }
         std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
-        assert ((msg, label_covered));
+        assert (label_covered);
     }
 }
 
@@ -234,16 +242,18 @@ void System::init_simulation()
     std::sort( unique_labels.begin(), unique_labels.end() );
     unique_labels.erase( std::unique( unique_labels.begin(), unique_labels.end() ), unique_labels.end() );
     ntype = unique_labels.size();
-    for (Particle* particle : particles){
-        bool particle_covered = false;
-        for (int j=0; j < ntype; j++) {
-            if (particle->label == unique_labels[j]) {
-                particle->type = j;
-                particle_covered = true;
+    for (Box* box : boxes){
+        for (Particle* particle : box->particles){
+            bool particle_covered = false;
+            for (int j=0; j < ntype; j++) {
+                if (particle->label == unique_labels[j]) {
+                    particle->type = j;
+                    particle_covered = true;
+                }
             }
+            std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
+            assert (particle_covered);
         }
-        std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
-        assert ((msg, particle_covered));
     }
     // Sort forcefield parameters according to particle types
     forcefield->sort_params();
@@ -299,9 +309,8 @@ void System::print_info()
     //std::cout << std::setprecision(6);
     std::cout << std::endl;
     std::cout << std::endl;
-    std::cout << "            Box Information " << std::endl;
+    std::cout << "            System Information " << std::endl;
     std::cout << "=========================================" << std::endl;
-    std::cout << "Number of particles:      " << npar << std::endl;
     std::cout << "Number of dimensions:     " << ndim << std::endl;
     std::cout << "Number of particle types: " << ntype << std::endl;
     //std::cout << "Forcefield:               " << forcefield->label << std::endl;
@@ -386,28 +395,31 @@ void System::run_mc(const int nsteps, const int nmoves)
     init_molecules();
     sampler->ndrawn.resize(nmove, 0);
     sampler->naccepted.resize(nmove, 0);
-    sampler->nsystemsize.resize(npar + 1);
-    sampler->nsystemsize[npar] ++;
+    for(Box* box : boxes){
+        box->nsystemsize.resize(box->npar + 1);
+        box->nsystemsize[box->npar] ++;
+    }
 
     print_logo();
     print_info();
     print_mc_info();
-    thermo->print_header();
+    //thermo->print_header();
 
     int maxiter = get_maxiter(nsteps);
 
     // run Monte Carlo simulation
-    auto t1 = chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
     while(step < maxiter){
-        dump->print_frame();
-        thermo->print_line();
+        //box->dump->print_frame(step);
+        //box->thermo->print_line(step);
         sampler->sample(nmoves);
         step ++;
     }
-    auto t2 = chrono::high_resolution_clock::now();
-    double duration_seconds = chrono::duration<double>(t2 - t1).count();
-    cout << "Elapsed time: " << duration_seconds << "s" << endl;
+    auto t2 = std::chrono::high_resolution_clock::now();
+    double duration_seconds = std::chrono::duration<double>(t2 - t1).count();
+    std::cout << "Elapsed time: " << duration_seconds << "s" << std::endl;
 
+    std::cout << std::endl;
     std::cout << "Move idx #drawn\t #accepted\t acceptance ratio" << std::endl;
     for(int i=0; i < nmove; i++){
         std::cout << std::to_string(i+1) << "\t "
@@ -425,5 +437,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
-    MPI_Finalize();
+    //MPI_Finalize();
 }

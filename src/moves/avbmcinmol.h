@@ -8,7 +8,7 @@
 class AVBMCInMol : virtual public Moves
 {
 public:
-    AVBMCInMol(class Box*, double = 0.9, double = 1.5);
+    AVBMCInMol(class System *, class Box *, double = 0.9, double = 1.5);
     void perform_move();
     double accept(double, double);
     void reset();
@@ -20,4 +20,5 @@ private:
     std::string label;
     double r_below, r_above, r_belowsq, r_abovesq, v_in, nmolavg;
     class Molecule* molecule_in = nullptr;
+    class Box* box = nullptr;
 };

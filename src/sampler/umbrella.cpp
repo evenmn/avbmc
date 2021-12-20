@@ -3,8 +3,7 @@
 #include <functional>
 
 #include "umbrella.h"
-#include "../box.h"
-#include "../moves/moves.h"
+#include "../system.h"
 
 
 /* --------------------------------------------------------
@@ -14,8 +13,8 @@
    approaches.
 ----------------------------------------------------------- */
 
-Umbrella::Umbrella(Box* box_in, std::function<double (int npar)> f_in, const int maxpar_in)
-    : Sampler(box_in) 
+Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in, const int maxpar_in)
+    : Sampler(system_in) 
 {
     f = f_in;
     maxpar = maxpar_in;

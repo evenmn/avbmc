@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "lennardjones.h"
-#include "../box.h"
+#include "../system.h"
 #include "../particle.h"
 #include "../molecule.h"
 
@@ -15,8 +15,8 @@
    file is not given. It only works for pure Argon
 -------------------------------------------------------- */
 
-LennardJones::LennardJones(Box* box_in)
-    : ForceField(box_in)
+LennardJones::LennardJones(System* system_in)
+    : ForceField(system_in)
 {
     label1_vec = {"Ar"};
     label2_vec = {"Ar"};
@@ -32,8 +32,8 @@ LennardJones::LennardJones(Box* box_in)
    file 'params' is given.
 --------------------------------------------------------- */
 
-LennardJones::LennardJones(Box* box_in, const std::string params)
-    : ForceField(box_in)
+LennardJones::LennardJones(System* system_in, const std::string params)
+    : ForceField(system_in)
 {
     read_param_file(params);
 }
@@ -90,8 +90,8 @@ void LennardJones::sort_params()
     std::vector<int> types2_vec;
     for(std::string label : label1_vec){
         bool assigned = false;
-        for(int j=0; j<box->ntype; j++){
-            if(label == box->unique_labels[j]){
+        for(int j=0; j<system->ntype; j++){
+            if(label == system->unique_labels[j]){
                 types1_vec.push_back(j);
                 assigned = true;
             }
@@ -100,8 +100,8 @@ void LennardJones::sort_params()
     }
     for(std::string label : label2_vec){
         bool assigned = false;
-        for(int j=0; j<box->ntype; j++){
-            if(label == box->unique_labels[j]){
+        for(int j=0; j<system->ntype; j++){
+            if(label == system->unique_labels[j]){
                 types2_vec.push_back(j);
                 assigned = true;
             }
@@ -110,15 +110,15 @@ void LennardJones::sort_params()
     }
 
     // allocate memory for matrices
-    sigma_mat = new double*[box->ntype];
-    epsilon_mat = new double*[box->ntype];
-    rc_sqrd_mat = new double*[box->ntype];
-    shift_mat = new double*[box->ntype];
-    for(int i=0; i<box->ntype; i++){
-        sigma_mat[i] = new double[box->ntype];
-        epsilon_mat[i] = new double[box->ntype];
-        rc_sqrd_mat[i] = new double[box->ntype];
-        shift_mat[i] = new double[box->ntype];
+    sigma_mat = new double*[system->ntype];
+    epsilon_mat = new double*[system->ntype];
+    rc_sqrd_mat = new double*[system->ntype];
+    shift_mat = new double*[system->ntype];
+    for(int i=0; i<system->ntype; i++){
+        sigma_mat[i] = new double[system->ntype];
+        epsilon_mat[i] = new double[system->ntype];
+        rc_sqrd_mat[i] = new double[system->ntype];
+        shift_mat[i] = new double[system->ntype];
     }
     // fill up matrices with parameters
     int type1, type2;
@@ -303,9 +303,10 @@ double LennardJones::comp_energy_par(const std::vector<Particle *> particles, co
                                      std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
+    int npar = particles.size();
     int typei = particles[i]->type;
     std::valarray<double> delij;
-    force.resize(box->ndim, 0.);
+    force.resize(system->ndim, 0.);
 
     double energy = 0.;
     for(int j=0; j<i; j++){
@@ -313,7 +314,7 @@ double LennardJones::comp_energy_par(const std::vector<Particle *> particles, co
         delij = particles[j]->r - particles[i]->r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
-    for(int j=i+1; j<box->npar; j++){
+    for(int j=i+1; j<npar; j++){
         int typej = particles[j]->type;
         delij = particles[j]->r - particles[i]->r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
@@ -470,7 +471,7 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
 
 LennardJones::~LennardJones()
 {
-    for(int i = 0; i < box->ntype; i++){
+    for(int i = 0; i < system->ntype; i++){
         delete[] sigma_mat[i];
         delete[] epsilon_mat[i];
         delete[] rc_sqrd_mat[i];

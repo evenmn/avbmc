@@ -4,10 +4,10 @@
 #include "moves.h"
 
 
-class AVBMCOut : virtual public Moves
+class AVBMCSwapRight : virtual public Moves
 {
 public:
-    AVBMCOut(class System *, class Box *, double = 3.0);
+    AVBMCOut(class System *, class Box *, class Box *, double = 0.95, double = 3.0);
     void perform_move();
     double accept(double, double);
     void reset();
@@ -18,5 +18,6 @@ private:
     int n_in;
     double r_above, r_abovesq, v_in;
     class Particle* particle_out = nullptr;
-    class Box* box = nullptr;
+    class Box* box1 = nullptr;
+    class Box* box2 = nullptr;
 };

@@ -5,20 +5,18 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-
 
 class Dump
 {
 public:
-    Dump(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in);
-    void print_frame();
+    Dump(class Box*, int, std::string, std::vector<std::string>);
+    void print_frame(int);
     ~Dump();
 
 private:
     class Box* box = nullptr;
 
-    std::vector<std::function<double **(class Box*)> > output_functions;
+    std::vector<std::function<double **(class Box *)> > output_functions;
     std::vector<std::string> outputs;
     std::vector<int> nvars;
 

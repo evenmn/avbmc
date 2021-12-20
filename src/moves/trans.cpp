@@ -5,7 +5,10 @@
 
 #include "trans.h"
 #include "../box.h"
+#include "../system.h"
 #include "../particle.h"
+#include "../rng/rng.h"
+#include "../forcefield/forcefield.h"
 
 
 /*---------------------------------------------------
@@ -14,9 +17,11 @@
   direction)
 ----------------------------------------------------- */
 
-Trans::Trans(Box* box_in, const double dx_in)
-    : Moves(box_in) 
+Trans::Trans(System* system_in, Box* box_in, const double dx_in)
+    : Moves(system_in)
 {
+    box = box_in;
+    boxes.push_back(box_in);
     dx = dx_in;
 }
 
@@ -27,18 +32,18 @@ Trans::Trans(Box* box_in, const double dx_in)
 
 void Trans::perform_move()
 {
-    i = box->rng->next_int(box->npar); // particle to move
-    double u0 = box->forcefield->comp_energy_par(box->particles, i);
+    i = rng->next_int(box->npar); // particle to move
+    double u0 = system->forcefield->comp_energy_par(box->particles, i);
 
     // move particle i
-    std::valarray<double> dr(box->ndim);
+    std::valarray<double> dr(system->ndim);
     for(double &d : dr)
         d = 2 * (rng->next_double() - 0.5);
     pos_old = box->particles[i]->r;
     box->particles[i]->r += dx * dr;
 
     // compute new energy contribution from particle i
-    double u1 = box->forcefield->comp_energy_par(box->particles, i);
+    double u1 = system->forcefield->comp_energy_par(box->particles, i);
     du = u1 - u0;
     box->poteng += du;
 }

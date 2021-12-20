@@ -6,31 +6,31 @@
 class Molecule
 {
 public:
-    Molecule(std::vector<int>, int);
-
+    Molecule(std::vector<int>);
     std::vector<int> atoms_idx;
-    int com_atom, natom;
+    int natom;
 };
 
 
 class MoleculeTypes
 {
 public:
-    MoleculeTypes(class Box*);
-    void add_molecule_type(std::vector<std::string>, double, int, double, std::vector<std::valarray<double> >);
-    void check_neighbors(int, int, int, std::vector<int> &);
-    Molecule* construct_molecule(int, std::vector<class Particle *>, bool &);
+    MoleculeTypes(class System*);
+    void add_molecule_type(std::vector<std::string>, double, double,
+                           std::vector<std::valarray<double> >);
+    std::vector<int> build_neigh_list(std::vector<class Particle *>, int, double);
+    void check_neighbors(int, int, int, std::vector<int> &, std::vector<Particle *>);
+    Molecule* construct_molecule(std::vector<Particle *>, int, bool &);
 
     std::vector<std::vector<std::string> > molecule_elements;
     std::vector<std::vector<std::valarray<double> > > default_mols;
     std::vector<std::vector<int> > molecule_types;
     std::vector<double> molecule_probs, rcs;
-    std::vector<int> coms;
     bool configured;
     int ntype;
 
 private:
-    class Box* box = nullptr;
+    class System* system = nullptr;
 };
 
 

@@ -5,8 +5,12 @@
 
 #include "avbmcin.h"
 #include "../box.h"
+#include "../system.h"
 #include "../particle.h"
 #include "../molecule.h"
+#include "../rng/rng.h"
+#include "../sampler/sampler.h"
+#include "../forcefield/forcefield.h"
 
 
 /* -----------------------------------------------------
@@ -15,9 +19,11 @@
    essemble only. A defined molecule is inserted
 -------------------------------------------------------- */
 
-AVBMCIn::AVBMCIn(Box* box_in, const double r_below_in, const double r_above_in)
-    : Moves(box_in)
+AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in)
 {
+    box = box_in;
+    boxes.push_back(box_in);
     r_below = r_below_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
@@ -36,16 +42,16 @@ AVBMCIn::AVBMCIn(Box* box_in, const double r_below_in, const double r_above_in)
 void AVBMCIn::perform_move()
 {
     // pick particle i and create local neighbor list of particle
-    int i = box->rng->next_int(box->npar);
-    std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
+    int i = rng->next_int(box->npar);
+    std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
     // construct new particle
-    std::valarray<double> dr(box->ndim);
+    std::valarray<double> dr(system->ndim);
     double normsq = norm(dr);
     while(normsq > r_abovesq || normsq < r_belowsq){
         for(double &d : dr){
-            d = 2 * box->rng->next_double() - 1;
+            d = 2 * rng->next_double() - 1;
         }
         normsq = norm(dr);
     }
@@ -56,7 +62,7 @@ void AVBMCIn::perform_move()
     box->npar ++;
 
     // compute du
-    du = box->forcefield->comp_energy_par(box->particles, box->npar - 1);
+    du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
     box->poteng += du;
 }
 
@@ -67,7 +73,7 @@ void AVBMCIn::perform_move()
 
 double AVBMCIn::accept(double temp, double chempot)
 {
-    double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar-1);
+    double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
     return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(-(du-chempot+dw)/temp);
 }
 

@@ -29,7 +29,7 @@ void Stillinger::update()
 {
     neigh_lists.clear();
     for(int i=0; i<box->npar; i++){
-        neigh_lists.push_back(box->forcefield->build_neigh_list(i, r_csq));
+        neigh_lists.push_back(box->build_neigh_list(i, r_csq));
     }
 }
 

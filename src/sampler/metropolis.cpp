@@ -1,14 +1,13 @@
 #include "metropolis.h"
-#include "../box.h"
-#include "../moves/moves.h"
+#include "../system.h"
 
 
 /* ---------------------------------------
    Metropolis constructor
 ------------------------------------------ */
 
-Metropolis::Metropolis(Box* box_in)
-    : Sampler(box_in) {}
+Metropolis::Metropolis(System* system_in)
+    : Sampler(system_in) {}
 
 
 /* ---------------------------------------

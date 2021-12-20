@@ -8,7 +8,7 @@
 class AVBMCIn : virtual public Moves
 {
 public:
-    AVBMCIn(class Box *, double = 0.9, double = 1.5);
+    AVBMCIn(class System *, class Box *, double = 0.9, double = 1.5);
     void perform_move();
     double accept(double, double);
     void reset();
@@ -19,4 +19,5 @@ private:
     int n_in, type;
     double r_below, r_above, r_belowsq, r_abovesq, v_in;
     std::string label;
+    class Box* box = nullptr;
 };

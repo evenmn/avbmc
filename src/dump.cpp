@@ -1,9 +1,20 @@
+#include <iostream>
+#include <fstream>
+#include <functional>
+#include <vector>
+#include <string>
+
+#include "io.h"
 #include "dump.h"
 #include "../box.h"
 #include "../particle.h"
 
 
-auto x = [] (class Box *box) -> double ** {
+/* ----------------------------------------------
+   Write x-position to file
+------------------------------------------------- */
+
+auto x = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
@@ -12,7 +23,12 @@ auto x = [] (class Box *box) -> double ** {
     return data;
 };
 
-auto y = [] (class Box *box) -> double ** {
+
+/* ----------------------------------------------
+   Write y-position to file
+------------------------------------------------- */
+
+auto y = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
@@ -21,7 +37,11 @@ auto y = [] (class Box *box) -> double ** {
     return data;
 };
 
-auto z = [] (class Box *box) -> double ** {
+/* ----------------------------------------------
+   Write z-position to file
+------------------------------------------------- */
+
+auto z = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
@@ -30,7 +50,12 @@ auto z = [] (class Box *box) -> double ** {
     return data;
 };
 
-auto xy = [] (class Box* box) -> double ** {
+
+/* ----------------------------------------------
+   Write x and y-positions to file
+------------------------------------------------- */
+
+auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[2];
@@ -40,7 +65,12 @@ auto xy = [] (class Box* box) -> double ** {
     return data;
 };
 
-auto xyz = [] (class Box* box) -> double ** {
+
+/* ----------------------------------------------
+   Write x, y and z-positions to file
+------------------------------------------------- */
+
+auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[3];
@@ -93,7 +123,13 @@ auto axayaz = [] (class Box* box) -> mat {
 };
 */
 
-Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
+/* ---------------------------------------------------
+   Initialize dumper, with which box to dump 'box_in',
+   dump frequency 'freq_in', output file 'filename'
+   and which atom quantities to dump 'outputs_in'.
+------------------------------------------------------ */
+
+Dump::Dump(Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
@@ -167,7 +203,7 @@ Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, con
                 output_functions.push_back(xyz);
             }
             else{
-                cout << "No output style '" + i + "' exists!" << endl;
+                std::cout << "No output style '" + i + "' exists!" << std::endl;
                 exit(0);
             }
         }
@@ -178,13 +214,14 @@ Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, con
 }
 
 
-void Dump::print_frame()
+/* --------------------------------------------------------------
+   Dump atom quantities at the current step
+----------------------------------------------------------------- */
+
+void Dump::print_frame(const int step)
 {
-    /* Print thermo output at the current
-     * step
-     */
     if(freq != 0){
-        if(box->step % freq == 0){
+        if(step % freq == 0){
             // create array for all data to dump
             double** dump_data = new double*[box->npar];
             for(int i = 0; i<box->npar; i++){
