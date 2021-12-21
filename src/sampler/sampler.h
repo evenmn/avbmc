@@ -21,13 +21,9 @@ public:
     double acceptance_ratio;
 
     std::string label;
-    std::valarray<int> ndrawn;
-    std::valarray<int> naccepted;
-    std::vector<int> nsystemsize;
 
 private:
     // declare private functions
-    class Moves* propose_move(std::vector<class Moves*>, std::vector<double>);
     bool accept_move(class Moves*, double, double);
 
 protected:

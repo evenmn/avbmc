@@ -19,6 +19,7 @@ AVBMC::AVBMC(System* system_in, Box* box_in, const double r_below_in, const doub
     boxes.push_back(box);
     r_below = r_below_in;
     r_above = r_above_in;
+    label = "AVBMC";
 }
 
 

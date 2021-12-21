@@ -18,6 +18,6 @@ private:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
     int n_in, type;
     double r_below, r_above, r_belowsq, r_abovesq, v_in;
-    std::string label;
+    std::string label_in;
     class Box* box = nullptr;
 };

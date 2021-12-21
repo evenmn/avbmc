@@ -23,18 +23,6 @@ Sampler::Sampler(System* system_in)
 
 
 /* ------------------------------------------------------
-   Given a vector of moves and a vector of corresponding 
-   probabilities, returning move
---------------------------------------------------------- */
-/*
-Moves* Sampler::propose_move(std::vector<Moves*> moves, std::vector<double> moves_prob)
-{
-    move_idx = rng->choice(moves_prob);
-    return moves[move_idx];
-}
-*/
-
-/* ------------------------------------------------------
    Decide if move should be accepted or rejected. This
    is done in two steps:
      1. Check if boundary condition is satisfied
@@ -70,16 +58,15 @@ void Sampler::sample(int nmoves)
     for (int i=0; i<nmoves; i++){
         // pick move type
         move_idx = rng->choice(system->moves_prob);
-        ndrawn[move_idx] ++;
         Moves* move = system->moves[move_idx];
+        move->ndrawn ++;
 
-        //Moves* move = propose_move(box->moves, box->moves_prob);
         move->perform_move();
         if (!accept_move(move, system->temp, system->chempot)){
             move->reset();
         }
         else{
-            naccepted[move_idx] ++;
+            move->naccept ++;
             acceptance_counter ++;
         }
         for(Box* box : move->boxes){

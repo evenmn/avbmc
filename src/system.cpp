@@ -403,11 +403,14 @@ void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
     init_molecules();
-    sampler->ndrawn.resize(nmove, 0);
-    sampler->naccepted.resize(nmove, 0);
     for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
+    }
+
+    for (Moves* move : moves){
+        move->ndrawn = 0;
+        move->naccept = 0;
     }
 
     if (rank == 0) {
@@ -430,17 +433,23 @@ void System::run_mc(const int nsteps, const int nmoves)
     }
     MPI_Barrier(MPI_COMM_WORLD);
     double end = MPI_Wtime();
+
     if (rank == 0) {
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
         std::cout << std::endl;
         std::cout << "          Acceptance Ratio" << std::endl;
         std::cout << "=====================================" << std::endl;
         std::cout << "Move type #drawn\t #accepted\t acceptance ratio" << std::endl;
-        for(int i=0; i < nmove; i++){
-            std::cout << std::to_string(i+1) << "\t "
-                      << std::to_string(sampler->ndrawn[i]) << "\t "
-                      << std::to_string(sampler->naccepted[i]) << "\t "
-                      << std::to_string((double) sampler->naccepted[i] / sampler->ndrawn[i])
+    }
+    for(Moves* move : moves){
+        int ndrawntot, naccepttot;
+        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        if (rank == 0) {
+            std::cout << move->label << "\t "
+                      << ndrawntot << "\t "
+                      << naccepttot << "\t "
+                      << (double) naccepttot / ndrawntot
                       << std::endl;
         }
     }

@@ -31,7 +31,8 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const double r_below_in, const 
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 
     type = 0;      // type and label of inserted particle
-    label = "Ar";  // this has to be generalized
+    label_in = "Ar";  // this has to be generalized
+    label = "AVBMCIn";
 }
 
 
@@ -56,7 +57,7 @@ void AVBMCIn::perform_move()
         normsq = norm(dr);
     }
 
-    Particle *particle_in = new Particle(label, box->particles[i]->r + dr);
+    Particle *particle_in = new Particle(label_in, box->particles[i]->r + dr);
     particle_in->type = type;
     box->particles.push_back(particle_in);
     box->npar ++;

@@ -26,6 +26,7 @@ AVBMCOutMol::AVBMCOutMol(System* system_in, Box* box_in, const double r_above_in
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    label = "AVBMCOutMol";
 }
 
 

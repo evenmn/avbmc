@@ -19,6 +19,7 @@ AVBMCMol::AVBMCMol(System* system_in, Box* box_in, const double r_below_in, cons
     boxes.push_back(box_in);
     r_below = r_below_in;
     r_above = r_above_in;
+    label = "AVBMCMol";
 }
 
 

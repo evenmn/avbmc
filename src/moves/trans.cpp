@@ -23,6 +23,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
     box = box_in;
     boxes.push_back(box_in);
     dx = dx_in;
+    label = "Trans";
 }
 
 

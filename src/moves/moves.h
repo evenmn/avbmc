@@ -19,6 +19,9 @@ public:
 
     std::vector<class Box *> boxes;
 
+    int ndrawn, naccept;
+    std::string label;
+
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
     double norm(std::valarray<double>);
