@@ -43,7 +43,7 @@ int main()
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
-    //box.write_nsystemsize("nsystemsize.txt");
+    box.write_nsystemsize("nsystemsize.txt");
     
     return 0;
 }

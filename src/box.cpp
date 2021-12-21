@@ -162,7 +162,7 @@ void Box::write_nsystemsize(std::string filename)
     MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
     nsystemsize.resize(maxsize);
     int* nsystemsizetot = new int[maxsize];
-    MPI_Reduce(nsystemsize.data(), &nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     if (system->rank == 0)
     {
         write_array(nsystemsizetot, maxsize, filename, "\n");
