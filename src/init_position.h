@@ -4,7 +4,6 @@
 #include <valarray>
 #include <string>
 
-using namespace std;
 
-std::vector<std::valarray<double> > fcc(const int ncells, const double lenbulk, const int ndim=3);
-std::vector<class Particle *> from_xyz(const std::string filename);
+std::vector<std::valarray<double> > fcc(int, double, int = 3);
+std::vector<class Particle *> from_xyz(std::string);
