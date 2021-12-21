@@ -31,7 +31,7 @@ System::System(std::string working_dir_in)
     time = temp = chempot = 0.;
 
     initialized = false;
-    ntype = nmove = nprocess = step = 0;
+    nbox = ntype = nmove = nprocess = step = 0;
     ndim = 3;
 
     // set default objects
