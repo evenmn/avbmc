@@ -19,7 +19,7 @@ int main()
     system.set_forcefield(new LennardJones(&system, "params.lj"));
 
     // initialize umbrella sampling with square function
-    auto f = [] (const int n) { return (0.007 * (n - 32) * (n - 32)); };
+    auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
     system.set_sampler(new Umbrella(&system, f));
 
     // initialize box with Stillinger boundary
@@ -39,11 +39,11 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1000000, 1);
+    system.run_mc(100000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
-    box.write_nsystemsize("nsystemsize.txt");
+    //box.write_nsystemsize("nsystemsize.txt");
     
     return 0;
 }

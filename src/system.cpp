@@ -426,6 +426,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     // run Monte Carlo simulation
     double start = MPI_Wtime();
     while(step < maxiter){
+        std::cout << step << std::endl;
         //box->dump->print_frame(step);
         //box->thermo->print_line(step);
         sampler->sample(nmoves);

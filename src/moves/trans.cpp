@@ -68,8 +68,11 @@ double Trans::accept(double temp, double /*chempot*/)
 
 void Trans::reset()
 {
+    std::cout << "reset1" << std::endl;
     box->particles[i]->r = pos_old;
+    std::cout << "reset2" << std::endl;
     box->poteng -= du;
+    std::cout << "reset3" << std::endl;
 }
 
 

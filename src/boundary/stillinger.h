@@ -19,4 +19,6 @@ public:
 private:
     double r_csq, v_c;
     std::vector<std::vector<int> > neigh_lists;
+    std::valarray<int> in_cluster;
+    std::valarray<int> checked;
 };
