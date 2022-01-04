@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "moves.h"
 
@@ -17,7 +18,7 @@ public:
 private:
     bool reject_move;
     double r_above, r_abovesq, v_in, nmolavg;
-    std::vector<class Particle *> particles_old;
+    std::vector<std::shared_ptr<class Particle> > particles_old;
     class Molecule* molecule_out = nullptr;
     class Box* box = nullptr;
 };

@@ -2,6 +2,7 @@
 #include <vector>
 #include <valarray>
 #include <string>
+#include <memory>
 
 class Molecule
 {
@@ -18,9 +19,9 @@ public:
     MoleculeTypes(class System*);
     void add_molecule_type(std::vector<std::string>, double, double,
                            std::vector<std::valarray<double> >);
-    std::vector<int> build_neigh_list(std::vector<class Particle *>, int, double);
-    void check_neighbors(int, int, int, std::vector<int> &, std::vector<Particle *>);
-    Molecule* construct_molecule(std::vector<Particle *>, int, bool &);
+    std::vector<int> build_neigh_list(std::vector<std::shared_ptr<class Particle> >, int, double);
+    void check_neighbors(int, int, int, std::vector<int> &, std::vector<std::shared_ptr<Particle> >);
+    Molecule* construct_molecule(std::vector<std::shared_ptr<Particle> >, int, bool &);
 
     std::vector<std::vector<std::string> > molecule_elements;
     std::vector<std::vector<std::valarray<double> > > default_mols;

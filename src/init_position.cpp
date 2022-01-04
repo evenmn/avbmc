@@ -25,10 +25,8 @@
 std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
 {
     // initialize position vector
-    int npar = (ndim+1) * pow(ncells, ndim);
     std::vector<std::valarray<double> > positions;
 
-    int counter = 0;
     if(ndim == 1){
         for(int i=0; i<ncells; i++){
             positions.push_back({.0+i});

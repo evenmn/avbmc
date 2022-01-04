@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <memory>
 
 #include "moves.h"
 
@@ -17,6 +18,6 @@ private:
     bool reject_move;
     int n_in;
     double r_above, r_abovesq, v_in;
-    class Particle* particle_out = nullptr;
+    std::shared_ptr<class Particle> particle_out = nullptr;
     class Box* box = nullptr;
 };

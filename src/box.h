@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <valarray>
+#include <memory>
 
 
 class Box
@@ -12,16 +13,20 @@ public:
 
     // methods
     void set_boundary(class Boundary *);
-    void add_particle(class Particle *);
+    //void add_particle(class Particle *);
+    void add_particle(std::shared_ptr<class Particle>);
     void add_particle(std::string, std::valarray<double>);
-    void add_particles(std::vector<class Particle *>);
+    //void add_particles(std::vector<class Particle *>);
+    void add_particles(std::vector<std::shared_ptr<class Particle> >);
 
     void snapshot(std::string);
     void set_dump(int, std::string, std::vector<std::string>);
     void set_thermo(int, std::string, std::vector<std::string>);
     std::vector<int> build_neigh_list(int, double);
     void write_nsystemsize(std::string);
+    ~Box();
 
+    // variables
     class Dump* dump = nullptr;
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
@@ -32,5 +37,6 @@ public:
     double poteng, time;
 
     std::vector<int> nsystemsize;
-    std::vector<class Particle *> particles;
+    //std::vector<class Particle *> particles;
+    std::vector<std::shared_ptr<class Particle> > particles;
 };

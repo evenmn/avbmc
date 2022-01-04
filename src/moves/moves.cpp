@@ -78,3 +78,12 @@ double Moves::norm(std::valarray<double> array)
     }
     return normsq;
 }
+
+
+/*
+Moves::~Moves()
+{
+    delete system;
+    delete rng;
+}
+*/

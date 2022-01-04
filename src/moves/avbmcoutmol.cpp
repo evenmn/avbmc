@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <memory>
 
 #include "avbmcoutmol.h"
 #include "../box.h"
@@ -54,7 +55,7 @@ void AVBMCOutMol::perform_move()
                 int n_in = neigh_listi.size();  // number of neighbors of i
 
                 if (n_in >= natom) {  // check that i has enough neighbors to potentially remove molecule
-                    std::vector<Particle *> particles;
+                    std::vector<std::shared_ptr<Particle> > particles;
                     for (int j=0; j < n_in; j++){
                         particles.push_back(box->particles[neigh_listi[j]]);
                     }
@@ -76,8 +77,10 @@ void AVBMCOutMol::perform_move()
                 }  // end if n_in
             }  // end if constructed_target
             count ++;
+            delete molecule_target;
         }  // end while
     }  // end if npar
+    delete molecule_types;
 }  // end perform_move
 
 

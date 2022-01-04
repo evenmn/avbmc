@@ -4,11 +4,13 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
+#include <memory>
 
 #include <mpi.h>
 
 #include "system.h"
 #include "box.h"
+#include "tqdm.h"
 #include "boundary/boundary.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
@@ -18,6 +20,7 @@
 #include "moves/moves.h"
 #include "particle.h"
 #include "molecule.h"
+
 
 
 /* -------------------------------------------------------
@@ -45,7 +48,7 @@ System::System(std::string working_dir_in)
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
     if (!initialized_mpi) {
-        MPI_Init(NULL, NULL);
+        MPI_Init(nullptr, nullptr);
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -134,7 +137,7 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
 void System::add_move(Moves* move, double prob)
 {
     nmove ++;
-    moves.push_back(move);
+    moves.emplace_back(std::shared_ptr<Moves>(move));
     moves_prob.push_back(prob);
 }
 
@@ -170,7 +173,7 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
 
 void System::add_box(Box* box_in)
 {
-    boxes.push_back(box_in);
+    boxes.emplace_back(std::shared_ptr<Box>(box_in));
     nbox ++;
 }
 
@@ -192,7 +195,7 @@ void System::check_masses()
                 label_covered = true;
             }
         }
-        std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
+        //std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
         assert (label_covered);
     }
 }
@@ -242,8 +245,8 @@ void System::init_simulation()
     std::sort( unique_labels.begin(), unique_labels.end() );
     unique_labels.erase( std::unique( unique_labels.begin(), unique_labels.end() ), unique_labels.end() );
     ntype = unique_labels.size();
-    for (Box* box : boxes){
-        for (Particle* particle : box->particles){
+    for (auto box : boxes){
+        for (auto particle : box->particles){
             bool particle_covered = false;
             for (int j=0; j < ntype; j++) {
                 if (particle->label == unique_labels[j]) {
@@ -251,7 +254,7 @@ void System::init_simulation()
                     particle_covered = true;
                 }
             }
-            std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
+            //std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
             assert (particle_covered);
         }
     }
@@ -266,13 +269,14 @@ void System::init_simulation()
 
 int System::get_maxiter(const int nsteps)
 {
-    int maxiter;
-    if(step == 0){
-        maxiter = nsteps + 1;
-    }
-    else{
-        maxiter = nsteps + step;
-    }
+    //int maxiter;
+    int maxiter = step + nsteps/nprocess + nsteps % nprocess;
+    //if(step == 0){
+    //    maxiter = nsteps + 1;
+    //}
+    //else{
+    //    maxiter = nsteps + step;
+    //}
     return maxiter;
 }
 
@@ -403,12 +407,12 @@ void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
     init_molecules();
-    for(Box* box : boxes){
+    for(auto box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
     }
 
-    for (Moves* move : moves){
+    for (auto move : moves){
         move->ndrawn = 0;
         move->naccept = 0;
     }
@@ -417,16 +421,22 @@ void System::run_mc(const int nsteps, const int nmoves)
         print_logo();
         print_info();
         print_mc_info();
+        std::cout << std::endl;
+        std::cout << "            Running Monte Carlo Simulation" << std::endl;
+        std::cout << "=======================================================" << std::endl;
     }
     //thermo->print_header();
 
-    //int maxiter = get_maxiter(nsteps);
-    int maxiter = nsteps/nprocess + nsteps % nprocess;
+    int maxiter = get_maxiter(nsteps);
 
     // run Monte Carlo simulation
     double start = MPI_Wtime();
+    tqdm bar;
+    //bar.set_theme_circle();
     while(step < maxiter){
-        std::cout << step << std::endl;
+        if (rank == 0){
+            bar.progress(step * nprocess, maxiter * nprocess);
+        }
         //box->dump->print_frame(step);
         //box->thermo->print_line(step);
         sampler->sample(nmoves);
@@ -438,21 +448,20 @@ void System::run_mc(const int nsteps, const int nmoves)
     if (rank == 0) {
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
         std::cout << std::endl;
-        std::cout << "          Acceptance Ratio" << std::endl;
-        std::cout << "=====================================" << std::endl;
-        std::cout << "Move type #drawn\t #accepted\t acceptance ratio" << std::endl;
-    }
-    for(Moves* move : moves){
-        int ndrawntot, naccepttot;
-        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        if (rank == 0) {
+        std::cout << "                      Acceptance Ratio" << std::endl;
+        std::cout << "=================================================================" << std::endl;
+        std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
+        for(auto move : moves){
+            int ndrawntot, naccepttot;
+            MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+            MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
             std::cout << move->label << "\t "
-                      << ndrawntot << "\t "
-                      << naccepttot << "\t "
+                      << ndrawntot << "\t\t "
+                      << naccepttot << "\t\t "
                       << (double) naccepttot / ndrawntot
                       << std::endl;
         }
+        std::cout << "=================================================================" << std::endl;
     }
 }
 
@@ -464,4 +473,9 @@ void System::run_mc(const int nsteps, const int nmoves)
 System::~System()
 {
     MPI_Finalize();
+    delete forcefield;
+    delete sampler;
+    delete rng;
+    delete molecule_types;
+    std::cout << "destructor" << std::endl;
 }

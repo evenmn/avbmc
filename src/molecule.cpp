@@ -1,6 +1,7 @@
 #include <vector>
 #include <valarray>
 #include <string>
+#include <memory>
 
 #include "box.h"
 #include "system.h"
@@ -74,7 +75,7 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
    distance squared 'rsq'
 ---------------------------------------------------------------- */
 
-std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle *> particles, const int i, const double rsq)
+std::vector<int> MoleculeTypes::build_neigh_list(std::vector<std::shared_ptr<Particle> > particles, const int i, const double rsq)
 {
     int npar = particles.size();
     double rijsq;
@@ -101,7 +102,7 @@ std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle *> particl
 ------------------------------------------------------------------ */
 
 void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count,
-                                    std::vector<int> &elm_idx, std::vector<Particle *> particles){
+                                    std::vector<int> &elm_idx, std::vector<std::shared_ptr<Particle> > particles){
     if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
         if(particles[k]->type == molecule_types[i][elm_count]){  // check if element is matching
             elm_idx.push_back(k);  // add atom to molecule atom idxs
@@ -120,7 +121,7 @@ void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count,
    atom among the elements and checking the neighbor list
 ------------------------------------------------------------------ */
 
-Molecule* MoleculeTypes::construct_molecule(std::vector<Particle *> particles,
+Molecule* MoleculeTypes::construct_molecule(std::vector<std::shared_ptr<Particle> > particles,
                                             const int i, bool &constructed)
 {
     int count;

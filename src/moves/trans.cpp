@@ -23,7 +23,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
     box = box_in;
     boxes.push_back(box_in);
     dx = dx_in;
-    label = "Trans";
+    label = "Trans   ";
 }
 
 
@@ -68,11 +68,8 @@ double Trans::accept(double temp, double /*chempot*/)
 
 void Trans::reset()
 {
-    std::cout << "reset1" << std::endl;
     box->particles[i]->r = pos_old;
-    std::cout << "reset2" << std::endl;
     box->poteng -= du;
-    std::cout << "reset3" << std::endl;
 }
 
 

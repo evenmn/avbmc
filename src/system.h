@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <valarray>
+#include <memory>
 
 //#include "tqdm/tqdm.h"
 
@@ -52,10 +53,10 @@ public:
     double temp, chempot, poteng, time;
     std::string working_dir;
 
-    std::vector<class Box *> boxes;
+    std::vector<std::shared_ptr<class Box> > boxes;
     std::vector<std::string> unique_labels;
     std::vector<std::string> mass_labels;
     std::vector<double> masses;
-    std::vector<class Moves *> moves;
+    std::vector<std::shared_ptr<class Moves> > moves;
     std::vector<double> moves_prob;
 };

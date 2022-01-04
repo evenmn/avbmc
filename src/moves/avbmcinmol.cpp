@@ -2,6 +2,7 @@
 #include <cmath>
 #include <valarray>
 #include <vector>
+#include <memory>
 
 #include "avbmcinmol.h"
 #include "../box.h"
@@ -84,7 +85,7 @@ void AVBMCInMol::perform_move()
         for(int j=0; j < natom; j++){
             positions[j] += box->particles[i]->r + dr;
             std::string element = molecule_types->molecule_elements[mol_idx][j];
-            Particle* particle = new Particle(element, positions[j]);
+            auto particle = std::make_shared<Particle>(element, positions[j]);
             for(int k=0; k<system->ntype; k++){
                 if (system->unique_labels[k] == element){
                     particle->type = k;
@@ -101,6 +102,8 @@ void AVBMCInMol::perform_move()
         }
         box->poteng += du;
     }
+    delete molecule_types;
+    delete molecule_target;
 }
 
 

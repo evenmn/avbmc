@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <memory>
 
 #include "avbmcout.h"
 #include "../box.h"
@@ -26,6 +27,7 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const double r_above_in)
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    label = "AVBMCOut";
 }
 
 
@@ -89,7 +91,7 @@ void AVBMCOut::reset()
     if (!reject_move){
         box->npar += 1;
         box->poteng -= du;
-        box->particles.push_back(particle_out);
+        box->particles.emplace_back(particle_out);
     }
 }
 

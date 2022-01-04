@@ -8,6 +8,9 @@
 #include "sampler/umbrella.h"
 #include "moves/trans.h"
 #include "moves/avbmc.h"
+#include "moves/avbmcin.h"
+#include "moves/avbmcout.h"
+#include "moves/avbmcinmol.h"
 
 
 int main()
@@ -16,7 +19,7 @@ int main()
     System system("simulation");
     system.set_temp(0.7);
     system.set_chempot(-1.3);
-    system.set_forcefield(new LennardJones(&system, "params.lj"));
+    //system.set_forcefield(new LennardJones(&system, "params.lj"));
 
     // initialize umbrella sampling with square function
     auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
@@ -24,14 +27,19 @@ int main()
 
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
+    //auto box = std::make_shared<Box>(&system);
     Box box(&system);
     box.set_boundary(new Stillinger(&box, 1.5));
     box.add_particle("Ar", {0, 0, 0});
+    box.add_particle("Ar", {1.5, 0, 0});
+    box.add_particle("Ar", {0, 1.5, 0});
+    box.add_particle("Ar", {1.5, 1.5, 0});
     system.add_box(&box);
 
     // initialize translation and AVBMC moves
     system.add_move(new Trans(&system, &box, 0.01), 0.94);
-    system.add_move(new AVBMC(&system, &box, 0.9, 1.5), 0.06);
+    system.add_move(new AVBMCIn(&system, &box, 0.9, 1.5), 0.03);
+    system.add_move(new AVBMCOut(&system, &box, 1.5), 0.03);
 
     // set sampling outputs
     //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
@@ -39,11 +47,13 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(100000, 1);
+    system.run_mc(10000, 1);
+    //box.add_particle("Ar", {3.0, 0.0, 0.0});
+    //system.run_mc(10000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
-    //box.write_nsystemsize("nsystemsize.txt");
+    box.write_nsystemsize("nsystemsize.txt");
     
     return 0;
 }

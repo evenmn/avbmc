@@ -12,8 +12,8 @@
 -------------------------------------------------------------- */
 
 AVBMC::AVBMC(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
-    : AVBMCIn(system_in, box_in, r_below_in, r_above_in),
-      AVBMCOut(system_in, box_in, r_above_in), Moves(system_in) 
+    : Moves(system_in), AVBMCIn(system_in, box_in, r_below_in, r_above_in),
+      AVBMCOut(system_in, box_in, r_above_in)
 {
     box = box_in;
     boxes.push_back(box);

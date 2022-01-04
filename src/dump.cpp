@@ -237,7 +237,7 @@ void Dump::print_frame(const int step)
                     for(int j=0; j<nvars[o]; j++){
                         dump_data[i][cum_nvar + j] = tmp_data[i][j];
                     }
-                    delete (tmp_data[i]);
+                    delete[] tmp_data[i];
                 }
                 delete [] tmp_data;
                 cum_nvar += nvars[o];
@@ -246,7 +246,7 @@ void Dump::print_frame(const int step)
 
             // get labels
             std::vector<std::string> labels;
-            for(Particle* particle : box->particles)
+            for(auto particle : box->particles)
                 labels.push_back(particle->label);
 
             // write to file
@@ -254,7 +254,7 @@ void Dump::print_frame(const int step)
 
             // free memory
             for(int i = 0; i<box->npar; i++){
-                delete (dump_data[i]);
+                delete[] dump_data[i];
             }
             delete [] dump_data;
         }

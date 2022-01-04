@@ -30,7 +30,8 @@ std::vector<std::string> split(const std::string s)
 
 std::vector<Particle *> read_xyz(const std::string filename)
 {
-    int npar, ndim;
+    int npar = 0;
+    int ndim = 0;
     std::vector<Particle *> particles;
     std::ifstream f(filename);
     if(f.is_open()){

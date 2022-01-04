@@ -4,6 +4,7 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
+#include <memory>
 
 #include <mpi.h>
 
@@ -27,16 +28,16 @@ Box::Box(System* system_in)
     system = system_in;
 
     poteng = 0.;
-    npar = 0;
+    npar = ntype = nmove = step = 0;
 
     boundary = new Stillinger(this);
     //velocity = new Zero();
 
     // set default outputs
-    std::vector<std::string> outputs;
-    dump = new Dump(this, 0, "", outputs);
-    outputs = {"step", "atoms", "poteng"};
-    thermo = new Thermo(this, 1, "", outputs);
+    //std::vector<std::string> outputs;
+    //dump = new Dump(this, 0, "", outputs);
+    //outputs = {"step", "atoms", "poteng"};
+    //thermo = new Thermo(this, 1, "", outputs);
 }
 
 
@@ -53,8 +54,15 @@ void Box::set_boundary(class Boundary* boundary_in)
 /* --------------------------------------------------
    Add a single particle from a particle object
 ----------------------------------------------------- */
-
+/*
 void Box::add_particle(Particle* particle)
+{
+    npar ++;
+    system->ndim = particle->r.size();
+    particles.push_back(particle);
+}
+*/
+void Box::add_particle(std::shared_ptr<Particle> particle)
 {
     npar ++;
     system->ndim = particle->r.size();
@@ -66,13 +74,21 @@ void Box::add_particle(Particle* particle)
    Add a single particle given a label 'label' and
    initial position 'r'
 ----------------------------------------------------- */
-   
+/*   
 void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
     npar ++;
     system->ndim = r.size();
-    Particle *particle = new Particle(label, r);
+    Particle* particle = new Particle(label, r);
     particles.push_back(particle);
+}
+*/
+void Box::add_particle(const std::string label, const std::valarray<double> r)
+{
+    npar ++;
+    system->ndim = r.size();
+    auto particle = std::make_shared<Particle>(label, r);
+    particles.emplace_back(particle);
 }
 
 
@@ -80,8 +96,15 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
    Add a set of particles, stored in a vector of
    particle objects 'particles_in'.
 ----------------------------------------------------- */
-
+/*
 void Box::add_particles(std::vector<Particle *> particles_in)
+{
+    npar += particles_in.size();
+    system->ndim = particles_in[0]->r.size();
+    particles.insert(particles.end(), particles_in.begin(), particles_in.end());
+}
+*/
+void Box::add_particles(std::vector<std::shared_ptr<Particle> > particles_in)
 {
     npar += particles_in.size();
     system->ndim = particles_in[0]->r.size();
@@ -126,19 +149,29 @@ void Box::set_thermo(const int freq, const std::string filename, const std::vect
    distance squared 'rsq'
 ---------------------------------------------------------------- */
 
+double normsq(std::valarray<double> array)
+{
+    double sumsq = 0.;
+    for(double element : array){
+        sumsq += element * element;
+    }
+    return sumsq;
+}
+
 std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 {
     double rijsq;
     std::valarray<double> ri = particles[i]->r;
     std::vector<int> neigh_list;
     for(int j=0; j<i; j++){
-        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        rijsq = normsq(particles[j]->r - ri); //std::pow(particles[j]->r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
     for(int j=i+1; j<npar; j++){
-        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        std::valarray<double> rii = particles[j]->r - particles[i]->r;
+        rijsq = normsq(particles[j]->r - ri); //std::pow(particles[j]->r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
@@ -156,7 +189,6 @@ void Box::write_nsystemsize(std::string filename)
 {
     int maxsize;
     MPI_Barrier(MPI_COMM_WORLD);
-    //MPI_Reduce(num, &result, 6, MPI_INT, MPI_MIN, 0, MPI_COMM_WORLD);
     int size = nsystemsize.size();
     MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -167,4 +199,13 @@ void Box::write_nsystemsize(std::string filename)
     {
         write_array(nsystemsizetot, maxsize, filename, "\n");
     }
+    delete[] nsystemsizetot;
+}
+
+
+Box::~Box()
+{
+    delete boundary;
+    delete dump;
+    delete thermo;
 }

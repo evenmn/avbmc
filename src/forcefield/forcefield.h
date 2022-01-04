@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <valarray>
+#include <memory>
 
 
 class ForceField
@@ -20,8 +21,10 @@ public:
     //virtual double comp_force_par(const rowvec pos, rowvec& acc) = 0;
     //virtual double update_force_par(const mat positions, const int i) = 0;
     //virtual double update_force_all() = 0;
-    virtual double comp_energy_mol(std::vector<class Particle *>, class Molecule *) = 0;
-    virtual double comp_energy_par(std::vector<class Particle *>, int) = 0;
+    //virtual double comp_energy_mol(std::vector<class Particle *>, class Molecule *) = 0;
+    //virtual double comp_energy_par(std::vector<class Particle *>, int) = 0;
+    virtual double comp_energy_mol(std::vector<std::shared_ptr<class Particle> >, class Molecule *) = 0;
+    virtual double comp_energy_par(std::vector<std::shared_ptr<class Particle> >, int) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions

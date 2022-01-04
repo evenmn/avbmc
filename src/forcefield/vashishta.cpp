@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 #include <cassert>
+#include <memory>
 
 #include "vashishta.h"
 #include "../system.h"
@@ -273,7 +274,17 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
    one or several atoms. This function might be redundant.
 ------------------------------------------------------------------ */
 
+/*
 double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
+{
+    double energy = 0.0;
+    for (int i : molecule->atoms_idx){
+        energy += comp_energy_par(particles, i);
+    }
+    return energy;
+}
+*/
+double Vashishta::comp_energy_mol(const std::vector<std::shared_ptr<Particle> > particles, Molecule* molecule)
 {
     double energy = 0.0;
     for (int i : molecule->atoms_idx){
@@ -287,7 +298,7 @@ double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molec
    Compute energy contribution of a particle 'i', given a 
    vector containing all particles.
 ------------------------------------------------------------------ */
-
+/*
 double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const int i)
 {
     // declare variables
@@ -333,7 +344,52 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
     }
     return (energy);
 }
+*/
+double Vashishta::comp_energy_par(const std::vector<std::shared_ptr<Particle> > particles, const int i)
+{
+    // declare variables
+    int typei = particles[i]->type; 
+    int typej, typek;
+    int npar = particles.size();
+    double rij, energy;
+    std::valarray<double> delij, delik;
 
+    energy = 0.0;
+    for(int j=0; j<i; j++){
+        // two-body
+        typej = particles[j]->type;
+        delij = particles[j]->r - particles[i]->r;
+        rij = std::sqrt(norm(delij));
+        energy += comp_twobody_par(typei, typej, rij);
+
+        for(int k=0; k<npar; k++){
+            if (k==i || k == j) continue;
+
+            // three-body
+            typek = particles[k]->type;
+            delik = particles[k]->r - particles[i]->r;
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
+        }
+    }
+
+    for(int j=i+1; j<npar; j++){
+        // two-body
+        typej = particles[j]->type;
+        delij = particles[j]->r - particles[i]->r;
+        rij = std::sqrt(norm(delij));  // might be a good idea to write this out instead
+        energy += comp_twobody_par(typei, typej, rij);
+
+        for(int k=0; k<npar; k++){
+            if (k==i || k == j) continue;
+
+            // three-body
+            typek = particles[k]->type;
+            delik = particles[k]->r - particles[i]->r;
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
+        }
+    }
+    return (energy);
+}
 
 /* ---------------------------------------------------------
    Vashishta destructor, memory of all parameter arrays

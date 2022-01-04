@@ -2,6 +2,7 @@
 #include <cmath>
 #include <valarray>
 #include <vector>
+#include <memory>
 
 #include "avbmcin.h"
 #include "../box.h"
@@ -32,7 +33,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const double r_below_in, const 
 
     type = 0;      // type and label of inserted particle
     label_in = "Ar";  // this has to be generalized
-    label = "AVBMCIn";
+    label = "AVBMCIn ";
 }
 
 
@@ -57,10 +58,10 @@ void AVBMCIn::perform_move()
         normsq = norm(dr);
     }
 
-    Particle *particle_in = new Particle(label_in, box->particles[i]->r + dr);
-    particle_in->type = type;
-    box->particles.push_back(particle_in);
+    auto particle_in = std::make_shared<Particle>(label_in, box->particles[i]->r + dr);
     box->npar ++;
+    particle_in->type = type;
+    box->particles.emplace_back(particle_in);
 
     // compute du
     du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
