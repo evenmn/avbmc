@@ -2,6 +2,7 @@
 #include <cmath>
 #include <string>
 #include <valarray>
+#include <memory>
 
 #include "trans.h"
 #include "../box.h"
@@ -16,8 +17,18 @@
   'dx_in' being the maximum step length (in any
   direction)
 ----------------------------------------------------- */
-
+/*
 Trans::Trans(System* system_in, Box* box_in, const double dx_in)
+    : Moves(system_in)
+{
+    box = box_in;
+    boxes.push_back(box_in);
+    dx = dx_in;
+    label = "Trans   ";
+}
+*/
+
+Trans::Trans(System* system_in, std::shared_ptr<Box> box_in, const double dx_in)
     : Moves(system_in)
 {
     box = box_in;

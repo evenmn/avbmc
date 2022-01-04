@@ -1,12 +1,14 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <memory>
 
 
 class Boundary
 {
 public:
-    Boundary(class Box *);
+    //Boundary(class Box *);
+    Boundary(std::shared_ptr<class Box>);
     virtual void update() = 0;
     virtual bool correct_position() = 0;
     virtual bool correct_velocity() = 0;   // needed for reflective boundaries
@@ -17,5 +19,6 @@ public:
     std::string label;
 
 protected:
-    class Box* box = nullptr;
+    //class Box* box = nullptr;
+    std::shared_ptr<class Box> box = nullptr;
 };

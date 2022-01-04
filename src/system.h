@@ -24,9 +24,11 @@ public:
     void set_mass(std::string, double);
 
     void add_move(class Moves*, double);
+    void add_move(std::shared_ptr<class Moves>, double);
     void add_molecule_type(std::string, double);
     void add_molecule_type(std::vector<std::string>, double, double, std::vector<std::valarray<double> >);
     void add_box(class Box*);
+    void add_box(std::shared_ptr<class Box>);
 
     void check_masses();
     void init_simulation();

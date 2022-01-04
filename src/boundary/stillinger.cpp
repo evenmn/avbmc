@@ -2,6 +2,7 @@
 #include <valarray>
 #include <vector>
 #include <cmath>
+#include <memory>
 
 #include "stillinger.h"
 #include "../box.h"
@@ -11,7 +12,7 @@
    Stillinger boundary constructor, initializing the
    Stillinger cluster criterion 'r_c'
 --------------------------------------------------------- */
-
+/*
 Stillinger::Stillinger(Box* box_in, double r_c_in)
     : Boundary(box_in)
 {
@@ -19,7 +20,16 @@ Stillinger::Stillinger(Box* box_in, double r_c_in)
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
     label = "Stillinger";
 }
+*/
 
+
+Stillinger::Stillinger(std::shared_ptr<Box> box_in, double r_c_in)
+    : Boundary(box_in)
+{
+    r_csq = r_c_in * r_c_in;
+    //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
+    label = "Stillinger";
+}
 
 /* ------------------------------------------------------
    Update neighbor lists of all particles according to
@@ -30,6 +40,7 @@ void Stillinger::update()
 {
     neigh_lists.clear();
     for(int i=0; i<box->npar; i++){
+        std::cout << "update" << i << std::endl;
         neigh_lists.push_back(box->build_neigh_list(i, r_csq));
     }
 }

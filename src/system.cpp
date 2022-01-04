@@ -141,6 +141,13 @@ void System::add_move(Moves* move, double prob)
     moves_prob.push_back(prob);
 }
 
+void System::add_move(std::shared_ptr<Moves> move, double prob)
+{
+    nmove ++;
+    moves.emplace_back(move);
+    moves_prob.push_back(prob);
+}
+
 
 /* ------------------------------------------------------
    Add new molecule type when molecule is defined by
@@ -174,6 +181,12 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
 void System::add_box(Box* box_in)
 {
     boxes.emplace_back(std::shared_ptr<Box>(box_in));
+    nbox ++;
+}
+
+void System::add_box(std::shared_ptr<Box> box_in)
+{
+    boxes.emplace_back(box_in);
     nbox ++;
 }
 
@@ -446,21 +459,26 @@ void System::run_mc(const int nsteps, const int nmoves)
     double end = MPI_Wtime();
 
     if (rank == 0) {
+        std::cout << "\n" << std::endl;
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
         std::cout << std::endl;
         std::cout << "                      Acceptance Ratio" << std::endl;
         std::cout << "=================================================================" << std::endl;
         std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
-        for(auto move : moves){
-            int ndrawntot, naccepttot;
-            MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-            MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    }
+    for(auto move : moves){
+        int ndrawntot, naccepttot;
+        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        if (rank == 0) {
             std::cout << move->label << "\t "
                       << ndrawntot << "\t\t "
                       << naccepttot << "\t\t "
                       << (double) naccepttot / ndrawntot
                       << std::endl;
         }
+    }
+    if (rank == 0) {
         std::cout << "=================================================================" << std::endl;
     }
 }
@@ -469,13 +487,7 @@ void System::run_mc(const int nsteps, const int nmoves)
 /* ---------------------------------------------------------
    System destructor, finalizing MPI
 ------------------------------------------------------------ */
-
 System::~System()
 {
     MPI_Finalize();
-    delete forcefield;
-    delete sampler;
-    delete rng;
-    delete molecule_types;
-    std::cout << "destructor" << std::endl;
 }

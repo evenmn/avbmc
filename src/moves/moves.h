@@ -3,6 +3,7 @@
 #include <valarray>
 #include <string>
 #include <vector>
+#include <memory>
 
 
 class Moves
@@ -17,10 +18,10 @@ public:
     virtual std::string repr() = 0;
     virtual ~Moves() = default;
 
-    std::vector<class Box *> boxes;
-
     int ndrawn, naccept;
     std::string label;
+
+    std::vector<std::shared_ptr<class Box> > boxes;
 
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);

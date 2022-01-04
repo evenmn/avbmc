@@ -30,12 +30,13 @@ Box::Box(System* system_in)
     poteng = 0.;
     npar = ntype = nmove = step = 0;
 
-    boundary = new Stillinger(this);
+    //boundary = new Stillinger( std::make_shared<Box>(shared_from_this()) );
     //velocity = new Zero();
 
     // set default outputs
-    //std::vector<std::string> outputs;
-    //dump = new Dump(this, 0, "", outputs);
+    //particles.resize(100);
+    std::vector<std::string> outputs;
+    dump = new Dump(this, 0, "", outputs);
     //outputs = {"step", "atoms", "poteng"};
     //thermo = new Thermo(this, 1, "", outputs);
 }
@@ -190,8 +191,10 @@ void Box::write_nsystemsize(std::string filename)
     int maxsize;
     MPI_Barrier(MPI_COMM_WORLD);
     int size = nsystemsize.size();
+    std::cout << "size: " << size << std::endl;
     MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    std::cout << "maxsize: " << maxsize << std::endl;
     nsystemsize.resize(maxsize);
     int* nsystemsizetot = new int[maxsize];
     MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
