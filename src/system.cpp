@@ -22,7 +22,6 @@
 #include "molecule.h"
 
 
-
 /* -------------------------------------------------------
    System constructor, taking the working directory
    'working_dir_in' as argument
@@ -246,20 +245,39 @@ void System::init_molecules()
 
 
 /* -------------------------------------------------------
-   Initialize variables needed before simulation
+   Initialize variables needed before simulation.
+   Ensure that all particles are covered by parameter file.
+   All forcefields should have a label1_vec, which covers
+   all element labels
 ---------------------------------------------------------- */
 
 void System::init_simulation()
 {
-    // ensure that all particles are covered by 
-    // parameter file. All forcefields should have a
-    // label1_vec
+    // find unique labels
     unique_labels = forcefield->label1_vec;
     std::sort( unique_labels.begin(), unique_labels.end() );
-    unique_labels.erase( std::unique( unique_labels.begin(), unique_labels.end() ), unique_labels.end() );
+    unique_labels.erase( std::unique( unique_labels.begin(),
+                         unique_labels.end() ), unique_labels.end() );
     ntype = unique_labels.size();
+
+    // map labels to types
+    for (int i=0; i < ntype; i++){
+        label2type[unique_labels[i]] = i;
+    }
+
+    // go through all particles in all boxes and assert that    
+    // all element labels are covered by parameter file
     for (auto box : boxes){
         for (auto particle : box->particles){
+            try {
+                // will throw exception if label is not known
+                particle->type = label2type.at(particle->label);
+            }
+            catch (std::out_of_range) {
+                std::cout << "Particle label '" + particle->label + "' is not covered by parameter file" << std::endl;
+                MPI_Abort(MPI_COMM_WORLD, 143);
+            }
+            /*
             bool particle_covered = false;
             for (int j=0; j < ntype; j++) {
                 if (particle->label == unique_labels[j]) {
@@ -269,6 +287,7 @@ void System::init_simulation()
             }
             //std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
             assert (particle_covered);
+            */
         }
     }
     // Sort forcefield parameters according to particle types

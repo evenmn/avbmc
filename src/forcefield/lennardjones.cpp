@@ -75,8 +75,8 @@ void LennardJones::read_param_file(const std::string params)
             nline ++;
         }
         else{
-            std::cout << "Warning: Corrupt line in parameter file" << std::endl;
-            std::cout << "Line: " + line << std::endl;
+            std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
+            std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
     }
 }
@@ -91,7 +91,10 @@ void LennardJones::sort_params()
 {
     // link list of labels to list of type indices
     std::vector<int> types1_vec;
-    std::vector<int> types2_vec;
+    for(std::string label : label1_vec){
+        types1_vec.push_back(system->label2type.at(label));
+    }
+    /*
     for(std::string label : label1_vec){
         bool assigned = false;
         for(int j=0; j<system->ntype; j++){
@@ -102,6 +105,13 @@ void LennardJones::sort_params()
         }
         assert(assigned);
     }
+    */
+    std::vector<int> types2_vec;
+    
+    for(std::string label : label2_vec){
+        types2_vec.push_back(system->label2type.at(label));
+    }
+    /*
     for(std::string label : label2_vec){
         bool assigned = false;
         for(int j=0; j<system->ntype; j++){
@@ -112,6 +122,7 @@ void LennardJones::sort_params()
         }
         assert(assigned);
     }
+    */
 
     // allocate memory for matrices
     sigma_mat = new double*[system->ntype];

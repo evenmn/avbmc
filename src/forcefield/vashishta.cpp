@@ -75,8 +75,8 @@ void Vashishta::read_param_file(const std::string params)
             nline ++;
         }
         else{
-            std::cout << "Warning: Corrupt line in parameter file" << std::endl;
-            std::cout << "Line: " + line << std::endl;
+            std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
+            std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
     }
 }
@@ -94,6 +94,16 @@ void Vashishta::sort_params()
     std::vector<int> types2_vec;
     std::vector<int> types3_vec;
     for(std::string label : label1_vec){
+        types1_vec.push_back(system->label2type.at(label));
+    }
+    for(std::string label : label2_vec){
+        types2_vec.push_back(system->label2type.at(label));
+    }
+    for(std::string label : label3_vec){
+        types3_vec.push_back(system->label2type.at(label));
+    }
+    /*
+    for(std::string label : label1_vec){
         bool assigned = false;
         for(int j=0; j<system->ntype; j++){
             if(label == system->unique_labels[j]){
@@ -102,6 +112,9 @@ void Vashishta::sort_params()
             }
         }
         assert(assigned);
+    }
+    for(std::string label : label1_vec){
+        types2_vec.push_back(system->label2type.at(label));
     }
     for(std::string label : label2_vec){
         bool assigned = false;
@@ -112,6 +125,9 @@ void Vashishta::sort_params()
             }
         }
         assert(assigned);
+    }
+    for(std::string label : label1_vec){
+        types1_vec.push_back(system->label2type.at(label));
     }
 
     for(std::string label : label3_vec){
@@ -124,7 +140,7 @@ void Vashishta::sort_params()
         }
         assert(assigned);
     }
-
+    */
     // allocate memory for matrices
     H_mat = new double*[system->ntype];
     eta_mat = new double*[system->ntype];

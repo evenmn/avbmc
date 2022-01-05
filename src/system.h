@@ -4,8 +4,7 @@
 #include <vector>
 #include <valarray>
 #include <memory>
-
-//#include "tqdm/tqdm.h"
+#include <map>
 
 
 class System
@@ -55,6 +54,7 @@ public:
     double temp, chempot, poteng, time;
     std::string working_dir;
 
+    std::map<std::string, int> label2type;
     std::vector<std::shared_ptr<class Box> > boxes;
     std::vector<std::string> unique_labels;
     std::vector<std::string> mass_labels;
