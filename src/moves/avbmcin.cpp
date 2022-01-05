@@ -32,8 +32,25 @@ AVBMCIn::AVBMCIn(System* system_in, std::shared_ptr<Box> box_in, const double r_
     r_belowsq = r_below * r_below;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 
-    type = 0;      // type and label of inserted particle
+    //type = 0;      // type and label of inserted particle
     label_in = "Ar";  // this has to be generalized
+    label = "AVBMCIn ";
+}
+
+
+AVBMCIn::AVBMCIn(System* system_in, std::shared_ptr<Box> box_in, std::string particle_label,
+                 const double r_below_in, const double r_above_in)
+    : Moves(system_in)
+{
+    box = box_in;
+    boxes.push_back(box_in);
+    r_below = r_below_in;
+    r_above = r_above_in;
+    r_abovesq = r_above * r_above;
+    r_belowsq = r_below * r_below;
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+
+    label_in = particle_label;
     label = "AVBMCIn ";
 }
 /*
@@ -77,8 +94,9 @@ void AVBMCIn::perform_move()
 
     auto particle_in = std::make_shared<Particle>(label_in, box->particles[i]->r + dr);
     box->npar ++;
-    particle_in->type = type;
-    box->particles.emplace_back(particle_in);
+    particle_in->type = system->label2type.at(label_in);
+    box->particles.push_back(particle_in);
+    //box->particles.erase(box->particles.begin() + box->npar);
 
     // compute du
     du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
