@@ -205,10 +205,12 @@ void Box::write_nsystemsize(std::string filename)
     delete[] nsystemsizetot;
 }
 
-
+/*
 Box::~Box()
 {
     delete boundary;
     delete dump;
     delete thermo;
+    particles.clear();
 }
+*/

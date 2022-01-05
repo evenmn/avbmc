@@ -24,7 +24,7 @@ public:
     void set_thermo(int, std::string, std::vector<std::string>);
     std::vector<int> build_neigh_list(int, double);
     void write_nsystemsize(std::string);
-    ~Box();
+    //~Box();
 
     // variables
     class Dump* dump = nullptr;
