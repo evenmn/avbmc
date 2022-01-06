@@ -57,11 +57,15 @@ void Sampler::sample(int nmoves)
     // sample nmoves moves
     for (int i=0; i<nmoves; i++){
         // pick move type
+        std::cout << "sampler1" << std::endl;
         move_idx = rng->choice(system->moves_prob);
+        std::cout << "sampler2" << std::endl;
         auto move = system->moves[move_idx];
+        std::cout << "sampler3" << std::endl;
         move->ndrawn ++;
-
+        std::cout << "sampler4" << std::endl;
         move->perform_move();
+        std::cout << "sampler5" << std::endl;
         if (!accept_move(move, system->temp, system->chempot)){
             move->reset();
         }
@@ -69,12 +73,9 @@ void Sampler::sample(int nmoves)
             move->naccept ++;
             acceptance_counter ++;
         }
-        for(auto box : move->boxes){
-            if (box->npar - 1 > box->nsystemsize.size()) {
-                box->nsystemsize.resize(box->npar + 1);
-            }
-            box->nsystemsize[box->npar] ++;
-        }
+        std::cout << "sampler6" << std::endl;
+        move->update_nsystemsize();
+        std::cout << "sampler7" << std::endl;
     }
     acceptance_ratio = (double)(acceptance_counter)/nmoves;
 }

@@ -300,7 +300,7 @@ double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molec
     return energy;
 }
 */
-double Vashishta::comp_energy_mol(const std::vector<std::shared_ptr<Particle> > particles, Molecule* molecule)
+double Vashishta::comp_energy_mol(const std::vector<Particle> particles, Molecule* molecule)
 {
     double energy = 0.0;
     for (int i : molecule->atoms_idx){
@@ -361,10 +361,10 @@ double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const
     return (energy);
 }
 */
-double Vashishta::comp_energy_par(const std::vector<std::shared_ptr<Particle> > particles, const int i)
+double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i)
 {
     // declare variables
-    int typei = particles[i]->type; 
+    int typei = particles[i].type; 
     int typej, typek;
     int npar = particles.size();
     double rij, energy;
@@ -373,8 +373,8 @@ double Vashishta::comp_energy_par(const std::vector<std::shared_ptr<Particle> > 
     energy = 0.0;
     for(int j=0; j<i; j++){
         // two-body
-        typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
+        typej = particles[j].type;
+        delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij);
 
@@ -382,16 +382,16 @@ double Vashishta::comp_energy_par(const std::vector<std::shared_ptr<Particle> > 
             if (k==i || k == j) continue;
 
             // three-body
-            typek = particles[k]->type;
-            delik = particles[k]->r - particles[i]->r;
+            typek = particles[k].type;
+            delik = particles[k].r - particles[i].r;
             energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
         }
     }
 
     for(int j=i+1; j<npar; j++){
         // two-body
-        typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
+        typej = particles[j].type;
+        delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));  // might be a good idea to write this out instead
         energy += comp_twobody_par(typei, typej, rij);
 
@@ -399,8 +399,8 @@ double Vashishta::comp_energy_par(const std::vector<std::shared_ptr<Particle> > 
             if (k==i || k == j) continue;
 
             // three-body
-            typek = particles[k]->type;
-            delik = particles[k]->r - particles[i]->r;
+            typek = particles[k].type;
+            delik = particles[k].r - particles[i].r;
             energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
         }
     }

@@ -24,9 +24,9 @@ public:
     //double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
     //double comp_energy_par(std::vector<class Particle *>, int);
     //double comp_energy_par(std::vector<class Particle *>, int, std::valarray<double> &, bool);
-    double comp_energy_mol(std::vector<std::shared_ptr<class Particle> >, class Molecule*);
-    double comp_energy_par(std::vector<std::shared_ptr<class Particle> >, int);
-    double comp_energy_par(std::vector<std::shared_ptr<class Particle> >, int, std::valarray<double> &, bool);
+    double comp_energy_mol(std::vector<class Particle>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle>, int);
+    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~LennardJones();

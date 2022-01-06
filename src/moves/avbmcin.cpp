@@ -21,6 +21,23 @@
 -------------------------------------------------------- */
 
 
+AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string particle_label,
+                 const double r_below_in, const double r_above_in)
+    : Moves(system_in)
+{
+    box = box_in;
+    //boxes.push_back(box_in);
+    r_below = r_below_in;
+    r_above = r_above_in;
+    r_abovesq = r_above * r_above;
+    r_belowsq = r_below * r_below;
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+
+    //type = 0;      // type and label of inserted particle
+    label_in = particle_label;
+    label = "AVBMCIn ";
+}
+/*
 AVBMCIn::AVBMCIn(System* system_in, std::shared_ptr<Box> box_in, const double r_below_in, const double r_above_in)
     : Moves(system_in)
 {
@@ -52,7 +69,7 @@ AVBMCIn::AVBMCIn(System* system_in, std::shared_ptr<Box> box_in, std::string par
 
     label_in = particle_label;
     label = "AVBMCIn ";
-}
+}*/
 /*
 AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
     : Moves(system_in)
@@ -92,11 +109,10 @@ void AVBMCIn::perform_move()
         normsq = norm(dr);
     }
 
-    auto particle_in = std::make_shared<Particle>(label_in, box->particles[i]->r + dr);
-    box->npar ++;
-    particle_in->type = system->label2type.at(label_in);
+    Particle particle_in = Particle(label_in, box->particles[i].r + dr);
+    //box->npar ++;
+    particle_in.type = system->label2type.at(label_in);
     box->particles.push_back(particle_in);
-    //box->particles.erase(box->particles.begin() + box->npar);
 
     // compute du
     du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
@@ -116,7 +132,7 @@ double AVBMCIn::accept(double temp, double chempot)
 
 
 /* ----------------------------------------------------------
-   Set back to old state before move
+   Set back to old state before move is move was rejected
 ------------------------------------------------------------- */
 
 void AVBMCIn::reset()
@@ -124,6 +140,20 @@ void AVBMCIn::reset()
     box->npar --;
     box->poteng -= du;
     box->particles.erase(box->particles.begin() + box->npar);
+}
+
+
+/* ----------------------------------------------------------
+   Update number of time this system size has occured if
+   move was accepted
+------------------------------------------------------------- */
+
+void AVBMCIn::update_nsystemsize()
+{
+    if (box->npar - 1 > box->nsystemsize.size()) {
+        box->nsystemsize.resize(box->npar + 1);
+    }
+    box->nsystemsize[box->npar] ++;
 }
 
 

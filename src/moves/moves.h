@@ -15,13 +15,14 @@ public:
     virtual void perform_move() = 0;
     virtual double accept(double, double) = 0;
     virtual void reset() = 0;
+    virtual void update_nsystemsize() = 0;
     virtual std::string repr() = 0;
     virtual ~Moves() = default;
 
     int ndrawn, naccept;
     std::string label;
 
-    std::vector<std::shared_ptr<class Box> > boxes;
+    //std::vector<class Box *> boxes;
 
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);

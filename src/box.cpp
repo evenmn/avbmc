@@ -8,12 +8,12 @@
 
 #include <mpi.h>
 
+#include "particle.h"
 #include "io.h"
 #include "box.h"
 #include "dump.h"
 #include "thermo.h"
 #include "system.h"
-#include "particle.h"
 //#include "moves/moves.h"
 #include "boundary/stillinger.h"
 //#include "velocity/zero.h"
@@ -34,7 +34,6 @@ Box::Box(System* system_in)
     //velocity = new Zero();
 
     // set default outputs
-    //particles.resize(100);
     std::vector<std::string> outputs;
     dump = new Dump(this, 0, "", outputs);
     //outputs = {"step", "atoms", "poteng"};
@@ -56,20 +55,21 @@ void Box::set_boundary(class Boundary* boundary_in)
    Add a single particle from a particle object
 ----------------------------------------------------- */
 /*
-void Box::add_particle(Particle* particle)
+void Box::add_particle(Particle particle)
 {
     npar ++;
     system->ndim = particle->r.size();
     particles.push_back(particle);
 }
 */
+/*
 void Box::add_particle(std::shared_ptr<Particle> particle)
 {
     npar ++;
     system->ndim = particle->r.size();
     particles.push_back(particle);
 }
-
+*/
 
 /* --------------------------------------------------
    Add a single particle given a label 'label' and
@@ -88,8 +88,7 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
     npar ++;
     system->ndim = r.size();
-    auto particle = std::make_shared<Particle>(label, r);
-    particles.emplace_back(particle);
+    particles.push_back(Particle(label, r));
 }
 
 
@@ -105,13 +104,14 @@ void Box::add_particles(std::vector<Particle *> particles_in)
     particles.insert(particles.end(), particles_in.begin(), particles_in.end());
 }
 */
-void Box::add_particles(std::vector<std::shared_ptr<Particle> > particles_in)
+/*
+void Box::add_particles(std::vector<Particle> particles_in)
 {
     npar += particles_in.size();
     system->ndim = particles_in[0]->r.size();
     particles.insert(particles.end(), particles_in.begin(), particles_in.end());
 }
-
+*/
 
 /* ------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function. 
@@ -162,17 +162,17 @@ double normsq(std::valarray<double> array)
 std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 {
     double rijsq;
-    std::valarray<double> ri = particles[i]->r;
+    std::valarray<double> ri = particles[i].r;
     std::vector<int> neigh_list;
     for(int j=0; j<i; j++){
-        rijsq = normsq(particles[j]->r - ri); //std::pow(particles[j]->r - ri, 2).sum();
+        rijsq = normsq(particles[j].r - ri); //std::pow(particles[j]->r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
     for(int j=i+1; j<npar; j++){
-        std::valarray<double> rii = particles[j]->r - particles[i]->r;
-        rijsq = normsq(particles[j]->r - ri); //std::pow(particles[j]->r - ri, 2).sum();
+        std::valarray<double> rii = particles[j].r - particles[i].r;
+        rijsq = normsq(particles[j].r - ri); //std::pow(particles[j]->r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }

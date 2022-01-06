@@ -7,7 +7,7 @@
 class Boundary
 {
 public:
-    //Boundary(class Box *);
+    Boundary(class Box *);
     Boundary(std::shared_ptr<class Box>);
     virtual void update() = 0;
     virtual bool correct_position() = 0;
@@ -19,6 +19,6 @@ public:
     std::string label;
 
 protected:
-    //class Box* box = nullptr;
-    std::shared_ptr<class Box> box = nullptr;
+    class Box* box = nullptr;
+    //std::shared_ptr<class Box> box = nullptr;
 };

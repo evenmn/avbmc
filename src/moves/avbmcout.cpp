@@ -18,19 +18,19 @@
    fictitous inter-box move, and works in the grand
    canonical ensemble only
 -------------------------------------------------------- */
-/*
+
 AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const double r_above_in)
     : Moves(system_in)
 {
     box = box_in;
-    boxes.push_back(box_in);
+    //boxes.push_back(box_in);
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
     label = "AVBMCOut";
 }
-*/
 
+/*
 AVBMCOut::AVBMCOut(System* system_in, std::shared_ptr<Box> box_in, const double r_above_in)
     : Moves(system_in)
 {
@@ -41,7 +41,7 @@ AVBMCOut::AVBMCOut(System* system_in, std::shared_ptr<Box> box_in, const double 
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
     label = "AVBMCOut";
 }
-
+*/
 
 /* ------------------------------------------------------
    Remove a random particle from the bonded region of
@@ -66,7 +66,7 @@ void AVBMCOut::perform_move()
             int j = neigh_listi[neigh_idx];  // particle to be removed
             du = -system->forcefield->comp_energy_par(box->particles, j);
             box->poteng += du;
-            particle_out = box->particles[j];
+            particle_out = &box->particles[j];
             box->particles.erase(box->particles.begin() + j);
             box->npar --;
         }
@@ -103,8 +103,22 @@ void AVBMCOut::reset()
     if (!reject_move){
         box->npar += 1;
         box->poteng -= du;
-        box->particles.emplace_back(particle_out);
+        box->particles.emplace_back(*particle_out);
     }
+}
+
+
+/* ----------------------------------------------------------
+   Update number of time this system size has occured if
+   move was accepted
+------------------------------------------------------------- */
+
+void AVBMCOut::update_nsystemsize()
+{
+    if (box->npar - 1 > box->nsystemsize.size()) {
+        box->nsystemsize.resize(box->npar + 1);
+    }
+    box->nsystemsize[box->npar] ++;
 }
 
 

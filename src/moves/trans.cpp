@@ -17,17 +17,17 @@
   'dx_in' being the maximum step length (in any
   direction)
 ----------------------------------------------------- */
-/*
+
 Trans::Trans(System* system_in, Box* box_in, const double dx_in)
     : Moves(system_in)
 {
     box = box_in;
-    boxes.push_back(box_in);
+    //boxes.push_back(box_in);
     dx = dx_in;
     label = "Trans   ";
 }
-*/
 
+/*
 Trans::Trans(System* system_in, std::shared_ptr<Box> box_in, const double dx_in)
     : Moves(system_in)
 {
@@ -36,7 +36,7 @@ Trans::Trans(System* system_in, std::shared_ptr<Box> box_in, const double dx_in)
     dx = dx_in;
     label = "Trans   ";
 }
-
+*/
 
 /* ---------------------------------------------------
    Propose particle to move and new position randomly.
@@ -51,8 +51,8 @@ void Trans::perform_move()
     std::valarray<double> dr(system->ndim);
     for(double &d : dr)
         d = 2 * (rng->next_double() - 0.5);
-    pos_old = box->particles[i]->r;
-    box->particles[i]->r += dx * dr;
+    pos_old = box->particles[i].r;
+    box->particles[i].r += dx * dr;
 
     // compute new energy contribution from particle i
     double u1 = system->forcefield->comp_energy_par(box->particles, i);
@@ -79,8 +79,22 @@ double Trans::accept(double temp, double /*chempot*/)
 
 void Trans::reset()
 {
-    box->particles[i]->r = pos_old;
+    box->particles[i].r = pos_old;
     box->poteng -= du;
+}
+
+
+/* ----------------------------------------------------------
+   Update number of time this system size has occured if
+   move was accepted
+------------------------------------------------------------- */
+
+void Trans::update_nsystemsize()
+{
+    if (box->npar - 1 > box->nsystemsize.size()) {
+        box->nsystemsize.resize(box->npar + 1);
+    }
+    box->nsystemsize[box->npar] ++;
 }
 
 

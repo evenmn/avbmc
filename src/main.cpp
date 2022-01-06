@@ -7,11 +7,12 @@
 #include "boundary/stillinger.h"
 #include "forcefield/lennardjones.h"
 #include "sampler/umbrella.h"
+#include "moves/moves.h"
 #include "moves/trans.h"
-#include "moves/avbmc.h"
+//#include "moves/avbmc.h"
 #include "moves/avbmcin.h"
 #include "moves/avbmcout.h"
-#include "moves/avbmcinmol.h"
+//#include "moves/avbmcinmol.h"
 
 
 int main()
@@ -28,29 +29,19 @@ int main()
 
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
-    //Box box(&system);
-    auto box = std::make_shared<Box>(&system);
-    box->set_boundary(new Stillinger(box, 1.5));
-    box->add_particle("Ar", {0, 0, 0});
-    box->add_particle("Ar", {1.5, 0, 0});
-    box->add_particle("Ar", {0, 1.5, 0});
-    box->add_particle("Ar", {1.5, 1.5, 0});
-    system.add_box(box);
-
-    // RAW POINTER
-    /*Box box(&system);
+    Box box(&system);
     box.set_boundary(new Stillinger(&box, 1.5));
     box.add_particle("Ar", {0, 0, 0});
     box.add_particle("Ar", {1.5, 0, 0});
     box.add_particle("Ar", {0, 1.5, 0});
     box.add_particle("Ar", {1.5, 1.5, 0});
-    system.add_box(&box);*/
+    system.add_box(&box);
 
     // initialize translation and AVBMC moves
-    system.add_move(std::make_shared<Trans>(&system, box, 0.01), 0.94);
-    system.add_move(std::make_shared<Trans>(&system, box, 0.01), 0.06);
-    //system.add_move(std::make_shared<AVBMCIn>(&system, box, 0.9, 1.5), 0.06);
-    //system.add_move(std::make_shared<AVBMCOut>(&system, box, 1.5), 0.03);
+    system.add_move(std::make_shared<Trans>(&system, &box, 0.01), 0.94);
+    //system.add_move(std::make_shared<Trans>(&system, &box, 0.01), 0.06);
+    system.add_move(std::make_shared<AVBMCIn>(&system, &box, "Ar", 0.9, 1.5), 0.06);
+    //system.add_move(std::make_shared<AVBMCOut>(&system, box, 1.5), 0.5);
 
     // set sampling outputs
     //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
@@ -58,9 +49,9 @@ int main()
 
     // run Monte Carlo simulation
     //box->snapshot("initial.xyz");
-    system.run_mc(1000, 1);
+    //system.run_mc(100000, 1);
     //box.add_particle("Ar", {3.0, 0.0, 0.0});
-    //system.run_mc(10000, 1);
+    system.run_mc(10000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

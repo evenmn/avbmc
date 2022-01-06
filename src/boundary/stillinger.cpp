@@ -12,7 +12,7 @@
    Stillinger boundary constructor, initializing the
    Stillinger cluster criterion 'r_c'
 --------------------------------------------------------- */
-/*
+
 Stillinger::Stillinger(Box* box_in, double r_c_in)
     : Boundary(box_in)
 {
@@ -20,9 +20,9 @@ Stillinger::Stillinger(Box* box_in, double r_c_in)
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
     label = "Stillinger";
 }
-*/
 
 
+/*
 Stillinger::Stillinger(std::shared_ptr<Box> box_in, double r_c_in)
     : Boundary(box_in)
 {
@@ -30,6 +30,7 @@ Stillinger::Stillinger(std::shared_ptr<Box> box_in, double r_c_in)
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
     label = "Stillinger";
 }
+*/
 
 /* ------------------------------------------------------
    Update neighbor lists of all particles according to

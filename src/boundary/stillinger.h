@@ -9,7 +9,7 @@
 class Stillinger : public Boundary
 {
 public:
-    //Stillinger(class Box*, double = 2.0);
+    Stillinger(class Box*, double = 2.0);
     Stillinger(std::shared_ptr<Box>, double = 2.0);
     void update();
     void check(int, std::valarray<int> &, std::valarray<int> &);

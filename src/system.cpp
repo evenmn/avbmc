@@ -132,13 +132,22 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
    Add move type and the corresponding probability.
    The probabilities have to add up to 1.
 ----------------------------------------------------- */
-
+/*
+void System::add_move(Moves& move, double prob)
+{
+    nmove ++;
+    moves.emplace_back(move);
+    moves_prob.push_back(prob);
+}
+*/
+/*
 void System::add_move(Moves* move, double prob)
 {
     nmove ++;
     moves.emplace_back(std::shared_ptr<Moves>(move));
     moves_prob.push_back(prob);
 }
+*/
 
 void System::add_move(std::shared_ptr<Moves> move, double prob)
 {
@@ -176,7 +185,7 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
 /* -----------------------------------------------------
    Add box 'box_in' to system
 -------------------------------------------------------- */
-
+/*
 void System::add_box(Box* box_in)
 {
     boxes.emplace_back(std::shared_ptr<Box>(box_in));
@@ -184,6 +193,12 @@ void System::add_box(Box* box_in)
 }
 
 void System::add_box(std::shared_ptr<Box> box_in)
+{
+    boxes.emplace_back(box_in);
+    nbox ++;
+}
+*/
+void System::add_box(Box* box_in)
 {
     boxes.emplace_back(box_in);
     nbox ++;
@@ -200,6 +215,10 @@ void System::add_box(std::shared_ptr<Box> box_in)
 void System::check_masses()
 {
     // Check that all particles are assigned a mass
+    for (std::string mass_label : mass_labels){
+        label2type.at(mass_label);
+    }
+    /*
     for (std::string unique_label : unique_labels){
         bool label_covered = false;
         for (std::string mass_label : mass_labels){
@@ -210,6 +229,7 @@ void System::check_masses()
         //std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
         assert (label_covered);
     }
+    */
 }
 
 
@@ -267,14 +287,14 @@ void System::init_simulation()
 
     // go through all particles in all boxes and assert that    
     // all element labels are covered by parameter file
-    for (auto box : boxes){
-        for (auto particle : box->particles){
+    for (Box* box : boxes){
+        for (Particle& particle : box->particles){
             try {
                 // will throw exception if label is not known
-                particle->type = label2type.at(particle->label);
+                particle.type = label2type.at(particle.label);
             }
             catch (std::out_of_range) {
-                std::cout << "Particle label '" + particle->label + "' is not covered by parameter file" << std::endl;
+                std::cout << "Particle label '" + particle.label + "' is not covered by parameter file" << std::endl;
                 MPI_Abort(MPI_COMM_WORLD, 143);
             }
             /*
@@ -439,7 +459,7 @@ void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
     init_molecules();
-    for(auto box : boxes){
+    for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
     }
@@ -466,9 +486,10 @@ void System::run_mc(const int nsteps, const int nmoves)
     tqdm bar;
     //bar.set_theme_circle();
     while(step < maxiter){
-        if (rank == 0){
-            bar.progress(step * nprocess, maxiter * nprocess);
-        }
+        std::cout << step << std::endl;
+        //if (rank == 0){
+        //    bar.progress(step * nprocess, maxiter * nprocess);
+        //}
         //box->dump->print_frame(step);
         //box->thermo->print_line(step);
         sampler->sample(nmoves);
@@ -509,4 +530,7 @@ void System::run_mc(const int nsteps, const int nmoves)
 System::~System()
 {
     MPI_Finalize();
+    for (Box* box : boxes){
+        delete box;
+    }
 }

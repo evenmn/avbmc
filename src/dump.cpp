@@ -18,7 +18,7 @@ auto x = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[0];
+        data[i][0] = box->particles[i].r[0];
     }
     return data;
 };
@@ -32,7 +32,7 @@ auto y = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[1];
+        data[i][0] = box->particles[i].r[1];
     }
     return data;
 };
@@ -45,7 +45,7 @@ auto z = [] (Box *box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[2];
+        data[i][0] = box->particles[i].r[2];
     }
     return data;
 };
@@ -59,8 +59,8 @@ auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[2];
-        data[i][0] = box->particles[i]->r[0];
-        data[i][1] = box->particles[i]->r[1];
+        data[i][0] = box->particles[i].r[0];
+        data[i][1] = box->particles[i].r[1];
     }
     return data;
 };
@@ -74,9 +74,9 @@ auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
     for(int i = 0; i<box->npar; i++){
         data[i] = new double[3];
-        data[i][0] = box->particles[i]->r[0];
-        data[i][1] = box->particles[i]->r[1];
-        data[i][2] = box->particles[i]->r[2];
+        data[i][0] = box->particles[i].r[0];
+        data[i][1] = box->particles[i].r[1];
+        data[i][2] = box->particles[i].r[2];
     }
     return data;
 };
@@ -246,8 +246,8 @@ void Dump::print_frame(const int step)
 
             // get labels
             std::vector<std::string> labels;
-            for(auto particle : box->particles)
-                labels.push_back(particle->label);
+            for(Particle particle : box->particles)
+                labels.push_back(particle.label);
 
             // write to file
             write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
