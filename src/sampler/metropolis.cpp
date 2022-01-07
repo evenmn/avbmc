@@ -19,7 +19,7 @@ Metropolis::Metropolis(System* system_in)
    Metropolis, this should always be zero
 ------------------------------------------ */
 
-double Metropolis::w(const int npar)
+double Metropolis::w(const int /*npar*/)
 {
     return 0.;
 }

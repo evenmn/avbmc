@@ -6,13 +6,13 @@
 #include <chrono>
 #include <memory>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "particle.h"
 #include "io.h"
 #include "box.h"
-#include "dump.h"
-#include "thermo.h"
+//#include "dump.h"
+//#include "thermo.h"
 #include "system.h"
 //#include "moves/moves.h"
 #include "boundary/stillinger.h"
@@ -34,10 +34,10 @@ Box::Box(System* system_in)
     //velocity = new Zero();
 
     // set default outputs
-    std::vector<std::string> outputs;
-    dump = new Dump(this, 0, "", outputs);
+    //std::vector<std::string> outputs;
+    //dump = new Dump(this, 0, "", outputs);
     //outputs = {"step", "atoms", "poteng"};
-    //thermo = new Thermo(this, 1, "", outputs);
+    //thermo = new Thermo(this, 0, "", outputs);
 }
 
 
@@ -116,34 +116,39 @@ void Box::add_particles(std::vector<Particle> particles_in)
 /* ------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function. 
 --------------------------------------------------------- */
-   
+/*   
 void Box::snapshot(const std::string filename)
 {
     std::vector<std::string> outputs = {"xyz"};
     Dump* tmp_dump = new Dump(this, 1, filename, outputs);
     tmp_dump->print_frame(0);
     delete tmp_dump;
+    tmp_dump = nullptr;
 }
-
+*/
 /* -----------------------------------------------------
    Specify dump output
 -------------------------------------------------------- */
-
+/*
 void Box::set_dump(const int freq, const std::string filename, const std::vector<std::string> outputs)
 {
+    delete dump;
+    dump = nullptr;
     dump = new Dump(this, freq, filename, outputs);
 }
-
+*/
 
 /* -----------------------------------------------------
    Specify thermo output
 -------------------------------------------------------- */
-
+/*
 void Box::set_thermo(const int freq, const std::string filename, const std::vector<std::string> outputs)
 {
+    delete thermo;
+    thermo = nullptr;
     thermo = new Thermo(this, freq, filename, outputs);
 }
-
+*/
 
 /* -------------------------------------------------------------
    Build neighbor list of particle 'i' with maximum neighbor
@@ -188,6 +193,7 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 
 void Box::write_nsystemsize(std::string filename)
 {
+    /*
     int maxsize;
     MPI_Barrier(MPI_COMM_WORLD);
     int size = nsystemsize.size();
@@ -203,14 +209,18 @@ void Box::write_nsystemsize(std::string filename)
         write_array(nsystemsizetot, maxsize, filename, "\n");
     }
     delete[] nsystemsizetot;
+    nsystemsizetot = nullptr;
+    */
 }
 
-/*
+
 Box::~Box()
 {
-    delete boundary;
-    delete dump;
-    delete thermo;
-    particles.clear();
+    //delete boundary;
+    //delete dump;
+    //delete thermo;
+    //boundary = nullptr;
+    //dump = nullptr;
+    //thermo = nullptr;
 }
-*/
+

@@ -20,21 +20,21 @@ public:
     //void add_particles(std::vector<class Particle>);
     //void add_particles(std::vector<std::shared_ptr<class Particle> >);
 
-    void snapshot(std::string);
-    void set_dump(int, std::string, std::vector<std::string>);
-    void set_thermo(int, std::string, std::vector<std::string>);
+    //void snapshot(std::string);
+    //void set_dump(int, std::string, std::vector<std::string>);
+    //void set_thermo(int, std::string, std::vector<std::string>);
     std::vector<int> build_neigh_list(int, double);
     void write_nsystemsize(std::string);
-    //~Box();
+    ~Box();
 
     // variables
-    class Dump* dump = nullptr;
-    class Thermo* thermo = nullptr;
+    //class Dump* dump = nullptr;
+    //class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
     //class Velocity* velocity = nullptr;
     class System* system = nullptr;
 
-    int npar, step, ntype, nmove;
+    unsigned int npar, step, ntype, nmove;
     double poteng, time;
 
     std::vector<int> nsystemsize;

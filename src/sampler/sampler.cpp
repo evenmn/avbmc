@@ -30,7 +30,7 @@ Sampler::Sampler(System* system_in)
      2. Check if acceptance criterion is satisfied
 --------------------------------------------------------- */
 
-bool Sampler::accept_move(std::shared_ptr<Moves> move, double temp, double chempot)
+bool Sampler::accept_move(Moves* move, double temp, double chempot)
 {
     // check boundary condition
     bool accept_boundary = true;
@@ -61,6 +61,7 @@ void Sampler::sample(int nmoves)
         move_idx = rng->choice(system->moves_prob);
         std::cout << "sampler2" << std::endl;
         auto move = system->moves[move_idx];
+        std::cout << "Move label: " << move->label << std::endl;
         std::cout << "sampler3" << std::endl;
         move->ndrawn ++;
         std::cout << "sampler4" << std::endl;

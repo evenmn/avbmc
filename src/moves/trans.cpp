@@ -44,20 +44,32 @@ Trans::Trans(System* system_in, std::shared_ptr<Box> box_in, const double dx_in)
 
 void Trans::perform_move()
 {
+
+    std::cout << "trans perform_move1" << std::endl;
     i = rng->next_int(box->npar); // particle to move
+    std::cout << "trans perform_move2" << std::endl;
     double u0 = system->forcefield->comp_energy_par(box->particles, i);
+    std::cout << "trans perform_move3" << std::endl;
 
     // move particle i
     std::valarray<double> dr(system->ndim);
+    std::cout << "trans perform_move4" << std::endl;
     for(double &d : dr)
         d = 2 * (rng->next_double() - 0.5);
+    std::cout << "trans perform_move5" << std::endl;
     pos_old = box->particles[i].r;
+    std::cout << "trans perform_move6" << std::endl;
     box->particles[i].r += dx * dr;
+    std::cout << "trans perform_move7" << std::endl;
+    for (Particle 
 
     // compute new energy contribution from particle i
     double u1 = system->forcefield->comp_energy_par(box->particles, i);
+    std::cout << "trans perform_move8" << std::endl;
     du = u1 - u0;
+    std::cout << "trans perform_move9" << std::endl;
     box->poteng += du;
+    std::cout << "trans perform_move10" << std::endl;
 }
 
 
@@ -91,9 +103,11 @@ void Trans::reset()
 
 void Trans::update_nsystemsize()
 {
-    if (box->npar - 1 > box->nsystemsize.size()) {
+    if (box->npar + 1 > box->nsystemsize.size()) {
         box->nsystemsize.resize(box->npar + 1);
     }
+    std::cout << "box->npar trans: " << box->npar << std::endl;
+    std::cout << "box->nsystemsize.size(): " << box->nsystemsize.size() << std::endl;
     box->nsystemsize[box->npar] ++;
 }
 

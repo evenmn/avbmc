@@ -4,8 +4,10 @@
 
 #include "box.h"
 #include "system.h"
+#include "rng/mersennetwister.h"
 #include "boundary/stillinger.h"
 #include "forcefield/lennardjones.h"
+#include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
 #include "moves/moves.h"
 #include "moves/trans.h"
@@ -21,26 +23,33 @@ int main()
     System system("simulation");
     system.set_temp(0.7);
     system.set_chempot(-1.3);
-    system.set_forcefield(new LennardJones(&system, "params.lj"));
+    LennardJones forcefield(&system, "params.lj");
+    system.set_forcefield(&forcefield);
+    //MersenneTwister rng();
+    system.set_rng(new MersenneTwister());
 
     // initialize umbrella sampling with square function
-    auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
-    system.set_sampler(new Umbrella(&system, f));
+    //auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
+    //Umbrella sampler(&system, f);
+    Metropolis sampler(&system);
+    system.set_sampler(&sampler);
 
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
     Box box(&system);
-    box.set_boundary(new Stillinger(&box, 1.5));
+    Stillinger boundary(&box, 1.5);
+    box.set_boundary(&boundary);
     box.add_particle("Ar", {0, 0, 0});
-    box.add_particle("Ar", {1.5, 0, 0});
-    box.add_particle("Ar", {0, 1.5, 0});
-    box.add_particle("Ar", {1.5, 1.5, 0});
-    system.add_box(&box);
+    //box.add_particle("Ar", {1.5, 0, 0});
+    //box.add_particle("Ar", {0, 1.5, 0});
+    //box.add_particle("Ar", {1.5, 1.5, 0});
+    system.add_box(box);
 
     // initialize translation and AVBMC moves
-    system.add_move(std::make_shared<Trans>(&system, &box, 0.01), 0.94);
-    //system.add_move(std::make_shared<Trans>(&system, &box, 0.01), 0.06);
-    system.add_move(std::make_shared<AVBMCIn>(&system, &box, "Ar", 0.9, 1.5), 0.06);
+    Trans move1(&system, &box, 0.01);
+    AVBMCIn move2(&system, &box, "Ar", 0.9, 1.5);
+    system.add_move(&move1, 0.94);
+    system.add_move(&move2, 0.06);
     //system.add_move(std::make_shared<AVBMCOut>(&system, box, 1.5), 0.5);
 
     // set sampling outputs
@@ -49,9 +58,9 @@ int main()
 
     // run Monte Carlo simulation
     //box->snapshot("initial.xyz");
-    //system.run_mc(100000, 1);
+    system.run_mc(100000, 1);
     //box.add_particle("Ar", {3.0, 0.0, 0.0});
-    system.run_mc(10000, 1);
+    //system.run_mc(10000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

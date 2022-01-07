@@ -6,7 +6,7 @@
 #include <chrono>
 #include <memory>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "system.h"
 #include "box.h"
@@ -37,12 +37,14 @@ System::System(std::string working_dir_in)
     ndim = 3;
 
     // set default objects
-    rng = new MersenneTwister();
+    //MersenneTwister rngrng();
+    //rng = &rngrng;
     //integrator = new VelocityVerlet(this);
-    forcefield = new LennardJones(this);
-    sampler = new Metropolis(this);
-    molecule_types = new MoleculeTypes(this);
-
+    //forcefield = new LennardJones(this);
+    //sampler = new Metropolis(this);
+    MoleculeTypes moleculetypes(this);
+    molecule_types = &moleculetypes;
+    /*
     // initialize MPI
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
@@ -51,6 +53,7 @@ System::System(std::string working_dir_in)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    */
 }
 
 
@@ -133,7 +136,7 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
    The probabilities have to add up to 1.
 ----------------------------------------------------- */
 /*
-void System::add_move(Moves& move, double prob)
+void System::add_move(Moves move, double prob)
 {
     nmove ++;
     moves.emplace_back(move);
@@ -141,15 +144,15 @@ void System::add_move(Moves& move, double prob)
 }
 */
 /*
-void System::add_move(Moves* move, double prob)
+void System::add_move(Moves& move, double prob)
 {
     nmove ++;
-    moves.emplace_back(std::shared_ptr<Moves>(move));
+    moves.emplace_back((*move));
     moves_prob.push_back(prob);
 }
 */
 
-void System::add_move(std::shared_ptr<Moves> move, double prob)
+void System::add_move(Moves* move, double prob)
 {
     nmove ++;
     moves.emplace_back(move);
@@ -185,25 +188,25 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
 /* -----------------------------------------------------
    Add box 'box_in' to system
 -------------------------------------------------------- */
-/*
-void System::add_box(Box* box_in)
-{
-    boxes.emplace_back(std::shared_ptr<Box>(box_in));
-    nbox ++;
-}
 
+void System::add_box(Box box_in)
+{
+    nbox ++;
+    boxes.push_back(box_in);
+}
+/*
 void System::add_box(std::shared_ptr<Box> box_in)
 {
     boxes.emplace_back(box_in);
     nbox ++;
 }
-*/
+
 void System::add_box(Box* box_in)
 {
     boxes.emplace_back(box_in);
     nbox ++;
 }
-
+*/
 
 /* -----------------------------------------------------
    The particles in the system have to be a subset of 
@@ -287,15 +290,16 @@ void System::init_simulation()
 
     // go through all particles in all boxes and assert that    
     // all element labels are covered by parameter file
-    for (Box* box : boxes){
-        for (Particle& particle : box->particles){
+    for (Box& box : boxes){
+        for (Particle& particle : box.particles){
             try {
                 // will throw exception if label is not known
                 particle.type = label2type.at(particle.label);
+                std::cout << "PARTICLE TYPE: " << particle.type << std::endl;
             }
             catch (std::out_of_range) {
                 std::cout << "Particle label '" + particle.label + "' is not covered by parameter file" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 143);
+                //MPI_Abort(MPI_COMM_WORLD, 143);
             }
             /*
             bool particle_covered = false;
@@ -308,6 +312,11 @@ void System::init_simulation()
             //std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
             assert (particle_covered);
             */
+        }
+    }
+    for (Box box : boxes) {
+        for (Particle particle : box.particles) {
+            std::cout << "PARTICLE TYPES 2: " << particle.type << std::endl;
         }
     }
     // Sort forcefield parameters according to particle types
@@ -382,10 +391,11 @@ void System::print_info()
     std::cout << "Number of boxes:          " << nbox << std::endl;
     for(int i=0; i < nbox; i++){
         std::cout << "  Box " << i+1 << ":" << std::endl;
-        std::cout << "    Number of atoms:   " << boxes[i]->npar << std::endl;
-        std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
+        std::cout << "    Number of atoms:   " << boxes[i].npar << std::endl;
+        std::cout << "    Boundary:          " << boxes[i].boundary->label << std::endl;
     }
     std::cout << std::endl;
+    /*
     std::cout << "Number of molecule types: " << molecule_types->ntype << std::endl;
     for(int i=0; i < molecule_types->ntype; i++){
         std::cout << "  Molecule type " << i+1 << ":" << std::endl;
@@ -397,6 +407,7 @@ void System::print_info()
         std::cout << "    Critical distance: " << molecule_types->rcs[i] << std::endl;
         std::cout << "    Probability:       " << molecule_types->molecule_probs[i] << std::endl;
     }
+    */
     std::cout << std::endl;
 }
 
@@ -458,13 +469,13 @@ void Box::run_md(const int nsteps)
 void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
-    init_molecules();
-    for(Box* box : boxes){
-        box->nsystemsize.resize(box->npar + 1);
-        box->nsystemsize[box->npar] ++;
+    //init_molecules();
+    for(Box& box : boxes){
+        box.nsystemsize.resize(box.npar + 1);
+        box.nsystemsize[box.npar] ++;
     }
 
-    for (auto move : moves){
+    for (Moves* move : moves){
         move->ndrawn = 0;
         move->naccept = 0;
     }
@@ -479,10 +490,11 @@ void System::run_mc(const int nsteps, const int nmoves)
     }
     //thermo->print_header();
 
-    int maxiter = get_maxiter(nsteps);
+    int maxiter = nsteps; //get_maxiter(nsteps);
+    std::cout << "After get_maxiter" << std::endl;
 
     // run Monte Carlo simulation
-    double start = MPI_Wtime();
+    //double start = MPI_Wtime();
     tqdm bar;
     //bar.set_theme_circle();
     while(step < maxiter){
@@ -495,6 +507,7 @@ void System::run_mc(const int nsteps, const int nmoves)
         sampler->sample(nmoves);
         step ++;
     }
+    /*
     MPI_Barrier(MPI_COMM_WORLD);
     double end = MPI_Wtime();
 
@@ -506,12 +519,12 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << "=================================================================" << std::endl;
         std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
     }
-    for(auto move : moves){
+    for(Moves move : moves){
         int ndrawntot, naccepttot;
-        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move.ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move.naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         if (rank == 0) {
-            std::cout << move->label << "\t "
+            std::cout << move.label << "\t "
                       << ndrawntot << "\t\t "
                       << naccepttot << "\t\t "
                       << (double) naccepttot / ndrawntot
@@ -521,6 +534,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     if (rank == 0) {
         std::cout << "=================================================================" << std::endl;
     }
+    */
 }
 
 
@@ -529,8 +543,13 @@ void System::run_mc(const int nsteps, const int nmoves)
 ------------------------------------------------------------ */
 System::~System()
 {
-    MPI_Finalize();
-    for (Box* box : boxes){
-        delete box;
-    }
+    //delete rng;
+    //delete forcefield;
+    //delete sampler;
+    //delete molecule_types;
+    //rng = nullptr;
+    //forcefield = nullptr;
+    //sampler = nullptr;
+    //molecule_types = nullptr;
+    //MPI_Finalize();
 }

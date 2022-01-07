@@ -75,20 +75,20 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
    distance squared 'rsq'
 ---------------------------------------------------------------- */
 
-std::vector<int> MoleculeTypes::build_neigh_list(std::vector<std::shared_ptr<Particle> > particles, const int i, const double rsq)
+std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
 {
     int npar = particles.size();
     double rijsq;
-    std::valarray<double> ri = particles[i]->r;
+    std::valarray<double> ri = particles[i].r;
     std::vector<int> neigh_list;
     for(int j=0; j<i; j++){
-        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
     for(int j=i+1; j<npar; j++){
-        rijsq = std::pow(particles[j]->r - ri, 2).sum();
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
@@ -101,10 +101,10 @@ std::vector<int> MoleculeTypes::build_neigh_list(std::vector<std::shared_ptr<Par
    Check if particles match molecule type recursively.
 ------------------------------------------------------------------ */
 
-void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count,
-                                    std::vector<int> &elm_idx, std::vector<std::shared_ptr<Particle> > particles){
+void MoleculeTypes::check_neighbors(const int k, const int i, long unsigned int elm_count,
+                                    std::vector<int> &elm_idx, std::vector<Particle> particles){
     if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
-        if(particles[k]->type == molecule_types[i][elm_count]){  // check if element is matching
+        if(particles[k].type == molecule_types[i][elm_count]){  // check if element is matching
             elm_idx.push_back(k);  // add atom to molecule atom idxs
             elm_count ++;
             std::vector<int> neigh_list = build_neigh_list(particles, k, rcs[i]);
@@ -121,12 +121,11 @@ void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count,
    atom among the elements and checking the neighbor list
 ------------------------------------------------------------------ */
 
-Molecule* MoleculeTypes::construct_molecule(std::vector<std::shared_ptr<Particle> > particles,
+Molecule* MoleculeTypes::construct_molecule(std::vector<Particle> particles,
                                             const int i, bool &constructed)
 {
-    int count;
     std::vector<int> elm_idx;
-    count = 0;
+    long unsigned int count = 0;
     while (count < particles.size())
     {
         elm_idx.clear();

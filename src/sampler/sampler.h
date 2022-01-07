@@ -25,7 +25,7 @@ public:
 
 private:
     // declare private functions
-    bool accept_move(std::shared_ptr<class Moves>, double, double);
+    bool accept_move(class Moves *, double, double);
 
 protected:
     class System* system = nullptr;

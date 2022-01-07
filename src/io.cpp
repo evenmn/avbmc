@@ -28,11 +28,11 @@ std::vector<std::string> split(const std::string s)
    frame into vector of particle objects 
 -------------------------------------------------------- */
 
-std::vector<Particle *> read_xyz(const std::string filename)
+std::vector<Particle> read_xyz(const std::string filename)
 {
     int npar = 0;
     int ndim = 0;
-    std::vector<Particle *> particles;
+    std::vector<Particle> particles;
     std::ifstream f(filename);
     if(f.is_open()){
         std::string line;
@@ -59,7 +59,7 @@ std::vector<Particle *> read_xyz(const std::string filename)
                 for(int i=0; i<ndim; i++){
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
-                Particle *particle = new Particle(splitted[0], tmp_r);
+                Particle particle(splitted[0], tmp_r);
                 particles.push_back(particle);
             }
             line_num ++;
