@@ -1,20 +1,37 @@
 #include <iostream>
 #include <string>
+#include <memory>
 
 #include "avbmcmol.h"
 #include "../box.h"
+#include "../system.h"
+#include "../rng/rng.h"
 
 
 /* -----------------------------------------------------------
    AVBMC constructor, which performs 50% insertation moves and
    50% deletion moves. 
 -------------------------------------------------------------- */
-
-AVBMCMol::AVBMCMol(Box* box_in, const double r_below_in, const double r_above_in)
-    : AVBMCInMol(box_in, r_below_in, r_above_in), AVBMCOutMol(box_in, r_above_in), Moves(box_in) 
+/*
+AVBMCMol::AVBMCMol(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCInMol(system_in, box_in, r_below_in, r_above_in), AVBMCOutMol(system_in, box_in, r_above_in)
 {
+    box = box_in;
+    boxes.push_back(box_in);
     r_below = r_below_in;
     r_above = r_above_in;
+    label = "AVBMCMol";
+}
+*/
+
+AVBMCMol::AVBMCMol(System* system_in, std::shared_ptr<Box> box_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCInMol(system_in, box_in, r_below_in, r_above_in), AVBMCOutMol(system_in, box_in, r_above_in)
+{
+    box = box_in;
+    boxes.push_back(box_in);
+    r_below = r_below_in;
+    r_above = r_above_in;
+    label = "AVBMCMol";
 }
 
 
@@ -24,11 +41,11 @@ AVBMCMol::AVBMCMol(Box* box_in, const double r_below_in, const double r_above_in
 
 void AVBMCMol::perform_move()
 {
-    if(AVBMCInMol::box->npar < 2){
+    if(box->npar < 2){
         move_in = true;
     }
     else{
-        move_in = AVBMCInMol::box->rng->next_int(2);
+        move_in = rng->next_int(2);
     }
     if(move_in){
         AVBMCInMol::perform_move();

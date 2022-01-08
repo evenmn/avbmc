@@ -1,7 +1,10 @@
 #include <iostream>
+#include <memory>
 
 #include "avbmc.h"
 #include "../box.h"
+#include "../system.h"
+#include "../rng/rng.h"
 
 
 /* -----------------------------------------------------------
@@ -9,13 +12,29 @@
    50% deletion moves. 
 -------------------------------------------------------------- */
 
-AVBMC::AVBMC(Box* box_in, const double r_below_in, const double r_above_in)
-    : AVBMCIn(box_in, r_below_in, r_above_in), AVBMCOut(box_in, r_above_in), Moves(box_in) 
+
+AVBMC::AVBMC(System* system_in, std::shared_ptr<Box> box_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCIn(system_in, box_in, r_below_in, r_above_in),
+      AVBMCOut(system_in, box_in, r_above_in)
 {
+    box = box_in;
+    boxes.push_back(box);
     r_below = r_below_in;
     r_above = r_above_in;
+    label = "AVBMC";
 }
-
+/*
+AVBMC::AVBMC(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCIn(system_in, box_in, r_below_in, r_above_in),
+      AVBMCOut(system_in, box_in, r_above_in)
+{
+    box = box_in;
+    boxes.push_back(box);
+    r_below = r_below_in;
+    r_above = r_above_in;
+    label = "AVBMC";
+}
+*/
 
 /* -----------------------------------------------------------
    Pick in or out moves with the same probability
@@ -23,11 +42,11 @@ AVBMC::AVBMC(Box* box_in, const double r_below_in, const double r_above_in)
 
 void AVBMC::perform_move()
 {
-    if(AVBMCIn::box->npar < 2){
+    if(box->npar < 2){
         move_in = true;
     }
     else{
-        move_in = AVBMCIn::box->rng->next_int(2);
+        move_in = rng->next_int(2);
     }
     if(move_in){
         AVBMCIn::perform_move();

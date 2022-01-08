@@ -12,8 +12,8 @@ class Thermo
 {
 public:
     Thermo(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in);
-    void print_line();
     void print_header();
+    void print_line(int);
     ~Thermo();
 
 private:

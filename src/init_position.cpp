@@ -1,35 +1,36 @@
+#include <iostream>
+#include <vector>
+#include <valarray>
+#include <string>
+
 #include "init_position.h"
 #include "particle.h"
 
 
+/* -----------------------------------------------------------
+   Creating a face-centered cube of n^dim unit cells with
+   4 particles in each unit cell. The number of particles
+   then becomes (dim+1) * n ^ dim. Each unit cell has a
+   length d. L=nd
+   Parameters
+   ----------
+   cells : int
+       number of unit cells in each dimension
+   lenbulk : float
+       length of box
+   dim : int
+       number of dimensions
+--------------------------------------------------------------- */
+
 std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
 {
-    /* Creating a face-centered cube of n^dim unit cells with
-     * 4 particles in each unit cell. The number of particles
-     * then becomes (dim+1) * n ^ dim. Each unit cell has a
-     * length d. L=nd
-     * Parameters
-     * ----------
-     * cells : int
-     *     number of unit cells in each dimension
-     * lenbulk : float
-     *     length of box
-     * dim : int
-     *     number of dimensions
-     */
-
     // initialize position vector
-    int npar = (ndim+1) * pow(ncells, ndim);
     std::vector<std::valarray<double> > positions;
 
-    int counter = 0;
     if(ndim == 1){
         for(int i=0; i<ncells; i++){
             positions.push_back({.0+i});
             positions.push_back({.5+i});
-            //particles[counter+0]->r = {.0+i};
-            //particles[counter+1]->r = {.5+i};
-            //counter += 2;
         }
     }
     else if(ndim == 2){
@@ -38,10 +39,6 @@ std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
                 positions.push_back({.0+i, .0+j});
                 positions.push_back({.0+i, .5+j});
                 positions.push_back({.5+i, .0+j});
-                //particles[counter+0]->r = {.0+i, .0+j};
-                //particles[counter+1]->r = {.0+i, .5+j};
-                //particles[counter+2]->r = {.5+i, .0+j};
-                //counter += 4;
             }
         }
     }
@@ -53,11 +50,6 @@ std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
                     positions.push_back({.0+i, .5+j, .5+k});
                     positions.push_back({.5+i, .0+j, .5+k});
                     positions.push_back({.5+i, .5+j, .0+k});
-                    //particles[counter+0]->r = {.0+i, .0+j, .0+k};
-                    //particles[counter+1]->r = {.0+i, .5+j, .5+k};
-                    //particles[counter+2]->r = {.5+i, .0+j, .5+k};
-                    //particles[counter+3]->r = {.5+i, .5+j, .0+k};
-                    //counter += 4;
                 }
             }
         }

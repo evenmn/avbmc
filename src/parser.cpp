@@ -7,6 +7,8 @@
 #include <iterator>
 #include <vector>
 
+//#include <mpi.h>
+
 #include "parser.h"
 #include "io.h"
 #include "box.h"
@@ -694,6 +696,9 @@ void write(Box& box, const std::vector<std::string> splitted, const int argc)
     assert(argc > 2);
     std::string keyword = splitted[1];
     if (keyword == "nsystemsize") {
+        //MPI_Barrier(MPI_COMM_WORLD);
+        //MPI_Reduce(
+        //MPI_Gather(
         std::string filename = splitted[2];
         std::ofstream f(filename);
         for (int i=0; i < box.sampler->nsystemsize.size(); i++){

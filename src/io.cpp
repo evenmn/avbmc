@@ -28,10 +28,11 @@ std::vector<std::string> split(const std::string s)
    frame into vector of particle objects 
 -------------------------------------------------------- */
 
-std::vector<Particle *> read_xyz(const std::string filename)
+std::vector<Particle> read_xyz(const std::string filename)
 {
-    int npar, ndim;
-    std::vector<Particle *> particles;
+    int npar = 0;
+    int ndim = 0;
+    std::vector<Particle> particles;
     std::ifstream f(filename);
     if(f.is_open()){
         std::string line;
@@ -58,7 +59,7 @@ std::vector<Particle *> read_xyz(const std::string filename)
                 for(int i=0; i<ndim; i++){
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
-                Particle *particle = new Particle(splitted[0], tmp_r);
+                Particle particle(splitted[0], tmp_r);
                 particles.push_back(particle);
             }
             line_num ++;
@@ -98,4 +99,42 @@ void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol,
         }
         f << std::endl;
     }
+}
+
+
+/* -------------------------------------------------------------------
+   Write vector 'vec' to file 'filename' with instances separated
+   by 'delim'.
+---------------------------------------------------------------------- */
+
+void write_vector(std::vector<int> vec, std::string filename, std::string delim)
+{
+    std::ofstream f(filename);
+    for (int element : vec)
+    {
+        f << element << delim;
+    }
+    f.close();
+}
+
+
+void write_vector(std::vector<double> vec, std::string filename, std::string delim)
+{
+    std::ofstream f(filename);
+    for (double element : vec)
+    {
+        f << element << delim;
+    }
+    f.close();
+}
+
+
+void write_array(int* arr, int length, std::string filename, std::string delim)
+{
+    std::ofstream f(filename);
+    for (int i=0; i < length; i++)
+    {
+        f << arr[i] << delim;
+    }
+    f.close();
 }

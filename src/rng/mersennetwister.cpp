@@ -13,7 +13,9 @@
 
 MersenneTwister::MersenneTwister()
     : RandomNumberGenerator(), generator(seed())
-{}
+{
+    label = "Mersenne-Twister";
+}
 
 
 /* ---------------------------------------------------------
@@ -69,7 +71,7 @@ int MersenneTwister::choice(std::vector<double> probabilities)
 
     double r = next_double();
     double p = 0.0;
-    for (int i=0; i<probabilities.size(); i++) {
+    for (long unsigned int i=0; i<probabilities.size(); i++) {
         p += probabilities[i];
         if (r<=p) return i;
     }

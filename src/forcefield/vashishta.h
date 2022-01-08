@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <valarray>
+#include <memory>
 
 #include "forcefield.h"
 
@@ -9,8 +10,8 @@
 class Vashishta : public ForceField
 {
 public:
-    Vashishta(class Box* box_in, std::string params);
-    void read_param_file(std::string params);
+    Vashishta(class System *, std::string);
+    void read_param_file(std::string);
     void sort_params();
     //double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy);
     //double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy);
@@ -20,8 +21,10 @@ public:
     double comp_twobody_par(int, int, double);
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double);
 
-    double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
-    double comp_energy_par(std::vector<class Particle *>, int);
+    //double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
+    //double comp_energy_par(std::vector<class Particle *>, int);
+    double comp_energy_mol(std::vector<class Particle>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle>, int);
 
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();

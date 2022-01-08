@@ -8,7 +8,7 @@
 class Umbrella : public Sampler
 {
 public:
-    Umbrella(class Box*, std::function<double (int)>, int = 100);
+    Umbrella(class System*, std::function<double (int)>, int = 100);
     double w(int);
 
 private:

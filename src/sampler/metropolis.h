@@ -5,6 +5,6 @@
 class Metropolis : public Sampler
 {
 public:
-    Metropolis(class Box*);
+    Metropolis(class System *);
     double w(int);
 };

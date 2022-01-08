@@ -5,7 +5,7 @@
 #include <cassert>
 
 #include "lennardjones.h"
-#include "../box.h"
+#include "../system.h"
 #include "../particle.h"
 #include "../molecule.h"
 
@@ -15,8 +15,8 @@
    file is not given. It only works for pure Argon
 -------------------------------------------------------- */
 
-LennardJones::LennardJones(Box* box_in)
-    : ForceField(box_in)
+LennardJones::LennardJones(System* system_in)
+    : ForceField(system_in)
 {
     label1_vec = {"Ar"};
     label2_vec = {"Ar"};
@@ -24,6 +24,8 @@ LennardJones::LennardJones(Box* box_in)
     epsilon_vec = {1.};
     rc_vec = {5.};
     nline = 1;
+    label = "Lennard-Jones";
+    paramfile = "";
 }
 
 
@@ -32,10 +34,12 @@ LennardJones::LennardJones(Box* box_in)
    file 'params' is given.
 --------------------------------------------------------- */
 
-LennardJones::LennardJones(Box* box_in, const std::string params)
-    : ForceField(box_in)
+LennardJones::LennardJones(System* system_in, const std::string params)
+    : ForceField(system_in)
 {
     read_param_file(params);
+    label = "Lennard-Jones";
+    paramfile = params;
 }
 
 
@@ -71,8 +75,8 @@ void LennardJones::read_param_file(const std::string params)
             nline ++;
         }
         else{
-            std::cout << "Warning: Corrupt line in parameter file" << std::endl;
-            std::cout << "Line: " + line << std::endl;
+            std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
+            std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
     }
 }
@@ -81,44 +85,35 @@ void LennardJones::read_param_file(const std::string params)
 /* ------------------------------------------------------
    Parameters have to be sorted with respect to
    the particle types, and are stored in matrices.
+
+   TODO: Since the possible particle labels (chemical
+   elements) are defined by the parameter file, this 
+   function can be called by the constructor.
 --------------------------------------------------------- */
 
 void LennardJones::sort_params()
 {
     // link list of labels to list of type indices
     std::vector<int> types1_vec;
-    std::vector<int> types2_vec;
     for(std::string label : label1_vec){
-        bool assigned = false;
-        for(int j=0; j<box->ntype; j++){
-            if(label == box->unique_labels[j]){
-                types1_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
+        types1_vec.push_back(system->label2type.at(label));
     }
+    std::vector<int> types2_vec;
+    
     for(std::string label : label2_vec){
-        bool assigned = false;
-        for(int j=0; j<box->ntype; j++){
-            if(label == box->unique_labels[j]){
-                types2_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
+        types2_vec.push_back(system->label2type.at(label));
     }
 
     // allocate memory for matrices
-    sigma_mat = new double*[box->ntype];
-    epsilon_mat = new double*[box->ntype];
-    rc_sqrd_mat = new double*[box->ntype];
-    shift_mat = new double*[box->ntype];
-    for(int i=0; i<box->ntype; i++){
-        sigma_mat[i] = new double[box->ntype];
-        epsilon_mat[i] = new double[box->ntype];
-        rc_sqrd_mat[i] = new double[box->ntype];
-        shift_mat[i] = new double[box->ntype];
+    sigma_mat = new double*[system->ntype];
+    epsilon_mat = new double*[system->ntype];
+    rc_sqrd_mat = new double*[system->ntype];
+    shift_mat = new double*[system->ntype];
+    for(int i=0; i<system->ntype; i++){
+        sigma_mat[i] = new double[system->ntype];
+        epsilon_mat[i] = new double[system->ntype];
+        rc_sqrd_mat[i] = new double[system->ntype];
+        shift_mat[i] = new double[system->ntype];
     }
     // fill up matrices with parameters
     int type1, type2;
@@ -278,7 +273,8 @@ double LennardJones::comp_twobody_par(const int typei, const int typej, const st
    Compute energy contribution from a molecule
 --------------------------------------------------------- */
 
-double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
+double LennardJones::comp_energy_mol(const std::vector<Particle> particles,
+                                     Molecule* molecule)
 {
     double energy = 0.;
     for(int i : molecule->atoms_idx){
@@ -292,30 +288,31 @@ double LennardJones::comp_energy_mol(const std::vector<Particle *> particles, Mo
    Compute energy contribution from a particle 'i'
 ---------------------------------------------------------- */
 
-double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
+double LennardJones::comp_energy_par(std::vector<Particle> particles, const int i)
 {
     std::valarray<double> force;
     return (comp_energy_par(particles, i, force, false));
 }
 
 
-double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i,
+double LennardJones::comp_energy_par(const std::vector<Particle> particles, const int i,
                                      std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int typei = particles[i]->type;
+    int npar = particles.size();
+    int typei = particles[i].type;
     std::valarray<double> delij;
-    force.resize(box->ndim, 0.);
+    force.resize(system->ndim, 0.);
 
     double energy = 0.;
     for(int j=0; j<i; j++){
-        int typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
+        int typej = particles[j].type;
+        delij = particles[j].r - particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
-    for(int j=i+1; j<box->npar; j++){
-        int typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
+    for(int j=i+1; j<npar; j++){
+        int typej = particles[j].type;
+        delij = particles[j].r - particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
     force *= 24;
@@ -470,7 +467,7 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
 
 LennardJones::~LennardJones()
 {
-    for(int i = 0; i < box->ntype; i++){
+    for (int i = 0; i < system->ntype; i++) {
         delete[] sigma_mat[i];
         delete[] epsilon_mat[i];
         delete[] rc_sqrd_mat[i];
@@ -480,5 +477,9 @@ LennardJones::~LennardJones()
     delete[] epsilon_mat;
     delete[] rc_sqrd_mat;
     delete[] shift_mat;
+    //sigma_mat = nullptr;
+    //epsilon_mat = nullptr;
+    //rc_sqrd_mat = nullptr;
+    //shift_mat = nullptr;
 }
 

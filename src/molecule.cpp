@@ -3,21 +3,21 @@
 #include <string>
 
 #include "box.h"
+#include "system.h"
 #include "molecule.h"
 #include "particle.h"
+#include "rng/rng.h"
 
 
 /* ---------------------------------------------------------
    Construct molecule, given atom indices 'atoms_in'. The
    indices refer to particles in the official particle list,
-   box->particles. Second argument is center (of mass) atom,
-   which is 0 by default (and should probably always be 0).
+   box->particles.
 ------------------------------------------------------------ */
 
-Molecule::Molecule(std::vector<int> atoms_in, const int com_atom_in)
+Molecule::Molecule(std::vector<int> atoms_in)
 {
     atoms_idx = atoms_in;
-    com_atom = com_atom_in;
     natom = atoms_idx.size();
 }
 
@@ -28,9 +28,9 @@ Molecule::Molecule(std::vector<int> atoms_in, const int com_atom_in)
    molecules. 
 ------------------------------------------------------------ */
 
-MoleculeTypes::MoleculeTypes(Box* box_in)
+MoleculeTypes::MoleculeTypes(System* system_in)
 {
-    box = box_in;
+    system = system_in;
     configured = false;
     ntype = 0;
 }
@@ -56,12 +56,11 @@ MoleculeTypes::MoleculeTypes(Box* box_in)
          molecule to be inserted by AVBMC insertation moves
 ------------------------------------------------------------ */
 
-void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const double rc, const int com_atom,
+void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const double rc,
                                       const double molecule_prob, std::vector<std::valarray<double> > default_mol)
 {
     molecule_elements.push_back(elements);
     rcs.push_back(rc);
-    coms.push_back(com_atom);
     molecule_probs.push_back(molecule_prob);
     default_mols.push_back(default_mol);
     configured = true;
@@ -69,18 +68,46 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
 }
 
 
+/* -------------------------------------------------------------
+   Build neighbor list of particle 'i' with maximum neighbor
+   distance squared 'rsq'
+---------------------------------------------------------------- */
+
+std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
+{
+    unsigned int npar = particles.size();
+    double rijsq;
+    std::valarray<double> ri = particles[i].r;
+    std::vector<int> neigh_list;
+    for(unsigned int j=0; j<i; j++){
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    for(unsigned int j=i+1; j<npar; j++){
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
+}
+
+
 /* ---------------------------------------------------------------
    Check if particles match molecule type recursively.
 ------------------------------------------------------------------ */
 
-void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count, std::vector<int> &elm_idx){
+void MoleculeTypes::check_neighbors(const int k, const int i, unsigned int elm_count,
+                                    std::vector<int> &elm_idx, std::vector<Particle> particles){
     if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
-        if(box->particles[k]->type == molecule_types[i][elm_count]){  // check if element is matching
+        if(particles[k].type == molecule_types[i][elm_count]){  // check if element is matching
             elm_idx.push_back(k);  // add atom to molecule atom idxs
             elm_count ++;
-            std::vector<int> neigh_list = box->forcefield->build_neigh_list(k, rcs[i]);
+            std::vector<int> neigh_list = build_neigh_list(particles, k, rcs[i]);
             for(int neigh : neigh_list){
-                check_neighbors(neigh, i, elm_count, elm_idx);
+                check_neighbors(neigh, i, elm_count, elm_idx, particles);
             }
         }
     }
@@ -92,34 +119,28 @@ void MoleculeTypes::check_neighbors(const int k, const int i, int elm_count, std
    atom among the elements and checking the neighbor list
 ------------------------------------------------------------------ */
 
-Molecule* MoleculeTypes::construct_molecule(const int i, const std::vector<Particle *> particles,
-                                            bool &constructed)
+Molecule* MoleculeTypes::construct_molecule(std::vector<Particle> particles,
+                                            const int i, bool &constructed)
 {
-    int npar, count;
     std::vector<int> elm_idx;
-    npar = particles.size();
-    count = 0;
-    while (count < npar)
+    long unsigned int count = 0;
+    while (count < particles.size())
     {
         elm_idx.clear();
-        int k = box->rng->next_int(npar);     // pick initial particle
-        check_neighbors(k, i, 0, elm_idx);
+        int k = system->rng->next_int(particles.size());     // pick initial particle
+        check_neighbors(k, i, 0, elm_idx, particles);
         if(elm_idx.size() == molecule_types[i].size()){
             constructed = true;
             break;
         }
         count ++;
     }
-    Molecule* molecule = nullptr; 
     if (!constructed)
     {
-        std::vector<int> atoms;
-        molecule = new Molecule(atoms, 0);
+        elm_idx.clear();
     }
-    else {
-        molecule = new Molecule(elm_idx, coms[i]);
-    }
-    return molecule;
+    Molecule molecule(elm_idx);
+    return &molecule;
 }
 
 

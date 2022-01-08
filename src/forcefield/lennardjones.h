@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <valarray>
+#include <memory>
 
 #include "forcefield.h"
 
@@ -10,9 +11,9 @@
 class LennardJones : public ForceField
 {
 public:
-    LennardJones(class Box* box_in);
-    LennardJones(class Box* box_in, std::string params);
-    void read_param_file(std::string params);
+    LennardJones(class System *);
+    LennardJones(class System *, std::string);
+    void read_param_file(std::string);
     void sort_params();
     //double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy);
     //double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy);
@@ -20,9 +21,12 @@ public:
     //double comp_force_par(const rowvec pos, rowvec& acc);
     
     double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
-    double comp_energy_par(std::vector<class Particle *>, int);
-    double comp_energy_par(std::vector<class Particle *>, int, std::valarray<double> &, bool);
+    //double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
+    //double comp_energy_par(std::vector<class Particle *>, int);
+    //double comp_energy_par(std::vector<class Particle *>, int, std::valarray<double> &, bool);
+    double comp_energy_mol(std::vector<class Particle>, class Molecule*);
+    double comp_energy_par(std::vector<class Particle>, int);
+    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
     ~LennardJones();
@@ -38,7 +42,10 @@ private:
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params
-    double **sigma_mat, **epsilon_mat, **rc_sqrd_mat, **shift_mat;
+    double **sigma_mat = nullptr;
+    double **epsilon_mat = nullptr;
+    double **rc_sqrd_mat = nullptr;
+    double **shift_mat = nullptr;
 
     std::vector<std::vector<int> > neigh_lists;
 };

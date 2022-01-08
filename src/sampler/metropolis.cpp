@@ -1,14 +1,16 @@
 #include "metropolis.h"
-#include "../box.h"
-#include "../moves/moves.h"
+#include "../system.h"
 
 
 /* ---------------------------------------
    Metropolis constructor
 ------------------------------------------ */
 
-Metropolis::Metropolis(Box* box_in)
-    : Sampler(box_in) {}
+Metropolis::Metropolis(System* system_in)
+    : Sampler(system_in) 
+{
+    label = "Metropolis";
+}
 
 
 /* ---------------------------------------
@@ -17,7 +19,7 @@ Metropolis::Metropolis(Box* box_in)
    Metropolis, this should always be zero
 ------------------------------------------ */
 
-double Metropolis::w(const int npar)
+double Metropolis::w(const int /*npar*/)
 {
     return 0.;
 }

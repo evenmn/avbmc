@@ -4,17 +4,18 @@
 #include <cmath>
 
 #include "moves.h"
-#include "../box.h"
+#include "../system.h"
+#include "../rng/rng.h"
 
 
 /* --------------------------------------------------------
    Moves base class constructor
 ----------------------------------------------------------- */
 
-Moves::Moves(Box* box_in)
+Moves::Moves(System* system_in)
 {
-    box = box_in;
-    rng = box->rng;
+    system = system_in;
+    rng = system->rng;
 }
 
 
@@ -27,11 +28,11 @@ Moves::Moves(Box* box_in)
 std::vector<std::valarray<double> > Moves::rotate_molecule(std::vector<std::valarray<double> > positions_in)
 {
     std::vector<std::valarray<double> > positions_out;
-    if(box->ndim == 1){
+    if(system->ndim == 1){
         return positions_in;
     }
-    else if(box->ndim == 2){
-        double angle = 2 * pi * box->rng->next_double();
+    else if(system->ndim == 2){
+        double angle = 2 * pi * rng->next_double();
         for(std::valarray<double> position_in : positions_in){
             std::valarray<double> position_out = {
                 position_in[0] * std::cos(angle) - position_in[1] * std::sin(angle),
@@ -42,9 +43,9 @@ std::vector<std::valarray<double> > Moves::rotate_molecule(std::vector<std::vala
         return positions_out;
     }
     else{
-        double anglex = 2 * pi * box->rng->next_double();
-        double angley = 2 * pi * box->rng->next_double();
-        double anglez = 2 * pi * box->rng->next_double();
+        double anglex = 2 * pi * rng->next_double();
+        double angley = 2 * pi * rng->next_double();
+        double anglez = 2 * pi * rng->next_double();
         for(std::valarray<double> position_in : positions_in){
             std::valarray<double> position_out = {
                 position_in[0] * (1 + std::cos(angley) + std::cos(anglez))
@@ -71,9 +72,18 @@ std::vector<std::valarray<double> > Moves::rotate_molecule(std::vector<std::vala
 double Moves::norm(std::valarray<double> array)
 {
     double normsq = 0.;
-    for (int i=0; i < array.size(); i++)
+    for (unsigned int i=0; i < array.size(); i++)
     {
         normsq += array[i] * array[i];
     }
     return normsq;
 }
+
+
+/*
+Moves::~Moves()
+{
+    delete system;
+    delete rng;
+}
+*/

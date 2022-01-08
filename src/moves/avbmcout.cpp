@@ -4,9 +4,13 @@
 
 #include "avbmcout.h"
 #include "../box.h"
+#include "../system.h"
 #include "../particle.h"
 #include "../molecule.h"
-
+#include "../rng/rng.h"
+#include "../sampler/sampler.h"
+#include "../boundary/boundary.h"
+#include "../forcefield/forcefield.h"
 
 
 /* -----------------------------------------------------
@@ -15,12 +19,14 @@
    canonical ensemble only
 -------------------------------------------------------- */
 
-AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
-    : Moves(box_in)
+AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const double r_above_in)
+    : Moves(system_in)
 {
+    box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
-    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
+    label = "AVBMCOut";
 }
 
 
@@ -31,27 +37,28 @@ AVBMCOut::AVBMCOut(Box* box_in, const double r_above_in)
 
 void AVBMCOut::perform_move()
 {
-    if(box->npar < 2){
+    if(box->npar < 2) {
+        // reject if there is only one particle in the box
         reject_move = true;
     }
-    else{
+    else {
         reject_move = false;
         // create local neighbor list of particle i
-        int i = box->rng->next_int(box->npar);
-        std::vector<int> neigh_listi = box->forcefield->build_neigh_list(i, r_abovesq);
+        int i = rng->next_int(box->npar);
+        std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
         n_in = neigh_listi.size();
 
-        if(n_in > 0){
-            // pick particle to be removed
-            int neigh_idx = box->rng->next_int(n_in);
+        if(n_in > 0) {
+            // pick particle to be removed randomly among neighbors
+            int neigh_idx = rng->next_int(n_in);
             int j = neigh_listi[neigh_idx];  // particle to be removed
-            du = -box->forcefield->comp_energy_par(box->particles, j);
+            du = -system->forcefield->comp_energy_par(box->particles, j);
             box->poteng += du;
             particle_out = box->particles[j];
             box->particles.erase(box->particles.begin() + j);
             box->npar --;
         }
-        else{
+        else {
             reject_move = true;
         }
     }
@@ -69,8 +76,9 @@ double AVBMCOut::accept(double temp, double chempot)
         return 0.;
     }
     else{
-        double dw = box->sampler->w(box->npar) - box->sampler->w(box->npar+1);
-        return n_in * box->npar / (v_in * (box->npar - 1)) * std::exp(-(du+chempot+dw)/temp);
+        bool accept_boundary = box->boundary->correct_position();
+        double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
+        return n_in * box->npar / (v_in * (box->npar - 1)) * std::exp(-(du+chempot+dw)/temp) * accept_boundary;
     }
 }
 
@@ -82,10 +90,24 @@ double AVBMCOut::accept(double temp, double chempot)
 void AVBMCOut::reset()
 {
     if (!reject_move){
-        box->npar += 1;
+        box->npar ++;
         box->poteng -= du;
         box->particles.push_back(particle_out);
     }
+}
+
+
+/* ----------------------------------------------------------
+   Update number of time this system size has occured if
+   move was accepted
+------------------------------------------------------------- */
+
+void AVBMCOut::update_nsystemsize()
+{
+    if (box->npar - 1 > box->nsystemsize.size()) {
+        box->nsystemsize.resize(box->npar + 1);
+    }
+    box->nsystemsize[box->npar] ++;
 }
 
 

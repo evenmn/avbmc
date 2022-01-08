@@ -1,52 +1,82 @@
+#include <iostream>
+#include <fstream>
+#include <functional>
+#include <vector>
+#include <string>
+
+#include "io.h"
 #include "dump.h"
 #include "../box.h"
 #include "../particle.h"
 
 
-auto x = [] (class Box *box) -> double ** {
+/* ----------------------------------------------
+   Write x-position to file
+------------------------------------------------- */
+
+auto x = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[0];
+        data[i][0] = box->particles[i].r[0];
     }
     return data;
 };
 
-auto y = [] (class Box *box) -> double ** {
+
+/* ----------------------------------------------
+   Write y-position to file
+------------------------------------------------- */
+
+auto y = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[1];
+        data[i][0] = box->particles[i].r[1];
     }
     return data;
 };
 
-auto z = [] (class Box *box) -> double ** {
+/* ----------------------------------------------
+   Write z-position to file
+------------------------------------------------- */
+
+auto z = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
-        data[i][0] = box->particles[i]->r[2];
+        data[i][0] = box->particles[i].r[2];
     }
     return data;
 };
 
-auto xy = [] (class Box* box) -> double ** {
+
+/* ----------------------------------------------
+   Write x and y-positions to file
+------------------------------------------------- */
+
+auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[2];
-        data[i][0] = box->particles[i]->r[0];
-        data[i][1] = box->particles[i]->r[1];
+        data[i][0] = box->particles[i].r[0];
+        data[i][1] = box->particles[i].r[1];
     }
     return data;
 };
 
-auto xyz = [] (class Box* box) -> double ** {
+
+/* ----------------------------------------------
+   Write x, y and z-positions to file
+------------------------------------------------- */
+
+auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[3];
-        data[i][0] = box->particles[i]->r[0];
-        data[i][1] = box->particles[i]->r[1];
-        data[i][2] = box->particles[i]->r[2];
+        data[i][0] = box->particles[i].r[0];
+        data[i][1] = box->particles[i].r[1];
+        data[i][2] = box->particles[i].r[2];
     }
     return data;
 };
@@ -93,7 +123,14 @@ auto axayaz = [] (class Box* box) -> mat {
 };
 */
 
-Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
+/* ---------------------------------------------------
+   Initialize dumper, with which box to dump 'box_in',
+   dump frequency 'freq_in', output file 'filename'
+   and which atom quantities to dump 'outputs_in'.
+------------------------------------------------------ */
+
+Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
+           const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
@@ -167,7 +204,7 @@ Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, con
                 output_functions.push_back(xyz);
             }
             else{
-                cout << "No output style '" + i + "' exists!" << endl;
+                std::cout << "No output style '" + i + "' exists!" << std::endl;
                 exit(0);
             }
         }
@@ -178,16 +215,17 @@ Dump::Dump(class Box* box_in, const int freq_in, const std::string filename, con
 }
 
 
-void Dump::print_frame()
+/* --------------------------------------------------------------
+   Dump atom quantities at the current step
+----------------------------------------------------------------- */
+
+void Dump::print_frame(const int step)
 {
-    /* Print thermo output at the current
-     * step
-     */
     if(freq != 0){
-        if(box->step % freq == 0){
+        if(step % freq == 0){
             // create array for all data to dump
             double** dump_data = new double*[box->npar];
-            for(int i = 0; i<box->npar; i++){
+            for(unsigned int i = 0; i<box->npar; i++){
                 dump_data[i] = new double[nvar];
             }
 
@@ -196,11 +234,11 @@ void Dump::print_frame()
             int cum_nvar = 0;
             for(auto func : output_functions){
                 double **tmp_data = func(box);
-                for(int i=0; i<box->npar; i++){
+                for(unsigned int i=0; i<box->npar; i++){
                     for(int j=0; j<nvars[o]; j++){
                         dump_data[i][cum_nvar + j] = tmp_data[i][j];
                     }
-                    delete (tmp_data[i]);
+                    delete[] tmp_data[i];
                 }
                 delete [] tmp_data;
                 cum_nvar += nvars[o];
@@ -209,15 +247,15 @@ void Dump::print_frame()
 
             // get labels
             std::vector<std::string> labels;
-            for(Particle* particle : box->particles)
-                labels.push_back(particle->label);
+            for(Particle particle : box->particles)
+                labels.push_back(particle.label);
 
             // write to file
             write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
 
             // free memory
-            for(int i = 0; i<box->npar; i++){
-                delete (dump_data[i]);
+            for(unsigned int i = 0; i<box->npar; i++){
+                delete[] dump_data[i];
             }
             delete [] dump_data;
         }
