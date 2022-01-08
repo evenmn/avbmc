@@ -85,6 +85,10 @@ void LennardJones::read_param_file(const std::string params)
 /* ------------------------------------------------------
    Parameters have to be sorted with respect to
    the particle types, and are stored in matrices.
+
+   TODO: Since the possible particle labels (chemical
+   elements) are defined by the parameter file, this 
+   function can be called by the constructor.
 --------------------------------------------------------- */
 
 void LennardJones::sort_params()
@@ -269,7 +273,8 @@ double LennardJones::comp_twobody_par(const int typei, const int typej, const st
    Compute energy contribution from a molecule
 --------------------------------------------------------- */
 
-double LennardJones::comp_energy_mol(const std::vector<Particle> particles, Molecule* molecule)
+double LennardJones::comp_energy_mol(const std::vector<Particle> particles,
+                                     Molecule* molecule)
 {
     double energy = 0.;
     for(int i : molecule->atoms_idx){
@@ -283,44 +288,12 @@ double LennardJones::comp_energy_mol(const std::vector<Particle> particles, Mole
    Compute energy contribution from a particle 'i'
 ---------------------------------------------------------- */
 
-/*
-double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i)
-{
-    std::valarray<double> force;
-    return (comp_energy_par(particles, i, force, false));
-}
-*/
 double LennardJones::comp_energy_par(std::vector<Particle> particles, const int i)
 {
     std::valarray<double> force;
     return (comp_energy_par(particles, i, force, false));
 }
 
-/*
-double LennardJones::comp_energy_par(const std::vector<Particle *> particles, const int i,
-                                     std::valarray<double> &force, const bool comp_force)
-{
-    // declare variables
-    int npar = particles.size();
-    int typei = particles[i]->type;
-    std::valarray<double> delij;
-    force.resize(system->ndim, 0.);
-
-    double energy = 0.;
-    for(int j=0; j<i; j++){
-        int typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
-        energy += comp_twobody_par(typei, typej, delij, force, comp_force);
-    }
-    for(int j=i+1; j<npar; j++){
-        int typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
-        energy += comp_twobody_par(typei, typej, delij, force, comp_force);
-    }
-    force *= 24;
-    return (4 * energy);
-}
-*/
 
 double LennardJones::comp_energy_par(const std::vector<Particle> particles, const int i,
                                      std::valarray<double> &force, const bool comp_force)
@@ -504,9 +477,9 @@ LennardJones::~LennardJones()
     delete[] epsilon_mat;
     delete[] rc_sqrd_mat;
     delete[] shift_mat;
-    sigma_mat = nullptr;
-    epsilon_mat = nullptr;
-    rc_sqrd_mat = nullptr;
-    shift_mat = nullptr;
+    //sigma_mat = nullptr;
+    //epsilon_mat = nullptr;
+    //rc_sqrd_mat = nullptr;
+    //shift_mat = nullptr;
 }
 
