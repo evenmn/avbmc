@@ -27,7 +27,7 @@ public:
     void add_molecule_type(std::string, double);
     void add_molecule_type(std::vector<std::string>, double, double,
                            std::vector<std::valarray<double> >);
-    void add_box(class Box);
+    void add_box(class Box *);
 
     void check_masses();
     void init_simulation();
@@ -56,7 +56,7 @@ public:
 
     std::map<std::string, int> label2type;
     //std::vector<std::shared_ptr<class Box> > boxes;
-    std::vector<class Box> boxes;
+    std::vector<class Box *> boxes;
     std::vector<std::string> unique_labels;
     std::vector<std::string> mass_labels;
     std::vector<double> masses;

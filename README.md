@@ -2,7 +2,7 @@
 Monte Carlo package for estimating the free energy and surface tension of water droplets of various sizes. Code is written in C++.
 
 ## Prerequisites
-The code depends on several features that were introduced in C++11. GCC 4.8.1 or any later version needed. No other dependencies.
+The code depends on several features that were introduced in C++11. GCC 4.8.1 or any later version needed. MPI (MPICH or OpenMPI) is needed for parallel processing.
 
 ## Build and run
 There are two ways to build the code; with or without a parser. 

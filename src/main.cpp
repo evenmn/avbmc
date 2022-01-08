@@ -25,8 +25,8 @@ int main()
     system.set_chempot(-1.3);
     LennardJones forcefield(&system, "params.lj");
     system.set_forcefield(&forcefield);
-    //MersenneTwister rng();
-    system.set_rng(new MersenneTwister());
+    MersenneTwister* rng = new MersenneTwister();
+    system.set_rng(rng);
 
     // initialize umbrella sampling with square function
     //auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
@@ -43,7 +43,7 @@ int main()
     //box.add_particle("Ar", {1.5, 0, 0});
     //box.add_particle("Ar", {0, 1.5, 0});
     //box.add_particle("Ar", {1.5, 1.5, 0});
-    system.add_box(box);
+    system.add_box(&box);
 
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 0.01);
@@ -58,13 +58,15 @@ int main()
 
     // run Monte Carlo simulation
     //box->snapshot("initial.xyz");
-    system.run_mc(100000, 1);
-    //box.add_particle("Ar", {3.0, 0.0, 0.0});
     //system.run_mc(10000, 1);
+    //box.add_particle("Ar", {3.0, 0.0, 0.0});
+    system.run_mc(10000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
     //box.write_nsystemsize("nsystemsize.txt");
+
+    delete rng;
     
     return 0;
 }

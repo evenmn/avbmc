@@ -189,7 +189,7 @@ void System::add_molecule_type(std::vector<std::string> elements, const double r
    Add box 'box_in' to system
 -------------------------------------------------------- */
 
-void System::add_box(Box box_in)
+void System::add_box(Box* box_in)
 {
     nbox ++;
     boxes.push_back(box_in);
@@ -290,8 +290,8 @@ void System::init_simulation()
 
     // go through all particles in all boxes and assert that    
     // all element labels are covered by parameter file
-    for (Box& box : boxes){
-        for (Particle& particle : box.particles){
+    for (Box* box : boxes){
+        for (Particle& particle : box->particles){
             try {
                 // will throw exception if label is not known
                 particle.type = label2type.at(particle.label);
@@ -314,8 +314,8 @@ void System::init_simulation()
             */
         }
     }
-    for (Box box : boxes) {
-        for (Particle particle : box.particles) {
+    for (Box* box : boxes) {
+        for (Particle particle : box->particles) {
             std::cout << "PARTICLE TYPES 2: " << particle.type << std::endl;
         }
     }
@@ -391,8 +391,8 @@ void System::print_info()
     std::cout << "Number of boxes:          " << nbox << std::endl;
     for(int i=0; i < nbox; i++){
         std::cout << "  Box " << i+1 << ":" << std::endl;
-        std::cout << "    Number of atoms:   " << boxes[i].npar << std::endl;
-        std::cout << "    Boundary:          " << boxes[i].boundary->label << std::endl;
+        std::cout << "    Number of atoms:   " << boxes[i]->npar << std::endl;
+        std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
     }
     std::cout << std::endl;
     /*
@@ -470,9 +470,9 @@ void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
     //init_molecules();
-    for(Box& box : boxes){
-        box.nsystemsize.resize(box.npar + 1);
-        box.nsystemsize[box.npar] ++;
+    for(Box* box : boxes){
+        box->nsystemsize.resize(box->npar + 1);
+        box->nsystemsize[box->npar] ++;
     }
 
     for (Moves* move : moves){

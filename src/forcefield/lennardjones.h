@@ -42,7 +42,10 @@ private:
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params
-    double **sigma_mat, **epsilon_mat, **rc_sqrd_mat, **shift_mat;
+    double **sigma_mat = nullptr;
+    double **epsilon_mat = nullptr;
+    double **rc_sqrd_mat = nullptr;
+    double **shift_mat = nullptr;
 
     std::vector<std::vector<int> > neigh_lists;
 };

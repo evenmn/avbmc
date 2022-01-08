@@ -94,35 +94,11 @@ void LennardJones::sort_params()
     for(std::string label : label1_vec){
         types1_vec.push_back(system->label2type.at(label));
     }
-    /*
-    for(std::string label : label1_vec){
-        bool assigned = false;
-        for(int j=0; j<system->ntype; j++){
-            if(label == system->unique_labels[j]){
-                types1_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
-    }
-    */
     std::vector<int> types2_vec;
     
     for(std::string label : label2_vec){
         types2_vec.push_back(system->label2type.at(label));
     }
-    /*
-    for(std::string label : label2_vec){
-        bool assigned = false;
-        for(int j=0; j<system->ntype; j++){
-            if(label == system->unique_labels[j]){
-                types2_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
-    }
-    */
 
     // allocate memory for matrices
     sigma_mat = new double*[system->ntype];
@@ -518,7 +494,7 @@ double LennardJones::comp_force_par(const rowvec pos, rowvec &acc)
 
 LennardJones::~LennardJones()
 {
-    for(int i = 0; i < system->ntype; i++){
+    for (int i = 0; i < system->ntype; i++) {
         delete[] sigma_mat[i];
         delete[] epsilon_mat[i];
         delete[] rc_sqrd_mat[i];
@@ -528,5 +504,9 @@ LennardJones::~LennardJones()
     delete[] epsilon_mat;
     delete[] rc_sqrd_mat;
     delete[] shift_mat;
+    sigma_mat = nullptr;
+    epsilon_mat = nullptr;
+    rc_sqrd_mat = nullptr;
+    shift_mat = nullptr;
 }
 
