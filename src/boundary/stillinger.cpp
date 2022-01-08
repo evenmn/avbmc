@@ -78,7 +78,6 @@ void Stillinger::check(const int i, std::valarray<int> &in_cluster, std::valarra
 
 bool Stillinger::correct_position()
 {
-    std::cout << box->npar << std::endl;
     std::valarray<int> in_cluster2(0, 20);
     in_cluster.resize(box->npar, 0);
     checked.resize(box->npar, 0);

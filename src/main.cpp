@@ -80,9 +80,7 @@ int main()
 
     // run Monte Carlo simulation
     //box->snapshot("initial.xyz");
-    //system.run_mc(10000, 1);
-    //box.add_particle("Ar", {3.0, 0.0, 0.0});
-    system.run_mc(1000, 1);
+    system.run_mc(100000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

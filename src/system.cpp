@@ -5,7 +5,7 @@
 #include <cassert>
 #include <chrono>
 
-//#include <mpi.h>
+#include <mpi.h>
 
 #include "system.h"
 #include "box.h"
@@ -43,7 +43,7 @@ System::System(std::string working_dir_in)
     //sampler = new Metropolis(this);
     //MoleculeTypes moleculetypes(this);
     molecule_types = new MoleculeTypes(this);
-    /*
+
     // initialize MPI
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
@@ -52,7 +52,6 @@ System::System(std::string working_dir_in)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    */
 }
 
 
@@ -211,12 +210,9 @@ void System::init_molecules()
 
     // Since particles are associated with types rather than labels,
     // also molecule configuration labels have to be converted to types
-    std::cout << "init_molecules2" << std::endl;
     for(std::vector<std::string> elements : molecule_types->molecule_elements) {
-        std::cout << "init_molecules3" << std::endl;
         std::vector<int> types;
         for (std::string element : elements) {
-            std::cout << "init_molecules4" << std::endl;
             types.push_back(label2type.at(element));
         }
         molecule_types->molecule_types.push_back(types); 
@@ -256,7 +252,7 @@ void System::init_simulation()
             catch (...) {
                 std::cout << "Particle label '" + particle.label; 
                 std::cout << "' is not covered by parameter file!" << std::endl;
-                //MPI_Abort(MPI_COMM_WORLD, 143);
+                MPI_Abort(MPI_COMM_WORLD, 143);
             }
         }
     }
@@ -336,7 +332,6 @@ void System::print_info()
         std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
     }
     std::cout << std::endl;
-    /*
     std::cout << "Number of molecule types: " << molecule_types->ntype << std::endl;
     for(int i=0; i < molecule_types->ntype; i++){
         std::cout << "  Molecule type " << i+1 << ":" << std::endl;
@@ -348,7 +343,6 @@ void System::print_info()
         std::cout << "    Critical distance: " << molecule_types->rcs[i] << std::endl;
         std::cout << "    Probability:       " << molecule_types->molecule_probs[i] << std::endl;
     }
-    */
     std::cout << std::endl;
 }
 
@@ -410,7 +404,7 @@ void Box::run_md(const int nsteps)
 void System::run_mc(const int nsteps, const int nmoves)
 {
     init_simulation();
-    //init_molecules();
+    init_molecules();
     for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
@@ -431,23 +425,21 @@ void System::run_mc(const int nsteps, const int nmoves)
     }
     //thermo->print_header();
 
-    int maxiter = nsteps; //get_maxiter(nsteps);
+    int maxiter = get_maxiter(nsteps);
 
     // run Monte Carlo simulation
-    //double start = MPI_Wtime();
+    double start = MPI_Wtime();
     tqdm bar;
     //bar.set_theme_circle();
     while(step < maxiter){
-        std::cout << step << std::endl;
-        //if (rank == 0){
-        //    bar.progress(step * nprocess, maxiter * nprocess);
-        //}
+        if (rank == 0){
+            bar.progress(step * nprocess, maxiter * nprocess);
+        }
         //box->dump->print_frame(step);
         //box->thermo->print_line(step);
         sampler->sample(nmoves);
         step ++;
     }
-    /*
     MPI_Barrier(MPI_COMM_WORLD);
     double end = MPI_Wtime();
 
@@ -459,12 +451,12 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << "=================================================================" << std::endl;
         std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
     }
-    for(Moves move : moves){
+    for(Moves* move : moves){
         int ndrawntot, naccepttot;
-        MPI_Reduce(&move.ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&move.naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         if (rank == 0) {
-            std::cout << move.label << "\t "
+            std::cout << move->label << "\t "
                       << ndrawntot << "\t\t "
                       << naccepttot << "\t\t "
                       << (double) naccepttot / ndrawntot
@@ -474,7 +466,6 @@ void System::run_mc(const int nsteps, const int nmoves)
     if (rank == 0) {
         std::cout << "=================================================================" << std::endl;
     }
-    */
 }
 
 
@@ -484,5 +475,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 System::~System()
 {
     delete molecule_types;
-    //MPI_Finalize();
+    MPI_Finalize();
 }
