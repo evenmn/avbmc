@@ -1,7 +1,6 @@
 #include <vector>
 #include <valarray>
 #include <string>
-#include <memory>
 
 #include "box.h"
 #include "system.h"
@@ -13,8 +12,7 @@
 /* ---------------------------------------------------------
    Construct molecule, given atom indices 'atoms_in'. The
    indices refer to particles in the official particle list,
-   box->particles. Second argument is center (of mass) atom,
-   which is 0 by default (and should probably always be 0).
+   box->particles.
 ------------------------------------------------------------ */
 
 Molecule::Molecule(std::vector<int> atoms_in)
@@ -77,17 +75,17 @@ void MoleculeTypes::add_molecule_type(std::vector<std::string> elements, const d
 
 std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
 {
-    int npar = particles.size();
+    unsigned int npar = particles.size();
     double rijsq;
     std::valarray<double> ri = particles[i].r;
     std::vector<int> neigh_list;
-    for(int j=0; j<i; j++){
+    for(unsigned int j=0; j<i; j++){
         rijsq = std::pow(particles[j].r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
-    for(int j=i+1; j<npar; j++){
+    for(unsigned int j=i+1; j<npar; j++){
         rijsq = std::pow(particles[j].r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
@@ -101,7 +99,7 @@ std::vector<int> MoleculeTypes::build_neigh_list(std::vector<Particle> particles
    Check if particles match molecule type recursively.
 ------------------------------------------------------------------ */
 
-void MoleculeTypes::check_neighbors(const int k, const int i, long unsigned int elm_count,
+void MoleculeTypes::check_neighbors(const int k, const int i, unsigned int elm_count,
                                     std::vector<int> &elm_idx, std::vector<Particle> particles){
     if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
         if(particles[k].type == molecule_types[i][elm_count]){  // check if element is matching
@@ -137,16 +135,12 @@ Molecule* MoleculeTypes::construct_molecule(std::vector<Particle> particles,
         }
         count ++;
     }
-    Molecule* molecule = nullptr; 
     if (!constructed)
     {
-        std::vector<int> atoms;
-        molecule = new Molecule(atoms);
+        elm_idx.clear();
     }
-    else {
-        molecule = new Molecule(elm_idx);
-    }
-    return molecule;
+    Molecule molecule(elm_idx);
+    return &molecule;
 }
 
 

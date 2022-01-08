@@ -41,8 +41,8 @@ System::System(std::string working_dir_in)
     //integrator = new VelocityVerlet(this);
     //forcefield = new LennardJones(this);
     //sampler = new Metropolis(this);
-    MoleculeTypes moleculetypes(this);
-    molecule_types = &moleculetypes;
+    //MoleculeTypes moleculetypes(this);
+    molecule_types = new MoleculeTypes(this);
     /*
     // initialize MPI
     int initialized_mpi;
@@ -188,8 +188,7 @@ void System::add_box(Box* box_in)
 
 void System::check_masses()
 {
-    // Check that all particles are assigned a mass
-    for (std::string mass_label : mass_labels){
+    for (std::string mass_label : mass_labels) {
         label2type.at(mass_label);
     }
 }
@@ -205,21 +204,20 @@ void System::init_molecules()
     // be considered as molecules
     if (!molecule_types->configured)
     {
-        for(std::string label : unique_labels){
+        for(std::string label : unique_labels) {
             add_molecule_type(label, 1./ntype);
         }
     }
 
     // Since particles are associated with types rather than labels,
     // also molecule configuration labels have to be converted to types
-    for(std::vector<std::string> elements : molecule_types->molecule_elements){
+    std::cout << "init_molecules2" << std::endl;
+    for(std::vector<std::string> elements : molecule_types->molecule_elements) {
+        std::cout << "init_molecules3" << std::endl;
         std::vector<int> types;
-        for (int i=0; i < ntype; i++){
-            for(std::string element : elements){
-                if(element == unique_labels[i]){
-                    types.push_back(i);
-                }
-            }
+        for (std::string element : elements) {
+            std::cout << "init_molecules4" << std::endl;
+            types.push_back(label2type.at(element));
         }
         molecule_types->molecule_types.push_back(types); 
     }
@@ -249,14 +247,15 @@ void System::init_simulation()
 
     // go through all particles in all boxes and assert that    
     // all element labels are covered by parameter file
-    for (Box* box : boxes){
-        for (Particle& particle : box->particles){
+    for (Box* box : boxes) {
+        for (Particle& particle : box->particles) {
             try {
                 // will throw exception if label is not known
                 particle.type = label2type.at(particle.label);
             }
             catch (...) {
-                std::cout << "Particle label '" + particle.label + "' is not covered by parameter file" << std::endl;
+                std::cout << "Particle label '" + particle.label; 
+                std::cout << "' is not covered by parameter file!" << std::endl;
                 //MPI_Abort(MPI_COMM_WORLD, 143);
             }
         }
@@ -433,7 +432,6 @@ void System::run_mc(const int nsteps, const int nmoves)
     //thermo->print_header();
 
     int maxiter = nsteps; //get_maxiter(nsteps);
-    std::cout << "After get_maxiter" << std::endl;
 
     // run Monte Carlo simulation
     //double start = MPI_Wtime();
@@ -485,5 +483,6 @@ void System::run_mc(const int nsteps, const int nmoves)
 ------------------------------------------------------------ */
 System::~System()
 {
+    delete molecule_types;
     //MPI_Finalize();
 }
