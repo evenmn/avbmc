@@ -1,6 +1,34 @@
+/* ----------------------------------------------------------------------------
+   General info, authors, url, license etc...
+------------------------------------------------------------------------------- */
+
+
+/* ----------------------------------------------------------------------------
+   This file contains the main function that is compiled when building with
+   'make dev' or 'make debug'. It may be edited, but please make sure that you
+   know what you do. The main policy is that all the objects used in the code
+   are created here, and their *adresses* are passed to the various functions.
+   Let's take the Metropolis sampler object as an example:
+
+    Method 1: 
+    Metropolis sampler(&system);
+    system.set_sampler(&sampler);
+
+    Method 2:
+    Metropolis* sampler = new Metropolis(&system);
+    system.set_sampler(sampler);
+    ...
+    delete sampler;
+
+    Avoid:
+    system.set_sampler(new Metropolis(&system));
+
+   The last example should be avoided, as it will lead to an unpleasant memory
+   leak (the pointer is never deleted).
+------------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <functional>
-#include <memory>
 
 #include "box.h"
 #include "system.h"
@@ -29,9 +57,8 @@ int main()
     system.set_rng(rng);
 
     // initialize umbrella sampling with square function
-    //auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
-    //Umbrella sampler(&system, f);
-    Metropolis sampler(&system);
+    auto f = [] (const int n) { return (0.012 * (n - 32) * (n - 32)); };
+    Umbrella sampler(&system, f);
     system.set_sampler(&sampler);
 
     // initialize box with Stillinger boundary

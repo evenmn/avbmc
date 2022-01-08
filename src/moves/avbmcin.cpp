@@ -2,7 +2,6 @@
 #include <cmath>
 #include <valarray>
 #include <vector>
-#include <memory>
 
 #include "avbmcin.h"
 #include "../box.h"
@@ -11,6 +10,7 @@
 #include "../molecule.h"
 #include "../rng/rng.h"
 #include "../sampler/sampler.h"
+#include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
 
 
@@ -75,8 +75,9 @@ void AVBMCIn::perform_move()
 
 double AVBMCIn::accept(double temp, double chempot)
 {
+    bool accept_boundary = box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
-    return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(-(du-chempot+dw)/temp);
+    return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(-(du-chempot+dw)/temp) * accept_boundary;
 }
 
 

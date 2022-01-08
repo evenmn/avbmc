@@ -9,7 +9,7 @@
 class Dump
 {
 public:
-    Dump(class Box*, int, std::string, std::vector<std::string>);
+    Dump(class Box *, int, std::string, std::vector<std::string>);
     void print_frame(int);
     ~Dump();
 

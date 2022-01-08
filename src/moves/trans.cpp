@@ -2,13 +2,13 @@
 #include <cmath>
 #include <string>
 #include <valarray>
-#include <memory>
 
 #include "trans.h"
 #include "../box.h"
 #include "../system.h"
 #include "../particle.h"
 #include "../rng/rng.h"
+#include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
 
 
@@ -22,21 +22,10 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
     : Moves(system_in)
 {
     box = box_in;
-    //boxes.push_back(box_in);
     dx = dx_in;
     label = "Trans   ";
 }
 
-/*
-Trans::Trans(System* system_in, std::shared_ptr<Box> box_in, const double dx_in)
-    : Moves(system_in)
-{
-    box = box_in;
-    boxes.push_back(box_in);
-    dx = dx_in;
-    label = "Trans   ";
-}
-*/
 
 /* ---------------------------------------------------
    Propose particle to move and new position randomly.
@@ -68,7 +57,7 @@ void Trans::perform_move()
 
 double Trans::accept(double temp, double /*chempot*/)
 {
-    return std::exp(-du/temp);
+    return std::exp(-du/temp) * box->boundary->correct_position();
 }
 
 
@@ -94,8 +83,6 @@ void Trans::update_nsystemsize()
     if (box->npar + 1 > box->nsystemsize.size()) {
         box->nsystemsize.resize(box->npar + 1);
     }
-    std::cout << "box->npar trans: " << box->npar << std::endl;
-    std::cout << "box->nsystemsize.size(): " << box->nsystemsize.size() << std::endl;
     box->nsystemsize[box->npar] ++;
 }
 

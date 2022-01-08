@@ -14,9 +14,9 @@
    Write x-position to file
 ------------------------------------------------- */
 
-auto x = [] (Box *box) -> double ** {
+auto x = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[0];
     }
@@ -28,9 +28,9 @@ auto x = [] (Box *box) -> double ** {
    Write y-position to file
 ------------------------------------------------- */
 
-auto y = [] (Box *box) -> double ** {
+auto y = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[1];
     }
@@ -41,9 +41,9 @@ auto y = [] (Box *box) -> double ** {
    Write z-position to file
 ------------------------------------------------- */
 
-auto z = [] (Box *box) -> double ** {
+auto z = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[2];
     }
@@ -57,7 +57,7 @@ auto z = [] (Box *box) -> double ** {
 
 auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[2];
         data[i][0] = box->particles[i].r[0];
         data[i][1] = box->particles[i].r[1];
@@ -72,7 +72,7 @@ auto xy = [] (Box* box) -> double ** {
 
 auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(int i = 0; i<box->npar; i++){
+    for(unsigned int i = 0; i<box->npar; i++){
         data[i] = new double[3];
         data[i][0] = box->particles[i].r[0];
         data[i][1] = box->particles[i].r[1];
@@ -129,7 +129,8 @@ auto axayaz = [] (class Box* box) -> mat {
    and which atom quantities to dump 'outputs_in'.
 ------------------------------------------------------ */
 
-Dump::Dump(Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in)
+Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
+           const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
@@ -224,7 +225,7 @@ void Dump::print_frame(const int step)
         if(step % freq == 0){
             // create array for all data to dump
             double** dump_data = new double*[box->npar];
-            for(int i = 0; i<box->npar; i++){
+            for(unsigned int i = 0; i<box->npar; i++){
                 dump_data[i] = new double[nvar];
             }
 
@@ -233,7 +234,7 @@ void Dump::print_frame(const int step)
             int cum_nvar = 0;
             for(auto func : output_functions){
                 double **tmp_data = func(box);
-                for(int i=0; i<box->npar; i++){
+                for(unsigned int i=0; i<box->npar; i++){
                     for(int j=0; j<nvars[o]; j++){
                         dump_data[i][cum_nvar + j] = tmp_data[i][j];
                     }
@@ -253,7 +254,7 @@ void Dump::print_frame(const int step)
             write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
 
             // free memory
-            for(int i = 0; i<box->npar; i++){
+            for(unsigned int i = 0; i<box->npar; i++){
                 delete[] dump_data[i];
             }
             delete [] dump_data;

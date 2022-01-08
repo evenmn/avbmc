@@ -4,7 +4,6 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
-#include <memory>
 
 //#include <mpi.h>
 
@@ -135,22 +134,6 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
    Add move type and the corresponding probability.
    The probabilities have to add up to 1.
 ----------------------------------------------------- */
-/*
-void System::add_move(Moves move, double prob)
-{
-    nmove ++;
-    moves.emplace_back(move);
-    moves_prob.push_back(prob);
-}
-*/
-/*
-void System::add_move(Moves& move, double prob)
-{
-    nmove ++;
-    moves.emplace_back((*move));
-    moves_prob.push_back(prob);
-}
-*/
 
 void System::add_move(Moves* move, double prob)
 {
@@ -194,19 +177,7 @@ void System::add_box(Box* box_in)
     nbox ++;
     boxes.push_back(box_in);
 }
-/*
-void System::add_box(std::shared_ptr<Box> box_in)
-{
-    boxes.emplace_back(box_in);
-    nbox ++;
-}
 
-void System::add_box(Box* box_in)
-{
-    boxes.emplace_back(box_in);
-    nbox ++;
-}
-*/
 
 /* -----------------------------------------------------
    The particles in the system have to be a subset of 
@@ -221,18 +192,6 @@ void System::check_masses()
     for (std::string mass_label : mass_labels){
         label2type.at(mass_label);
     }
-    /*
-    for (std::string unique_label : unique_labels){
-        bool label_covered = false;
-        for (std::string mass_label : mass_labels){
-            if (unique_label == mass_label){
-                label_covered = true;
-            }
-        }
-        //std::string msg = "Particle type " + unique_label + " is not assigned a mass! Aborting.";
-        assert (label_covered);
-    }
-    */
 }
 
 
@@ -295,28 +254,11 @@ void System::init_simulation()
             try {
                 // will throw exception if label is not known
                 particle.type = label2type.at(particle.label);
-                std::cout << "PARTICLE TYPE: " << particle.type << std::endl;
             }
-            catch (std::out_of_range) {
+            catch (...) {
                 std::cout << "Particle label '" + particle.label + "' is not covered by parameter file" << std::endl;
                 //MPI_Abort(MPI_COMM_WORLD, 143);
             }
-            /*
-            bool particle_covered = false;
-            for (int j=0; j < ntype; j++) {
-                if (particle->label == unique_labels[j]) {
-                    particle->type = j;
-                    particle_covered = true;
-                }
-            }
-            //std::string msg = "Particle type " + particle->label + " is not covered by parameter file! Aborting.";
-            assert (particle_covered);
-            */
-        }
-    }
-    for (Box* box : boxes) {
-        for (Particle particle : box->particles) {
-            std::cout << "PARTICLE TYPES 2: " << particle.type << std::endl;
         }
     }
     // Sort forcefield parameters according to particle types
@@ -543,13 +485,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 ------------------------------------------------------------ */
 System::~System()
 {
-    //delete rng;
-    //delete forcefield;
-    //delete sampler;
-    //delete molecule_types;
-    //rng = nullptr;
-    //forcefield = nullptr;
-    //sampler = nullptr;
-    //molecule_types = nullptr;
     //MPI_Finalize();
 }

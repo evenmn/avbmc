@@ -4,7 +4,6 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
-#include <memory>
 
 //#include <mpi.h>
 
@@ -54,36 +53,20 @@ void Box::set_boundary(class Boundary* boundary_in)
 /* --------------------------------------------------
    Add a single particle from a particle object
 ----------------------------------------------------- */
-/*
+
 void Box::add_particle(Particle particle)
 {
     npar ++;
-    system->ndim = particle->r.size();
+    system->ndim = particle.r.size();
     particles.push_back(particle);
 }
-*/
-/*
-void Box::add_particle(std::shared_ptr<Particle> particle)
-{
-    npar ++;
-    system->ndim = particle->r.size();
-    particles.push_back(particle);
-}
-*/
+
 
 /* --------------------------------------------------
    Add a single particle given a label 'label' and
    initial position 'r'
 ----------------------------------------------------- */
-/*   
-void Box::add_particle(const std::string label, const std::valarray<double> r)
-{
-    npar ++;
-    system->ndim = r.size();
-    Particle* particle = new Particle(label, r);
-    particles.push_back(particle);
-}
-*/
+
 void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
     npar ++;
@@ -96,22 +79,14 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
    Add a set of particles, stored in a vector of
    particle objects 'particles_in'.
 ----------------------------------------------------- */
-/*
-void Box::add_particles(std::vector<Particle *> particles_in)
-{
-    npar += particles_in.size();
-    system->ndim = particles_in[0]->r.size();
-    particles.insert(particles.end(), particles_in.begin(), particles_in.end());
-}
-*/
-/*
+
 void Box::add_particles(std::vector<Particle> particles_in)
 {
     npar += particles_in.size();
-    system->ndim = particles_in[0]->r.size();
+    system->ndim = particles_in[0].r.size();
     particles.insert(particles.end(), particles_in.begin(), particles_in.end());
 }
-*/
+
 
 /* ------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function. 
@@ -169,15 +144,15 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
     double rijsq;
     std::valarray<double> ri = particles[i].r;
     std::vector<int> neigh_list;
-    for(int j=0; j<i; j++){
-        rijsq = normsq(particles[j].r - ri); //std::pow(particles[j]->r - ri, 2).sum();
+    for(unsigned int j=0; j<i; j++){
+        rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
-    for(int j=i+1; j<npar; j++){
+    for(unsigned int j=i+1; j<npar; j++){
         std::valarray<double> rii = particles[j].r - particles[i].r;
-        rijsq = normsq(particles[j].r - ri); //std::pow(particles[j]->r - ri, 2).sum();
+        rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
@@ -212,15 +187,3 @@ void Box::write_nsystemsize(std::string filename)
     nsystemsizetot = nullptr;
     */
 }
-
-
-Box::~Box()
-{
-    //delete boundary;
-    //delete dump;
-    //delete thermo;
-    //boundary = nullptr;
-    //dump = nullptr;
-    //thermo = nullptr;
-}
-
