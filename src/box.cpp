@@ -5,7 +5,7 @@
 #include <cassert>
 #include <chrono>
 
-//#include <mpi.h>
+#include <mpi.h>
 
 #include "particle.h"
 #include "io.h"
@@ -168,14 +168,11 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 
 void Box::write_nsystemsize(std::string filename)
 {
-    /*
     int maxsize;
     MPI_Barrier(MPI_COMM_WORLD);
     int size = nsystemsize.size();
-    std::cout << "size: " << size << std::endl;
     MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
     MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    std::cout << "maxsize: " << maxsize << std::endl;
     nsystemsize.resize(maxsize);
     int* nsystemsizetot = new int[maxsize];
     MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -184,6 +181,4 @@ void Box::write_nsystemsize(std::string filename)
         write_array(nsystemsizetot, maxsize, filename, "\n");
     }
     delete[] nsystemsizetot;
-    nsystemsizetot = nullptr;
-    */
 }
