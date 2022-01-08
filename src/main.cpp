@@ -35,14 +35,11 @@
 #include "rng/mersennetwister.h"
 #include "boundary/stillinger.h"
 #include "forcefield/lennardjones.h"
-#include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
 #include "moves/moves.h"
 #include "moves/trans.h"
-//#include "moves/avbmc.h"
 #include "moves/avbmcin.h"
 #include "moves/avbmcout.h"
-//#include "moves/avbmcinmol.h"
 
 
 int main()
@@ -67,17 +64,15 @@ int main()
     Stillinger boundary(&box, 1.5);
     box.set_boundary(&boundary);
     box.add_particle("Ar", {0, 0, 0});
-    //box.add_particle("Ar", {1.5, 0, 0});
-    //box.add_particle("Ar", {0, 1.5, 0});
-    //box.add_particle("Ar", {1.5, 1.5, 0});
     system.add_box(&box);
 
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 0.01);
     AVBMCIn move2(&system, &box, "Ar", 0.9, 1.5);
+    AVBMCOut move3(&system, &box, 1.5);
     system.add_move(&move1, 0.94);
-    system.add_move(&move2, 0.06);
-    //system.add_move(std::make_shared<AVBMCOut>(&system, box, 1.5), 0.5);
+    system.add_move(&move2, 0.03);
+    system.add_move(&move3, 0.03);
 
     // set sampling outputs
     //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
@@ -87,7 +82,7 @@ int main()
     //box->snapshot("initial.xyz");
     //system.run_mc(10000, 1);
     //box.add_particle("Ar", {3.0, 0.0, 0.0});
-    system.run_mc(10000, 1);
+    system.run_mc(1000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
