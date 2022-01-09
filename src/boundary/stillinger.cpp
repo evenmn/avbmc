@@ -2,7 +2,6 @@
 #include <valarray>
 #include <vector>
 #include <cmath>
-#include <memory>
 
 #include "stillinger.h"
 #include "../box.h"
@@ -21,16 +20,6 @@ Stillinger::Stillinger(Box* box_in, double r_c_in)
     label = "Stillinger";
 }
 
-
-/*
-Stillinger::Stillinger(std::shared_ptr<Box> box_in, double r_c_in)
-    : Boundary(box_in)
-{
-    r_csq = r_c_in * r_c_in;
-    //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
-    label = "Stillinger";
-}
-*/
 
 /* ------------------------------------------------------
    Update neighbor lists of all particles according to
@@ -78,7 +67,6 @@ void Stillinger::check(const int i, std::valarray<int> &in_cluster, std::valarra
 
 bool Stillinger::correct_position()
 {
-    std::valarray<int> in_cluster2(0, 20);
     in_cluster.resize(box->npar, 0);
     checked.resize(box->npar, 0);
     update();

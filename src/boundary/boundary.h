@@ -1,18 +1,15 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <memory>
 
 
 class Boundary
 {
 public:
     Boundary(class Box *);
-    Boundary(std::shared_ptr<class Box>);
-    virtual void update() = 0;
-    virtual bool correct_position() = 0;
-    virtual bool correct_velocity() = 0;   // needed for reflective boundaries
-    virtual bool correct_distance() = 0;   // needed for periodic boundaries
+    virtual bool correct_position();
+    virtual bool correct_velocity();   // needed for reflective boundaries
+    virtual bool correct_distance();   // needed for periodic boundaries
     //virtual double comp_volume() = 0;
     virtual ~Boundary() = default;
 
@@ -20,5 +17,4 @@ public:
 
 protected:
     class Box* box = nullptr;
-    //std::shared_ptr<class Box> box = nullptr;
 };
