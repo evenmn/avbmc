@@ -102,45 +102,6 @@ void Vashishta::sort_params()
     for(std::string label : label3_vec){
         types3_vec.push_back(system->label2type.at(label));
     }
-    /*
-    for(std::string label : label1_vec){
-        bool assigned = false;
-        for(int j=0; j<system->ntype; j++){
-            if(label == system->unique_labels[j]){
-                types1_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
-    }
-    for(std::string label : label1_vec){
-        types2_vec.push_back(system->label2type.at(label));
-    }
-    for(std::string label : label2_vec){
-        bool assigned = false;
-        for(int j=0; j<system->ntype; j++){
-            if(label == system->unique_labels[j]){
-                types2_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
-    }
-    for(std::string label : label1_vec){
-        types1_vec.push_back(system->label2type.at(label));
-    }
-
-    for(std::string label : label3_vec){
-        bool assigned = false;
-        for(int j=0; j<system->ntype; j++){
-            if(label == system->unique_labels[j]){
-                types3_vec.push_back(j);
-                assigned = true;
-            }
-        }
-        assert(assigned);
-    }
-    */
     // allocate memory for matrices
     H_mat = new double*[system->ntype];
     eta_mat = new double*[system->ntype];
@@ -238,12 +199,13 @@ void Vashishta::sort_params()
    separated by a distance 'rij'.
 ------------------------------------------------------------------- */
 
-double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij)
+double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
+                                   std::valarray<double> &force, const bool comp_force)
 {
     double rijinv, rijinv2, rijinv4, rijinv6, energy;
 
     energy = 0.0;
-    if(rij < rc_mat[typei][typej]){
+    if (rij < rc_mat[typei][typej]){
         rijinv = 1.0 / rij;
         rijinv2 = rijinv * rijinv;
         rijinv4 = rijinv2 * rijinv2;
@@ -252,6 +214,9 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
         energy += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv * std::exp(-rij * lambda1inv_mat[typei][typej]);
         energy -= D_mat[typei][typej] * rijinv4 * std::exp(-rij * lambda4inv_mat[typei][typej]);
         energy -= W_mat[typei][typej] * rijinv6;
+        if (comp_force) {
+            // do something
+        }
     }
     return energy;
 }
@@ -266,20 +231,24 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 ------------------------------------------------------------------ */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej, const int typek,
-        const std::valarray<double> delij, const std::valarray<double> delik, const double rij)
+        const std::valarray<double> delij, const std::valarray<double> delik, const double rij,
+        std::valarray<double> &force, const bool comp_force)
 {
     double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
 
     rik = std::sqrt(norm(delik));
 
     energy = 0.0;
-    if(rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
+    if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
         costhetaijk = (delij * delik).sum() / (rij * rik);
         expij = std::exp(gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]));
         expik = std::exp(gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]));
         delcos = costheta_mat[typei][typej][typek] - costhetaijk;
         delcossq = delcos * delcos;
         energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
+        if (comp_force) {
+            // do something
+        }
     }
     return energy;
 }
@@ -290,16 +259,6 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
    one or several atoms. This function might be redundant.
 ------------------------------------------------------------------ */
 
-/*
-double Vashishta::comp_energy_mol(const std::vector<Particle *> particles, Molecule* molecule)
-{
-    double energy = 0.0;
-    for (int i : molecule->atoms_idx){
-        energy += comp_energy_par(particles, i);
-    }
-    return energy;
-}
-*/
 double Vashishta::comp_energy_mol(const std::vector<Particle> particles, Molecule* molecule)
 {
     double energy = 0.0;
@@ -314,54 +273,16 @@ double Vashishta::comp_energy_mol(const std::vector<Particle> particles, Molecul
    Compute energy contribution of a particle 'i', given a 
    vector containing all particles.
 ------------------------------------------------------------------ */
-/*
-double Vashishta::comp_energy_par(const std::vector<Particle *> particles, const int i)
-{
-    // declare variables
-    int typei = particles[i]->type; 
-    int typej, typek;
-    int npar = particles.size();
-    double rij, energy;
-    std::valarray<double> delij, delik;
 
-    energy = 0.0;
-    for(int j=0; j<i; j++){
-        // two-body
-        typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(norm(delij));
-        energy += comp_twobody_par(typei, typej, rij);
 
-        for(int k=0; k<npar; k++){
-            if (k==i || k == j) continue;
-
-            // three-body
-            typek = particles[k]->type;
-            delik = particles[k]->r - particles[i]->r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
-        }
-    }
-
-    for(int j=i+1; j<npar; j++){
-        // two-body
-        typej = particles[j]->type;
-        delij = particles[j]->r - particles[i]->r;
-        rij = std::sqrt(norm(delij));  // might be a good idea to write this out instead
-        energy += comp_twobody_par(typei, typej, rij);
-
-        for(int k=0; k<npar; k++){
-            if (k==i || k == j) continue;
-
-            // three-body
-            typek = particles[k]->type;
-            delik = particles[k]->r - particles[i]->r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
-        }
-    }
-    return (energy);
-}
-*/
 double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i)
+{
+    std::valarray<double> force;
+    return comp_energy_par(particles, i, force, false);
+}
+
+double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i,
+                                  std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
     int typei = particles[i].type; 
@@ -376,7 +297,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
-        energy += comp_twobody_par(typei, typej, rij);
+        energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
         for(int k=0; k<npar; k++){
             if (k==i || k == j) continue;
@@ -384,7 +305,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
             // three-body
             typek = particles[k].type;
             delik = particles[k].r - particles[i].r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij, force, comp_force);
         }
     }
 
@@ -392,8 +313,8 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
         // two-body
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
-        rij = std::sqrt(norm(delij));  // might be a good idea to write this out instead
-        energy += comp_twobody_par(typei, typej, rij);
+        rij = std::sqrt(norm(delij));
+        energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
         for(int k=0; k<npar; k++){
             if (k==i || k == j) continue;
@@ -401,7 +322,7 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
             // three-body
             typek = particles[k].type;
             delik = particles[k].r - particles[i].r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij);
+            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij, force, comp_force);
         }
     }
     return (energy);
@@ -417,38 +338,38 @@ Vashishta::~Vashishta()
 {
     for(int i = 0; i < system->ntype; i++){
         for(int j = 0; j < system->ntype; j++){
-            delete B_mat[i][j];
-            delete C_mat[i][j];
-            delete costheta_mat[i][j];
+            delete[] B_mat[i][j];
+            delete[] C_mat[i][j];
+            delete[] costheta_mat[i][j];
         }
-        delete H_mat[i];
-        delete eta_mat[i];
-        delete Zi_mat[i];
-        delete Zj_mat[i];
-        delete lambda1inv_mat[i];
-        delete D_mat[i];
-        delete lambda4inv_mat[i];
-        delete W_mat[i];
-        delete rc_mat[i];
-        delete B_mat[i];
-        delete gamma_mat[i];
-        delete r0_mat[i];
-        delete C_mat[i];
-        delete costheta_mat[i];
+        delete[] H_mat[i];
+        delete[] eta_mat[i];
+        delete[] Zi_mat[i];
+        delete[] Zj_mat[i];
+        delete[] lambda1inv_mat[i];
+        delete[] D_mat[i];
+        delete[] lambda4inv_mat[i];
+        delete[] W_mat[i];
+        delete[] rc_mat[i];
+        delete[] B_mat[i];
+        delete[] gamma_mat[i];
+        delete[] r0_mat[i];
+        delete[] C_mat[i];
+        delete[] costheta_mat[i];
     }
-    delete H_mat;
-    delete eta_mat;
-    delete Zi_mat;
-    delete Zj_mat;
-    delete lambda1inv_mat;
-    delete D_mat;
-    delete lambda4inv_mat;
-    delete W_mat;
-    delete rc_mat;
-    delete B_mat;
-    delete gamma_mat;
-    delete r0_mat;
-    delete C_mat;
-    delete costheta_mat;
+    delete[] H_mat;
+    delete[] eta_mat;
+    delete[] Zi_mat;
+    delete[] Zj_mat;
+    delete[] lambda1inv_mat;
+    delete[] D_mat;
+    delete[] lambda4inv_mat;
+    delete[] W_mat;
+    delete[] rc_mat;
+    delete[] B_mat;
+    delete[] gamma_mat;
+    delete[] r0_mat;
+    delete[] C_mat;
+    delete[] costheta_mat;
 }
 

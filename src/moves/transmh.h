@@ -1,17 +1,23 @@
 #pragma once
 #include <cmath>
+#include <string>
+#include <valarray>
 #include "moves.h"
 
 
 class TransMH : public Moves
 {
 public:
-    TransMH(class Box* box_in, const double dx_in=0.01, const double Ddt_in=0.01);
-    void perform_move(const int i);
-    double accept();
-    void update_box(const int i);
+    TransMH(class System *, class Box *, double = 0.01, double = 0.01);
+    void perform_move();
+    double accept(double, double);
+    void reset();
+    void update_nsystemsize();
+    std::string repr();
 
 private:
+    unsigned int i;
     double dx, Ddt;
-    rowvec eps, da;
+    std::valarray<double> eps, df;
+    class Box* box = nullptr;
 };

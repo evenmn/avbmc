@@ -2,7 +2,6 @@
 #include <string>
 #include <vector>
 #include <valarray>
-#include <memory>
 
 #include "forcefield.h"
 
@@ -18,13 +17,12 @@ public:
     //double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy);
     //double comp_force_par(const rowvec pos, rowvec& acc);
     
-    double comp_twobody_par(int, int, double);
-    double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double);
+    double comp_twobody_par(int, int, double, std::valarray<double> &, bool);
+    double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
 
-    //double comp_energy_mol(std::vector<class Particle *>, class Molecule*);
-    //double comp_energy_par(std::vector<class Particle *>, int);
     double comp_energy_mol(std::vector<class Particle>, class Molecule*);
     double comp_energy_par(std::vector<class Particle>, int);
+    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
 
     //double update_force_par(const mat positions, const int i);
     //double update_force_all();
@@ -37,7 +35,7 @@ private:
     int nline;
 
     // vectors to store raw data from param file
-    std::vector<std::string> label3_vec; // label1_vec, label2_vec;
+    std::vector<std::string> label3_vec;
     std::vector<double> H_vec, eta_vec, Zi_vec, Zj_vec, lambda1_vec, D_vec, lambda4_vec;
     std::vector<double> W_vec, rc_vec, B_vec, gamma_vec, r0_vec, C_vec, costheta_vec;
 
