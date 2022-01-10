@@ -119,8 +119,8 @@ void MoleculeTypes::check_neighbors(const int k, const int i, unsigned int elm_c
    atom among the elements and checking the neighbor list
 ------------------------------------------------------------------ */
 
-Molecule* MoleculeTypes::construct_molecule(std::vector<Particle> particles,
-                                            const int i, bool &constructed)
+std::vector<int> MoleculeTypes::detect_molecule(std::vector<Particle> particles,
+                                         const int i, bool &detected)
 {
     std::vector<int> elm_idx;
     long unsigned int count = 0;
@@ -130,17 +130,16 @@ Molecule* MoleculeTypes::construct_molecule(std::vector<Particle> particles,
         int k = system->rng->next_int(particles.size());     // pick initial particle
         check_neighbors(k, i, 0, elm_idx, particles);
         if(elm_idx.size() == molecule_types[i].size()){
-            constructed = true;
+            detected = true;
             break;
         }
         count ++;
     }
-    if (!constructed)
+    if (!detected)
     {
         elm_idx.clear();
     }
-    Molecule molecule(elm_idx);
-    return &molecule;
+    return elm_idx;
 }
 
 

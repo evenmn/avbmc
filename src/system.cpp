@@ -239,6 +239,7 @@ void System::init_simulation()
     // map labels to types
     for (int i=0; i < ntype; i++){
         label2type[unique_labels[i]] = i;
+        std::cout << unique_labels[i] << std::endl;
     }
 
     // go through all particles in all boxes and assert that    

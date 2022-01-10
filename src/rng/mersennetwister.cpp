@@ -67,6 +67,7 @@ int MersenneTwister::choice(std::vector<double> probabilities)
     for (double prob : probabilities){
         sum_probs += prob;
     }
+    std::cout << sum_probs << std::endl;
     assert(std::abs(sum_probs - 1.0) < 0.01); //, "Sum of probabilities is not 1!");
 
     double r = next_double();

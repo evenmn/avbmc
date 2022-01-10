@@ -21,7 +21,7 @@ public:
     std::vector<int> build_neigh_list(std::vector<class Particle>, int, double);
     void check_neighbors(int, int, unsigned int, std::vector<int>&,
                          std::vector<class Particle>);
-    Molecule* construct_molecule(std::vector<class Particle>, int, bool&);
+    std::vector<int> detect_molecule(std::vector<class Particle>, int, bool&);
 
     std::vector<std::vector<std::string> > molecule_elements;
     std::vector<std::vector<std::valarray<double> > > default_mols;

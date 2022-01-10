@@ -35,11 +35,14 @@
 #include "rng/mersennetwister.h"
 #include "boundary/stillinger.h"
 #include "forcefield/lennardjones.h"
+#include "forcefield/vashishta.h"
 #include "sampler/umbrella.h"
 #include "moves/moves.h"
 #include "moves/trans.h"
+#include "moves/transmh.h"
 #include "moves/avbmcin.h"
 #include "moves/avbmcout.h"
+#include "moves/avbmcmolin.h"
 
 
 int main()
@@ -48,7 +51,8 @@ int main()
     System system("simulation");
     system.set_temp(0.7);
     system.set_chempot(-1.3);
-    LennardJones forcefield(&system, "params.lj");
+    //LennardJones forcefield(&system, "params.lj");
+    Vashishta forcefield(&system, "SiC.vashishta");
     system.set_forcefield(&forcefield);
     MersenneTwister* rng = new MersenneTwister();
     system.set_rng(rng);
@@ -61,18 +65,22 @@ int main()
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
     Box box(&system);
-    Stillinger boundary(&box, 1.5);
+    Stillinger boundary(&box, 4.0);
     box.set_boundary(&boundary);
-    box.add_particle("Ar", {0, 0, 0});
+    box.add_particle("Si", {0, 0, 0});
+    box.add_particle("C", {3, 0, 0});
     system.add_box(&box);
 
     // initialize translation and AVBMC moves
-    Trans move1(&system, &box, 0.01);
-    AVBMCIn move2(&system, &box, "Ar", 0.9, 1.5);
-    AVBMCOut move3(&system, &box, 1.5);
+    Trans move1(&system, &box, 1.0);
+    //TransMH move2(&system, &box, 1.0, 0.);
+    //AVBMCIn move3(&system, &box, "Si", 0.9, 4.0);
+    AVBMCMolIn move3(&system, &box, 0.9, 4.0);
+    AVBMCOut move4(&system, &box, 4.0);
     system.add_move(&move1, 0.94);
-    system.add_move(&move2, 0.03);
+    //system.add_move(&move2, 0.47);
     system.add_move(&move3, 0.03);
+    system.add_move(&move4, 0.03);
 
     // set sampling outputs
     //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
@@ -80,13 +88,12 @@ int main()
 
     // run Monte Carlo simulation
     //box->snapshot("initial.xyz");
-    system.run_mc(10000000, 1);
+    system.run_mc(100000, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
     box.write_nsystemsize("nsystemsize.txt");
 
     delete rng;
-    
     return 0;
 }

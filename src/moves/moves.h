@@ -22,13 +22,11 @@ public:
     int ndrawn, naccept;
     std::string label;
 
-    //std::vector<class Box *> boxes;
-
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
     double norm(std::valarray<double>);
 
-    double pi = 3.14159265358979323846;
+    const double pi = 3.14159265358979323846;
     double du;
 
     class System* system = nullptr;

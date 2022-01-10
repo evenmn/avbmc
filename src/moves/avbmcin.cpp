@@ -117,5 +117,6 @@ std::string AVBMCIn::repr()
     move_info += "AVBMC particle insertion move\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
     move_info += "    Radius of inner sphere: " + std::to_string(r_below) + "\n";
+    move_info += "    Label of inserted atom: " + label_in + "\n";
     return move_info;
 }
