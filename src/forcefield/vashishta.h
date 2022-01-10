@@ -12,24 +12,14 @@ public:
     Vashishta(class System *, std::string);
     void read_param_file(std::string);
     void sort_params();
-    //double eval_acc_element(const mat positions, const int i, const int j, rowvec& acc, const bool comp_energy);
-    //double eval_acc_par(const mat positions, const int i, rowvec& acc, const bool comp_energy);
-    //double eval_acc(const mat positions, mat& accs, vec& potengs, const bool comp_energy);
-    //double comp_force_par(const rowvec pos, rowvec& acc);
     
     double comp_twobody_par(int, int, double, std::valarray<double> &, bool);
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
 
-    double comp_energy_mol(std::vector<class Particle>, class Molecule*);
     double comp_energy_par(std::vector<class Particle>, int);
     double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
 
-    //double update_force_par(const mat positions, const int i);
-    //double update_force_all();
     ~Vashishta();
-
-    //std::vector<int> build_neigh_list(const mat positions, const int i);
-    //void build_neigh_lists();
 
 private:
     int nline;

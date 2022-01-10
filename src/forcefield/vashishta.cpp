@@ -5,7 +5,6 @@
 #include <vector>
 #include <cmath>
 #include <cassert>
-#include <memory>
 
 #include "vashishta.h"
 #include "../system.h"
@@ -44,6 +43,7 @@ void Vashishta::read_param_file(const std::string params)
     double H, eta, Zi, Zj, lambda1, D, lambda4, W, rc, B, gamma, r0, C, costheta;
     while (std::getline(infile, line))
     {
+        std::cout << line << std::endl;
         std::istringstream iss(line);
         if (line.rfind("#", 0) == 0){
             // comments are allowed in parameter file
@@ -255,31 +255,9 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
 
 
 /* ---------------------------------------------------------------
-   Compute energy contribution from molecule consisting of
-   one or several atoms. This function might be redundant.
------------------------------------------------------------------- */
-
-double Vashishta::comp_energy_mol(const std::vector<Particle> particles, Molecule* molecule)
-{
-    double energy = 0.0;
-    for (int i : molecule->atoms_idx){
-        energy += comp_energy_par(particles, i);
-    }
-    return energy;
-}
-
-
-/* ---------------------------------------------------------------
    Compute energy contribution of a particle 'i', given a 
    vector containing all particles.
 ------------------------------------------------------------------ */
-
-
-double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i)
-{
-    std::valarray<double> force;
-    return comp_energy_par(particles, i, force, false);
-}
 
 double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i,
                                   std::valarray<double> &force, const bool comp_force)
