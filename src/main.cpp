@@ -43,6 +43,7 @@
 #include "moves/avbmcin.h"
 #include "moves/avbmcout.h"
 #include "moves/avbmcmolin.h"
+#include "moves/avbmcmolout.h"
 
 
 int main()
@@ -74,9 +75,9 @@ int main()
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 1.0);
     //TransMH move2(&system, &box, 1.0, 0.);
-    //AVBMCIn move3(&system, &box, "Si", 0.9, 4.0);
-    AVBMCMolIn move3(&system, &box, 0.9, 4.0);
-    AVBMCOut move4(&system, &box, 4.0);
+    AVBMCIn move3(&system, &box, "Si", 0.9, 4.0);
+    //AVBMCMolIn move3(&system, &box, 0.9, 4.0);
+    AVBMCOut move4(&system, &box, "Si", 4.0);
     system.add_move(&move1, 0.94);
     //system.add_move(&move2, 0.47);
     system.add_move(&move3, 0.03);
