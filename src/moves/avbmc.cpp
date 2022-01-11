@@ -1,5 +1,4 @@
 #include <iostream>
-#include <memory>
 
 #include "avbmc.h"
 #include "../box.h"
@@ -9,32 +8,21 @@
 
 /* -----------------------------------------------------------
    AVBMC constructor, which performs 50% insertation moves and
-   50% deletion moves. 
+   50% deletion moves and thus ensures that the detailed
+   balance is satisfied.
 -------------------------------------------------------------- */
 
+AVBMC::AVBMC(System* system_in, Box* box_in, const std::string label_in,
+             const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCIn(system_in, box_in, label_in, r_below_in, r_above_in),
+      AVBMCOut(system_in, box_in, label_in, r_above_in)
+{
+    box = box_in;
+    r_below = r_below_in;
+    r_above = r_above_in;
+    label = "AVBMC";
+}
 
-AVBMC::AVBMC(System* system_in, std::shared_ptr<Box> box_in, const double r_below_in, const double r_above_in)
-    : Moves(system_in), AVBMCIn(system_in, box_in, r_below_in, r_above_in),
-      AVBMCOut(system_in, box_in, r_above_in)
-{
-    box = box_in;
-    boxes.push_back(box);
-    r_below = r_below_in;
-    r_above = r_above_in;
-    label = "AVBMC";
-}
-/*
-AVBMC::AVBMC(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
-    : Moves(system_in), AVBMCIn(system_in, box_in, r_below_in, r_above_in),
-      AVBMCOut(system_in, box_in, r_above_in)
-{
-    box = box_in;
-    boxes.push_back(box);
-    r_below = r_below_in;
-    r_above = r_above_in;
-    label = "AVBMC";
-}
-*/
 
 /* -----------------------------------------------------------
    Pick in or out moves with the same probability
@@ -83,6 +71,22 @@ void AVBMC::reset()
     }
     else{
         AVBMCOut::reset();
+    }
+}
+
+
+/* ----------------------------------------------------------
+   Update number of time this system size has occured if
+   move was accepted
+------------------------------------------------------------- */
+
+void AVBMC::update_nsystemsize()
+{
+    if (move_in) {
+        AVBMCIn::update_nsystemsize();
+    }
+    else {
+        AVBMCOut::update_nsystemsize();
     }
 }
 

@@ -19,13 +19,15 @@
    canonical ensemble only
 -------------------------------------------------------- */
 
-AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const double r_above_in)
+AVBMCOut::AVBMCOut(System* system_in, Box* box_in, std::string label_in,
+                   const double r_above_in)
     : Moves(system_in)
 {
     box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
+    particle_label = label_in;
     label = "AVBMCOut";
 }
 
@@ -37,29 +39,43 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const double r_above_in)
 
 void AVBMCOut::perform_move()
 {
-    if(box->npar < 2) {
-        // reject if there is only one particle in the box
-        reject_move = true;
-    }
-    else {
-        reject_move = false;
-        // create local neighbor list of particle i
-        int i = rng->next_int(box->npar);
-        std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
-        n_in = neigh_listi.size();
-
-        if(n_in > 0) {
-            // pick particle to be removed randomly among neighbors
-            int neigh_idx = rng->next_int(n_in);
-            int j = neigh_listi[neigh_idx];  // particle to be removed
-            du = -system->forcefield->comp_energy_par(box->particles, j);
-            box->poteng += du;
-            particle_out = box->particles[j];
-            box->particles.erase(box->particles.begin() + j);
-            box->npar --;
+    unsigned int i, j, counti, countj, neigh_idx;
+    reject_move = true;
+    if (box->npar > 2) {
+        counti = 0;
+        // ensure that removed particle is of correct type
+        while (reject_move && counti < box->npar) {
+            i = rng->next_int(box->npar);
+            if (box->particles[i].label == particle_label) {
+                reject_move = false;
+            }
+            counti ++;
         }
-        else {
-            reject_move = true;
+        if (!reject_move) {
+            std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+            n_in = neigh_listi.size();
+
+            if (n_in > 0) {
+                // pick particle to be removed randomly among neighbors
+                reject_move = true;
+                countj = 0;
+                // ensure that removed particle is of correct type
+                while (reject_move && countj < n_in) {
+                    neigh_idx = rng->next_int(n_in);
+                    j = neigh_listi[neigh_idx];  // particle to be removed
+                    if (box->particles[j].label == particle_label) {
+                        reject_move = false;
+                    }
+                    countj ++;
+                }
+                if (!reject_move) {
+                    du = -system->forcefield->comp_energy_par(box->particles, j);
+                    box->poteng += du;
+                    particle_out = box->particles[j];
+                    box->particles.erase(box->particles.begin() + j);
+                    box->npar --;
+                }
+            }
         }
     }
 }
@@ -72,10 +88,10 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
-    if(reject_move){
+    if (reject_move) {
         return 0.;
     }
-    else{
+    else {
         bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
         return n_in * box->npar / (v_in * (box->npar - 1)) * std::exp(-(du+chempot+dw)/temp) * accept_boundary;
@@ -89,7 +105,7 @@ double AVBMCOut::accept(double temp, double chempot)
 
 void AVBMCOut::reset()
 {
-    if (!reject_move){
+    if (!reject_move) {
         box->npar ++;
         box->poteng -= du;
         box->particles.push_back(particle_out);

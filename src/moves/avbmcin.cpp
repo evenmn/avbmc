@@ -21,7 +21,7 @@
 -------------------------------------------------------- */
 
 
-AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string particle_label,
+AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string label_in,
                  const double r_below_in, const double r_above_in)
     : Moves(system_in)
 {
@@ -32,7 +32,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string particle_label,
     r_belowsq = r_below * r_below;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 
-    label_in = particle_label;
+    particle_label = label_in;
     label = "AVBMCIn ";
 }
 
@@ -58,9 +58,9 @@ void AVBMCIn::perform_move()
         normsq = norm(dr);
     }
 
-    Particle particle_in(label_in, box->particles[i].r + dr);
+    Particle particle_in(particle_label, box->particles[i].r + dr);
     box->npar ++;
-    particle_in.type = system->label2type.at(label_in);
+    particle_in.type = system->label2type.at(particle_label);
     box->particles.push_back(particle_in);
 
     // compute du
@@ -117,6 +117,6 @@ std::string AVBMCIn::repr()
     move_info += "AVBMC particle insertion move\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
     move_info += "    Radius of inner sphere: " + std::to_string(r_below) + "\n";
-    move_info += "    Label of inserted atom: " + label_in + "\n";
+    move_info += "    Label of inserted atom: " + particle_label + "\n";
     return move_info;
 }

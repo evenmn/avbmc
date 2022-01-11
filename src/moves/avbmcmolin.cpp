@@ -41,6 +41,22 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
     label = "AVBMCMolIn";
 }
 
+/*
+AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
+                       const double r_below_in, const double r_above_in,
+                       std::vector<std::string> molecule_elements,
+                       std::vector<std::valarray<double> > atom_positions)
+    : Moves(system_in)
+{
+    box = box_in;
+    r_below = r_below_in;
+    r_above = r_above_in;
+    r_abovesq = r_above * r_above;
+    r_belowsq = r_below * r_below;
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
+    label = "AVBMCMolIn";
+}
+*/
 
 /* ------------------------------------------------------------
    Insert molecule into the bonded region of an equivalent

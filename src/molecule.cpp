@@ -115,8 +115,9 @@ void MoleculeTypes::check_neighbors(const int k, const int i, unsigned int elm_c
 
 
 /* ---------------------------------------------------------------
-   Construct molecule of type 'i' randomly by picking a random 
-   atom among the elements and checking the neighbor list
+   Detect molecule of type 'i' randomly by picking a random 
+   atom among the elements and checking the neighbor list.
+   Returning a list of atom ids if molecule is detected
 ------------------------------------------------------------------ */
 
 std::vector<int> MoleculeTypes::detect_molecule(std::vector<Particle> particles,
