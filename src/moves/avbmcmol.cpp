@@ -2,6 +2,8 @@
 #include <string>
 
 #include "avbmcmol.h"
+#include "avbmcmolin.h"
+#include "avbmcmolout.h"
 #include "../box.h"
 #include "../system.h"
 #include "../rng/rng.h"
@@ -12,8 +14,8 @@
    50% deletion moves. 
 -------------------------------------------------------------- */
 
-AVBMCMol::AVBMCMol(System* system_in, Box* box_in, const double r_below_in, const double r_above_in)
-    : Moves(system_in), AVBMCMolIn(system_in, box_in, r_below_in, r_above_in), AVBMCMolOut(system_in, box_in, r_above_in)
+AVBMCMol::AVBMCMol(System* system_in, Box* box_in, std::vector<class Particle> particles_in, double r_inner_max_in, const double r_below_in, const double r_above_in)
+    : Moves(system_in), AVBMCMolIn(system_in, box_in, particles_in, r_below_in, r_above_in, r_inner_max_in), AVBMCMolOut(system_in, box_in, particles_in, r_above_in, r_inner_max_in)
 {
     box = box_in;
     r_below = r_below_in;

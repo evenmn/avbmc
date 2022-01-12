@@ -18,7 +18,6 @@
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
-#include "molecule.h"
 
 
 /* -------------------------------------------------------
@@ -32,17 +31,8 @@ System::System(std::string working_dir_in)
     time = temp = chempot = 0.;
 
     initialized = false;
-    nbox = ntype = nmove = nprocess = step = 0;
+    nbox = nmove = nprocess = step = 0;
     ndim = 3;
-
-    // set default objects
-    //MersenneTwister rngrng();
-    //rng = &rngrng;
-    //integrator = new VelocityVerlet(this);
-    //forcefield = new LennardJones(this);
-    //sampler = new Metropolis(this);
-    //MoleculeTypes moleculetypes(this);
-    molecule_types = new MoleculeTypes(this);
 
     // initialize MPI
     int initialized_mpi;
@@ -95,6 +85,7 @@ void System::set_mass(const std::string label, const double mass)
 void System::set_forcefield(class ForceField* forcefield_in)
 {
     forcefield = forcefield_in;
+    initialized = true;
 }
 
 
@@ -131,39 +122,20 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
 
 /* --------------------------------------------------
    Add move type and the corresponding probability.
-   The probabilities have to add up to 1.
+   The probabilities have to add up to 1. Forcefield
+   has to initialized first, to link AVBMC atoms
+   to types.
 ----------------------------------------------------- */
 
 void System::add_move(Moves* move, double prob)
 {
+    if (!initialized) {
+        std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 143);
+    }
     nmove ++;
     moves.emplace_back(move);
     moves_prob.push_back(prob);
-}
-
-
-/* ------------------------------------------------------
-   Add new molecule type when molecule is defined by
-   one atom.
---------------------------------------------------------- */
-
-void System::add_molecule_type(std::string element, const double molecule_prob)
-{
-    std::vector<std::string> elements = {element};
-    std::valarray<double> default_atom(0.0, ndim);
-    std::vector<std::valarray<double> > default_mol = {default_atom};
-    molecule_types->add_molecule_type(elements, 0.0, molecule_prob, default_mol);
-}
-
-
-/* ------------------------------------------------------
-   Add new molecule type consisting of several atoms
---------------------------------------------------------- */
-
-void System::add_molecule_type(std::vector<std::string> elements, const double rc, const double molecule_prob,
-                            std::vector<std::valarray<double> > default_mol)
-{
-    molecule_types->add_molecule_type(elements, rc, molecule_prob, default_mol);
 }
 
 
@@ -190,75 +162,6 @@ void System::check_masses()
     for (std::string mass_label : mass_labels) {
         label2type.at(mass_label);
     }
-}
-
-
-/* ----------------------------------------------------
-   Initialize molecules used by AVBMCMol types of moves
-------------------------------------------------------- */
-
-void System::init_molecules()
-{
-    // If molecule configuration is not set, let all single particles
-    // be considered as molecules
-    if (!molecule_types->configured)
-    {
-        for(std::string label : unique_labels) {
-            add_molecule_type(label, 1./ntype);
-        }
-    }
-
-    // Since particles are associated with types rather than labels,
-    // also molecule configuration labels have to be converted to types
-    for(std::vector<std::string> elements : molecule_types->molecule_elements) {
-        std::vector<int> types;
-        for (std::string element : elements) {
-            types.push_back(label2type.at(element));
-        }
-        molecule_types->molecule_types.push_back(types); 
-    }
-}
-
-
-/* -------------------------------------------------------
-   Initialize variables needed before simulation.
-   Ensure that all particles are covered by parameter file.
-   All forcefields should have a label1_vec, which covers
-   all element labels
----------------------------------------------------------- */
-
-void System::init_simulation()
-{
-    // find unique labels
-    unique_labels = forcefield->label1_vec;
-    std::sort( unique_labels.begin(), unique_labels.end() );
-    unique_labels.erase( std::unique( unique_labels.begin(),
-                         unique_labels.end() ), unique_labels.end() );
-    ntype = unique_labels.size();
-
-    // map labels to types
-    for (int i=0; i < ntype; i++){
-        label2type[unique_labels[i]] = i;
-        std::cout << unique_labels[i] << std::endl;
-    }
-
-    // go through all particles in all boxes and assert that    
-    // all element labels are covered by parameter file
-    for (Box* box : boxes) {
-        for (Particle& particle : box->particles) {
-            try {
-                // will throw exception if label is not known
-                particle.type = label2type.at(particle.label);
-            }
-            catch (...) {
-                std::cout << "Particle label '" + particle.label; 
-                std::cout << "' is not covered by parameter file!" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 143);
-            }
-        }
-    }
-    // Sort forcefield parameters according to particle types
-    forcefield->sort_params();
 }
 
 
@@ -319,30 +222,18 @@ void System::print_info()
               << " " << forcefield->paramfile << std::endl;
     std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of particle types: " << ntype << std::endl;
+    std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
     std::cout << "Unique particle types:";
-    for(int i=0; i < ntype; i++){
-        std::cout << " " << unique_labels[i];
+    for(int i=0; i < forcefield->ntype; i++){
+        std::cout << " " << forcefield->unique_labels[i];
     }
     std::cout << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of boxes:          " << nbox << std::endl;
+    std::cout << "Number of boxes: " << nbox << std::endl;
     for(int i=0; i < nbox; i++){
         std::cout << "  Box " << i+1 << ":" << std::endl;
         std::cout << "    Number of atoms:   " << boxes[i]->npar << std::endl;
         std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
-    }
-    std::cout << std::endl;
-    std::cout << "Number of molecule types: " << molecule_types->ntype << std::endl;
-    for(int i=0; i < molecule_types->ntype; i++){
-        std::cout << "  Molecule type " << i+1 << ":" << std::endl;
-        std::cout << "    Atoms:            ";
-        for(std::string element : molecule_types->molecule_elements[i]){
-            std::cout << " " << element;
-        }
-        std::cout << std::endl;
-        std::cout << "    Critical distance: " << molecule_types->rcs[i] << std::endl;
-        std::cout << "    Probability:       " << molecule_types->molecule_probs[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -404,8 +295,6 @@ void Box::run_md(const int nsteps)
 
 void System::run_mc(const int nsteps, const int nmoves)
 {
-    init_simulation();
-    init_molecules();
     for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
@@ -415,6 +304,9 @@ void System::run_mc(const int nsteps, const int nmoves)
         move->ndrawn = 0;
         move->naccept = 0;
     }
+
+    double sum_prob = std::accumulate(moves_prob.begin(), moves_prob.end(), 0.);
+    assert ((sum_prob - 1.0) < 0.01);
 
     if (rank == 0) {
         print_logo();
@@ -475,6 +367,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 ------------------------------------------------------------ */
 System::~System()
 {
-    delete molecule_types;
     MPI_Finalize();
 }

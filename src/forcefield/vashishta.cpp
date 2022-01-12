@@ -4,12 +4,10 @@
 #include <string>
 #include <vector>
 #include <cmath>
-#include <cassert>
 
 #include "vashishta.h"
 #include "../system.h"
 #include "../particle.h"
-#include "../molecule.h"
 
 
 /* -----------------------------------------------------------------
@@ -19,9 +17,12 @@
 Vashishta::Vashishta(System* system_in, const std::string params)
     : ForceField(system_in)
 {
-    read_param_file(params);
     label = "Vashishta";
     paramfile = params;
+    read_param_file(params);
+    create_label_mapping();
+    allocate_memory();
+    sort_params();
 }
 
 
@@ -43,18 +44,17 @@ void Vashishta::read_param_file(const std::string params)
     double H, eta, Zi, Zj, lambda1, D, lambda4, W, rc, B, gamma, r0, C, costheta;
     while (std::getline(infile, line))
     {
-        std::cout << line << std::endl;
         std::istringstream iss(line);
-        if (line.rfind("#", 0) == 0){
+        if (line.rfind("#", 0) == 0) {
             // comments are allowed in parameter file
             continue;
         }
-        else if (line.empty()){
+        else if (line.empty()) {
             // empty lines are allowed in parameter file
             continue;
         }
         else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1
-                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
+                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta) { 
             label1_vec.push_back(label1);
             label2_vec.push_back(label2);
             label3_vec.push_back(label3);
@@ -74,11 +74,99 @@ void Vashishta::read_param_file(const std::string params)
             costheta_vec.push_back(costheta);
             nline ++;
         }
-        else{
+        else {
             std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
             std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
     }
+}
+
+
+/* -----------------------------------------------------------------
+   Allocate memory
+-------------------------------------------------------------------- */
+
+void Vashishta::allocate_memory()
+{
+    H_mat = new double*[ntype];
+    eta_mat = new double*[ntype];
+    Zi_mat = new double*[ntype];
+    Zj_mat = new double*[ntype];
+    lambda1inv_mat = new double*[ntype];
+    D_mat = new double*[ntype];
+    lambda4inv_mat = new double*[ntype];
+    W_mat = new double*[ntype];
+    rc_mat = new double*[ntype];
+    gamma_mat = new double*[ntype];
+    r0_mat = new double*[ntype];
+    B_mat = new double**[ntype];
+    C_mat = new double**[ntype];
+    costheta_mat = new double**[ntype];
+    for (unsigned int i=0; i<ntype; i++) {
+        H_mat[i] = new double[ntype];
+        eta_mat[i] = new double[ntype];
+        Zi_mat[i] = new double[ntype];
+        Zj_mat[i] = new double[ntype];
+        lambda1inv_mat[i] = new double[ntype];
+        D_mat[i] = new double[ntype];
+        lambda4inv_mat[i] = new double[ntype];
+        W_mat[i] = new double[ntype];
+        rc_mat[i] = new double[ntype];
+        gamma_mat[i] = new double[ntype];
+        r0_mat[i] = new double[ntype];
+        B_mat[i] = new double*[ntype];
+        C_mat[i] = new double*[ntype];
+        costheta_mat[i] = new double*[ntype];
+        for (unsigned int j=0; j<ntype; j++) {
+            B_mat[i][j] = new double[ntype];
+            C_mat[i][j] = new double[ntype];
+            costheta_mat[i][j] = new double[ntype];
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Free memory
+------------------------------------------------------------------------------- */
+
+void Vashishta::free_memory()
+{
+    for (unsigned int i = 0; i < ntype; i++) {
+        for (unsigned int j = 0; j < ntype; j++) {
+            delete[] B_mat[i][j];
+            delete[] C_mat[i][j];
+            delete[] costheta_mat[i][j];
+        }
+        delete[] H_mat[i];
+        delete[] eta_mat[i];
+        delete[] Zi_mat[i];
+        delete[] Zj_mat[i];
+        delete[] lambda1inv_mat[i];
+        delete[] D_mat[i];
+        delete[] lambda4inv_mat[i];
+        delete[] W_mat[i];
+        delete[] rc_mat[i];
+        delete[] B_mat[i];
+        delete[] gamma_mat[i];
+        delete[] r0_mat[i];
+        delete[] C_mat[i];
+        delete[] costheta_mat[i];
+    }
+    delete[] H_mat;
+    delete[] eta_mat;
+    delete[] Zi_mat;
+    delete[] Zj_mat;
+    delete[] lambda1inv_mat;
+    delete[] D_mat;
+    delete[] lambda4inv_mat;
+    delete[] W_mat;
+    delete[] rc_mat;
+    delete[] B_mat;
+    delete[] gamma_mat;
+    delete[] r0_mat;
+    delete[] C_mat;
+    delete[] costheta_mat;
 }
 
 
@@ -90,63 +178,25 @@ void Vashishta::read_param_file(const std::string params)
 void Vashishta::sort_params()
 {
     // link list of chemical symbols to list of type indices
-    std::vector<int> types1_vec;
-    std::vector<int> types2_vec;
-    std::vector<int> types3_vec;
+    unsigned int type1, type2, type3, i;
+    std::vector<int> types1_vec, types2_vec, types3_vec;
     for(std::string label : label1_vec){
-        types1_vec.push_back(system->label2type.at(label));
+        types1_vec.push_back(label2type.at(label));
     }
     for(std::string label : label2_vec){
-        types2_vec.push_back(system->label2type.at(label));
+        types2_vec.push_back(label2type.at(label));
     }
     for(std::string label : label3_vec){
-        types3_vec.push_back(system->label2type.at(label));
-    }
-    // allocate memory for matrices
-    H_mat = new double*[system->ntype];
-    eta_mat = new double*[system->ntype];
-    Zi_mat = new double*[system->ntype];
-    Zj_mat = new double*[system->ntype];
-    lambda1inv_mat = new double*[system->ntype];
-    D_mat = new double*[system->ntype];
-    lambda4inv_mat = new double*[system->ntype];
-    W_mat = new double*[system->ntype];
-    rc_mat = new double*[system->ntype];
-    gamma_mat = new double*[system->ntype];
-    r0_mat = new double*[system->ntype];
-    B_mat = new double**[system->ntype];
-    C_mat = new double**[system->ntype];
-    costheta_mat = new double**[system->ntype];
-    for(int i=0; i<system->ntype; i++){
-        H_mat[i] = new double[system->ntype];
-        eta_mat[i] = new double[system->ntype];
-        Zi_mat[i] = new double[system->ntype];
-        Zj_mat[i] = new double[system->ntype];
-        lambda1inv_mat[i] = new double[system->ntype];
-        D_mat[i] = new double[system->ntype];
-        lambda4inv_mat[i] = new double[system->ntype];
-        W_mat[i] = new double[system->ntype];
-        rc_mat[i] = new double[system->ntype];
-        gamma_mat[i] = new double[system->ntype];
-        r0_mat[i] = new double[system->ntype];
-        B_mat[i] = new double*[system->ntype];
-        C_mat[i] = new double*[system->ntype];
-        costheta_mat[i] = new double*[system->ntype];
-        for(int j=0; j<system->ntype; j++){
-            B_mat[i][j] = new double[system->ntype];
-            C_mat[i][j] = new double[system->ntype];
-            costheta_mat[i][j] = new double[system->ntype];
-        }
+        types3_vec.push_back(label2type.at(label));
     }
     // fill up matrices with parameters
-    int type1, type2, type3;
-    for(int i=0; i<nline; i++){
+    for (i=0; i < nline; i++) {
         type1 = types1_vec[i];
         type2 = types2_vec[i];
         type3 = types3_vec[i];
 
         // two-body parameters
-        if (type2 == type3){  
+        if (type2 == type3) {  
             H_mat[type1][type2] = H_vec[i];
             H_mat[type2][type1] = H_vec[i];
             eta_mat[type1][type2] = eta_vec[i];
@@ -204,8 +254,8 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 {
     double rijinv, rijinv2, rijinv4, rijinv6, energy;
 
-    energy = 0.0;
-    if (rij < rc_mat[typei][typej]){
+    energy = 0.;
+    if (rij < rc_mat[typei][typej]) {
         rijinv = 1.0 / rij;
         rijinv2 = rijinv * rijinv;
         rijinv4 = rijinv2 * rijinv2;
@@ -230,16 +280,16 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
    is the actual distance between particle i and j.
 ------------------------------------------------------------------ */
 
-double Vashishta::comp_threebody_par(const int typei, const int typej, const int typek,
-        const std::valarray<double> delij, const std::valarray<double> delik, const double rij,
+double Vashishta::comp_threebody_par(const int typei, const int typej,
+        const int typek, const std::valarray<double> delij,
+        const std::valarray<double> delik, const double rij,
         std::valarray<double> &force, const bool comp_force)
 {
     double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
 
+    energy = 0.;
     rik = std::sqrt(norm(delik));
-
-    energy = 0.0;
-    if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
+    if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]) {
         costhetaijk = (delij * delik).sum() / (rij * rik);
         expij = std::exp(gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]));
         expik = std::exp(gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]));
@@ -250,7 +300,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
             // do something
         }
     }
-    return energy;
+    return (energy);
 }
 
 
@@ -263,21 +313,21 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
                                   std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int typei = particles[i].type; 
-    int typej, typek;
-    int npar = particles.size();
     double rij, energy;
+    int typei, typej, typek, npar, j, k;
     std::valarray<double> delij, delik;
+    typei = particles[i].type; 
+    npar = particles.size();
 
-    energy = 0.0;
-    for(int j=0; j<i; j++){
+    energy = 0.;
+    for(j=0; j<i; j++){
         // two-body
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
-        for(int k=0; k<npar; k++){
+        for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
 
             // three-body
@@ -287,14 +337,14 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
         }
     }
 
-    for(int j=i+1; j<npar; j++){
+    for(j=i+1; j<npar; j++){
         // two-body
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
-        for(int k=0; k<npar; k++){
+        for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
 
             // three-body
@@ -314,40 +364,6 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
 
 Vashishta::~Vashishta()
 {
-    for(int i = 0; i < system->ntype; i++){
-        for(int j = 0; j < system->ntype; j++){
-            delete[] B_mat[i][j];
-            delete[] C_mat[i][j];
-            delete[] costheta_mat[i][j];
-        }
-        delete[] H_mat[i];
-        delete[] eta_mat[i];
-        delete[] Zi_mat[i];
-        delete[] Zj_mat[i];
-        delete[] lambda1inv_mat[i];
-        delete[] D_mat[i];
-        delete[] lambda4inv_mat[i];
-        delete[] W_mat[i];
-        delete[] rc_mat[i];
-        delete[] B_mat[i];
-        delete[] gamma_mat[i];
-        delete[] r0_mat[i];
-        delete[] C_mat[i];
-        delete[] costheta_mat[i];
-    }
-    delete[] H_mat;
-    delete[] eta_mat;
-    delete[] Zi_mat;
-    delete[] Zj_mat;
-    delete[] lambda1inv_mat;
-    delete[] D_mat;
-    delete[] lambda4inv_mat;
-    delete[] W_mat;
-    delete[] rc_mat;
-    delete[] B_mat;
-    delete[] gamma_mat;
-    delete[] r0_mat;
-    delete[] C_mat;
-    delete[] costheta_mat;
+    free_memory();
 }
 

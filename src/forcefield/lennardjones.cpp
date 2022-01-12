@@ -7,14 +7,13 @@
 #include "lennardjones.h"
 #include "../system.h"
 #include "../particle.h"
-#include "../molecule.h"
 
 
 /* -----------------------------------------------------
    This is the default constructor when parameter
    file is not given. It only works for pure Argon
 -------------------------------------------------------- */
-
+/*
 LennardJones::LennardJones(System* system_in)
     : ForceField(system_in)
 {
@@ -27,7 +26,7 @@ LennardJones::LennardJones(System* system_in)
     label = "Lennard-Jones";
     paramfile = "";
 }
-
+*/
 
 /* ------------------------------------------------------
    This is the default constructor when a parameter
@@ -37,9 +36,12 @@ LennardJones::LennardJones(System* system_in)
 LennardJones::LennardJones(System* system_in, const std::string params)
     : ForceField(system_in)
 {
-    read_param_file(params);
     label = "Lennard-Jones";
     paramfile = params;
+    read_param_file(params);
+    create_label_mapping();
+    allocate_memory();
+    sort_params();
 }
 
 
@@ -58,15 +60,15 @@ void LennardJones::read_param_file(const std::string params)
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
-        if (line.rfind("#", 0) == 0){
+        if (line.rfind("#", 0) == 0) {
             // comments are allowed in parameter file
             continue;
         }
-        else if(line.empty()){
+        else if (line.empty()) {
             // empty lines are allowed in parameter file
             continue;
         }
-        else if (iss >> label1 >> label2 >> sigma >> epsilon >> rc){ 
+        else if (iss >> label1 >> label2 >> sigma >> epsilon >> rc) { 
             label1_vec.push_back(label1);
             label2_vec.push_back(label2);
             sigma_vec.push_back(sigma);
@@ -74,13 +76,50 @@ void LennardJones::read_param_file(const std::string params)
             rc_vec.push_back(rc);
             nline ++;
         }
-        else{
+        else {
             std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
             std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
     }
 }
 
+
+/* ---------
+   Allocate memory for matrices
+---------------------------------- */
+
+void LennardJones::allocate_memory()
+{
+    sigma_mat = new double*[ntype];
+    epsilon_mat = new double*[ntype];
+    rc_sqrd_mat = new double*[ntype];
+    shift_mat = new double*[ntype];
+    for (unsigned int i=0; i<ntype; i++) {
+        sigma_mat[i] = new double[ntype];
+        epsilon_mat[i] = new double[ntype];
+        rc_sqrd_mat[i] = new double[ntype];
+        shift_mat[i] = new double[ntype];
+    }
+}
+
+
+/* --------------
+   Free memory for matrices
+------------------------------- */
+
+void LennardJones::free_memory()
+{
+    for (unsigned int i = 0; i < ntype; i++) {
+        delete[] sigma_mat[i];
+        delete[] epsilon_mat[i];
+        delete[] rc_sqrd_mat[i];
+        delete[] shift_mat[i];
+    }
+    delete[] sigma_mat;
+    delete[] epsilon_mat;
+    delete[] rc_sqrd_mat;
+    delete[] shift_mat;
+}
 
 /* ------------------------------------------------------
    Parameters have to be sorted with respect to
@@ -94,41 +133,30 @@ void LennardJones::read_param_file(const std::string params)
 void LennardJones::sort_params()
 {
     // link list of labels to list of type indices
-    std::vector<int> types1_vec;
+    double rcsq, s6, s12;
+    unsigned int type1, type2, i;
+    std::vector<int> types1_vec, types2_vec;
     for(std::string label : label1_vec){
-        types1_vec.push_back(system->label2type.at(label));
+        types1_vec.push_back(label2type.at(label));
     }
-    std::vector<int> types2_vec;
     
     for(std::string label : label2_vec){
-        types2_vec.push_back(system->label2type.at(label));
+        types2_vec.push_back(label2type.at(label));
     }
 
-    // allocate memory for matrices
-    sigma_mat = new double*[system->ntype];
-    epsilon_mat = new double*[system->ntype];
-    rc_sqrd_mat = new double*[system->ntype];
-    shift_mat = new double*[system->ntype];
-    for(int i=0; i<system->ntype; i++){
-        sigma_mat[i] = new double[system->ntype];
-        epsilon_mat[i] = new double[system->ntype];
-        rc_sqrd_mat[i] = new double[system->ntype];
-        shift_mat[i] = new double[system->ntype];
-    }
     // fill up matrices with parameters
-    int type1, type2;
-    for(int i=0; i<nline; i++){
+    for (i=0; i<nline; i++) {
         type1 = types1_vec[i];
         type2 = types2_vec[i];
         sigma_mat[type1][type2] = sigma_vec[i];
         sigma_mat[type2][type1] = sigma_vec[i];
         epsilon_mat[type1][type2] = epsilon_vec[i];
         epsilon_mat[type2][type1] = epsilon_vec[i];
-        double rcsq = rc_vec[i] * rc_vec[i];
+        rcsq = rc_vec[i] * rc_vec[i];
         rc_sqrd_mat[type1][type2] = rcsq;
         rc_sqrd_mat[type2][type1] = rcsq;
-        double s6 = std::pow(sigma_vec[i] / rcsq, 3);
-        double s12 = s6 * s6;
+        s6 = std::pow(sigma_vec[i] / rcsq, 3);
+        s12 = s6 * s6;
         shift_mat[type1][type2] = s12 - s6;
         shift_mat[type2][type1] = s12 - s6;
     }
@@ -142,20 +170,21 @@ void LennardJones::sort_params()
    'force' if 'comp_force' is true.
 --------------------------------------------------------- */
 
-double LennardJones::comp_twobody_par(const int typei, const int typej, const std::valarray<double> delij,
+double LennardJones::comp_twobody_par(const int typei, const int typej,
+                                      const std::valarray<double> delij,
                                       std::valarray<double> &force, const bool comp_force)
 {
-    double rijsq, rijinvsq, s6, s12;
+    double rijsq, rijinvsq, s6, s12, energy;
 
-    double energy = 0.;
+    energy = 0.;
     rijsq = norm(delij); 
-    if(rijsq < rc_sqrd_mat[typei][typej]){
+    if (rijsq < rc_sqrd_mat[typei][typej]) {
         rijinvsq = 1. / rijsq;
         s6 = std::pow(sigma_mat[typei][typej] * rijinvsq, 3);
         s12 = s6 * s6;
         energy = epsilon_mat[typei][typej] * (s12 - s6 - shift_mat[typei][typej]);
-        if(comp_force){
-            force += epsilon_mat[typei][typej] * (2 * s6 - s12) * delij * rijinvsq;
+        if (comp_force) {
+            force += epsilon_mat[typei][typej] * (2. * s6 - s12) * delij * rijinvsq;
         }
     }
     return energy;
@@ -170,19 +199,20 @@ double LennardJones::comp_energy_par(const std::vector<Particle> particles, cons
                                      std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int npar = particles.size();
-    int typei = particles[i].type;
+    int npar, typei, typej, j;
+    npar = particles.size();
+    typei = particles[i].type;
     std::valarray<double> delij;
     force.resize(system->ndim, 0.);
 
     double energy = 0.;
-    for(int j=0; j<i; j++){
-        int typej = particles[j].type;
+    for (j=0; j<i; j++) {
+        typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
-    for(int j=i+1; j<npar; j++){
-        int typej = particles[j].type;
+    for (j=i+1; j<npar; j++) {
+        typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
@@ -198,15 +228,6 @@ double LennardJones::comp_energy_par(const std::vector<Particle> particles, cons
 
 LennardJones::~LennardJones()
 {
-    for (int i = 0; i < system->ntype; i++) {
-        delete[] sigma_mat[i];
-        delete[] epsilon_mat[i];
-        delete[] rc_sqrd_mat[i];
-        delete[] shift_mat[i];
-    }
-    delete[] sigma_mat;
-    delete[] epsilon_mat;
-    delete[] rc_sqrd_mat;
-    delete[] shift_mat;
+    free_memory();
 }
 

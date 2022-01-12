@@ -11,19 +11,17 @@ class Vashishta : public ForceField
 public:
     Vashishta(class System *, std::string);
     void read_param_file(std::string);
+    void allocate_memory();
+    void free_memory();
     void sort_params();
     
     double comp_twobody_par(int, int, double, std::valarray<double> &, bool);
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
-
-    double comp_energy_par(std::vector<class Particle>, int);
     double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
 
     ~Vashishta();
 
 private:
-    int nline;
-
     // vectors to store raw data from param file
     std::vector<std::string> label3_vec;
     std::vector<double> H_vec, eta_vec, Zi_vec, Zj_vec, lambda1_vec, D_vec, lambda4_vec;
