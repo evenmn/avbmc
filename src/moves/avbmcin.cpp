@@ -33,6 +33,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string label_in,
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
 
     particle_label = label_in;
+    particle_type = system->forcefield->label2type.at(label_in);
     label = "AVBMCIn ";
 }
 
@@ -60,7 +61,7 @@ void AVBMCIn::perform_move()
 
     Particle particle_in(particle_label, box->particles[i].r + dr);
     box->npar ++;
-    particle_in.type = system->label2type.at(particle_label);
+    particle_in.type = particle_type;
     box->particles.push_back(particle_in);
 
     // compute du

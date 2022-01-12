@@ -1,8 +1,8 @@
 /* Information */
 
 /* -----------------------------------------------------
-   Aggregate-volume-biased in move. This is a fictitious 
-   inter-box move, and works in the grand canonical 
+   Aggregate-volume-biased in move. This is a fictitious
+   inter-box move, and works in the grand canonical
    essemble only. A predefined molecule is inserted
 -------------------------------------------------------- */
 
@@ -25,7 +25,7 @@
    AVBMC molecule insertation move constructor. Molecule
    is inserted in the bonded region of an equivalent
    molecule, defined by inner radius 'r_below_in' and
-   outer radius 'r_above_in'. 
+   outer radius 'r_above_in'.
 -------------------------------------------------------- */
 /*
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
@@ -43,10 +43,9 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
 */
 
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
-                       const double r_below_in, const double r_above_in,
+                       std::vector<Particle> particles_in,
                        const double r_max_inner_in,
-                       std::vector<std::string> molecule_elements_in,
-                       std::vector<std::valarray<double> > atom_positions_in)
+                       const double r_below_in, const double r_above_in)
     : Moves(system_in)
 {
     box = box_in;
@@ -55,11 +54,16 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
     r_max_inner = r_max_inner_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
-    molecule_elements = molecule_elements_in;
-    atom_positions = atom_positions_in;
-    natom = molecule_elements.size();
+    particles = particles_in;
+    natom = particles.size();
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     label = "AVBMCMolIn";
+
+    // ensure that first particle is located at origin
+    for (Particle &particle : particles) {
+        particle.r -= particles[0].r;
+        particle.type = system->forcefield->label2type.at(particle.label);
+    }
 }
 
 
@@ -77,11 +81,11 @@ void AVBMCMolIn::perform_move()
     //natom = molecule_types->molecule_elements[mol_idx].size();
 
     // rotate molecule arbitrary
-    positions = rotate_molecule(atom_positions);
+    //positions = rotate_molecule(atom_positions);
 
     // detect target molecule
     bool detected = false;
-    std::vector<int> target_molecule = detect_molecule(box->particles, mol_idx, detected);
+    std::vector<int> target_molecule = detect_molecule(box->particles, particles, detected, r_max_inner);
     //std::vector<int> target_molecule = system->molecule_types->detect_molecule(box->particles, mol_idx, detected);
     if (!detected) {
         reject_move = true;
@@ -104,12 +108,9 @@ void AVBMCMolIn::perform_move()
         }
 
         // construct new particles
-        for (int j=0; j < natom; j++) {
-            positions[j] += box->particles[i].r + dr;
-            std::string element = molecule_types->molecule_elements[mol_idx][j];
-            Particle particle(element, positions[j]);
-            particle.type = system->label2type[element];
-            box->particles.push_back(particle);
+        for (unsigned int j=0; j < natom; j++) {
+            particles[j].r += box->particles[i].r + dr;
+            box->particles.push_back(particles[j]);
             box->npar ++;
         }
 
@@ -120,8 +121,6 @@ void AVBMCMolIn::perform_move()
         }
         box->poteng += du;
     }
-    delete molecule_types;
-    molecule_types = nullptr;
 }
 
 

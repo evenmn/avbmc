@@ -48,7 +48,7 @@ public:
     class MoleculeTypes* molecule_types = nullptr;
 
     bool initialized;
-    int nbox, ndim, ntype, nmove, nprocess, step, rank;
+    int nbox, ndim, nmove, nprocess, step, rank;
     double temp, chempot, poteng, time;
     std::string working_dir;
 

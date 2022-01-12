@@ -8,7 +8,7 @@
 class AVBMCMol : public AVBMCMolIn, public AVBMCMolOut
 {
 public:
-    AVBMCMol(class System *, class Box *, double = 0.95, double = 3.0);
+    AVBMCMol(class System *, class Box *, std::vector<class Particle>, double, double = 0.95, double = 3.0);
     void perform_move();
     double accept(double, double);
     void reset();

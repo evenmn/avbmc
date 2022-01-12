@@ -14,7 +14,7 @@
    This is the default constructor when parameter
    file is not given. It only works for pure Argon
 -------------------------------------------------------- */
-
+/*
 LennardJones::LennardJones(System* system_in)
     : ForceField(system_in)
 {
@@ -27,7 +27,7 @@ LennardJones::LennardJones(System* system_in)
     label = "Lennard-Jones";
     paramfile = "";
 }
-
+*/
 
 /* ------------------------------------------------------
    This is the default constructor when a parameter
@@ -37,9 +37,12 @@ LennardJones::LennardJones(System* system_in)
 LennardJones::LennardJones(System* system_in, const std::string params)
     : ForceField(system_in)
 {
-    read_param_file(params);
     label = "Lennard-Jones";
     paramfile = params;
+    read_param_file(params);
+    create_label_mapping();
+    allocate_memory();
+    sort_params();
 }
 
 
@@ -82,6 +85,43 @@ void LennardJones::read_param_file(const std::string params)
 }
 
 
+/* ---------
+   Allocate memory for matrices
+---------------------------------- */
+
+void LennardJones::allocate_memory()
+{
+    sigma_mat = new double*[ntype];
+    epsilon_mat = new double*[ntype];
+    rc_sqrd_mat = new double*[ntype];
+    shift_mat = new double*[ntype];
+    for (unsigned int i=0; i<ntype; i++) {
+        sigma_mat[i] = new double[ntype];
+        epsilon_mat[i] = new double[ntype];
+        rc_sqrd_mat[i] = new double[ntype];
+        shift_mat[i] = new double[ntype];
+    }
+}
+
+
+/* --------------
+   Free memory for matrices
+------------------------------- */
+
+void LennardJones::free_memory()
+{
+    for (unsigned int i = 0; i < ntype; i++) {
+        delete[] sigma_mat[i];
+        delete[] epsilon_mat[i];
+        delete[] rc_sqrd_mat[i];
+        delete[] shift_mat[i];
+    }
+    delete[] sigma_mat;
+    delete[] epsilon_mat;
+    delete[] rc_sqrd_mat;
+    delete[] shift_mat;
+}
+
 /* ------------------------------------------------------
    Parameters have to be sorted with respect to
    the particle types, and are stored in matrices.
@@ -96,28 +136,17 @@ void LennardJones::sort_params()
     // link list of labels to list of type indices
     std::vector<int> types1_vec;
     for(std::string label : label1_vec){
-        types1_vec.push_back(system->label2type.at(label));
+        types1_vec.push_back(label2type.at(label));
     }
     std::vector<int> types2_vec;
     
     for(std::string label : label2_vec){
-        types2_vec.push_back(system->label2type.at(label));
+        types2_vec.push_back(label2type.at(label));
     }
 
-    // allocate memory for matrices
-    sigma_mat = new double*[system->ntype];
-    epsilon_mat = new double*[system->ntype];
-    rc_sqrd_mat = new double*[system->ntype];
-    shift_mat = new double*[system->ntype];
-    for(int i=0; i<system->ntype; i++){
-        sigma_mat[i] = new double[system->ntype];
-        epsilon_mat[i] = new double[system->ntype];
-        rc_sqrd_mat[i] = new double[system->ntype];
-        shift_mat[i] = new double[system->ntype];
-    }
     // fill up matrices with parameters
-    int type1, type2;
-    for(int i=0; i<nline; i++){
+    unsigned int type1, type2;
+    for (unsigned int i=0; i<nline; i++) {
         type1 = types1_vec[i];
         type2 = types2_vec[i];
         sigma_mat[type1][type2] = sigma_vec[i];
@@ -198,6 +227,8 @@ double LennardJones::comp_energy_par(const std::vector<Particle> particles, cons
 
 LennardJones::~LennardJones()
 {
+    free_memory();
+    /*
     for (int i = 0; i < system->ntype; i++) {
         delete[] sigma_mat[i];
         delete[] epsilon_mat[i];
@@ -208,5 +239,6 @@ LennardJones::~LennardJones()
     delete[] epsilon_mat;
     delete[] rc_sqrd_mat;
     delete[] shift_mat;
+    */
 }
 

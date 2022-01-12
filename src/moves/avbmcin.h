@@ -16,7 +16,7 @@ public:
     std::string repr();
 
 private:
-    int n_in, type;
+    unsigned int n_in, particle_type;
     double r_below, r_above, r_belowsq, r_abovesq, v_in;
     std::string particle_label;
     class Box* box = nullptr;

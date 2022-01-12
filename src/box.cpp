@@ -56,7 +56,12 @@ void Box::set_boundary(class Boundary* boundary_in)
 
 void Box::add_particle(Particle particle)
 {
+    if (!system->initialized) {
+        std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 143);
+    }
     npar ++;
+    // particle.type = forcefield->label2type.at(particle.label);
     system->ndim = particle.r.size();
     particles.push_back(particle);
 }
@@ -69,9 +74,7 @@ void Box::add_particle(Particle particle)
 
 void Box::add_particle(const std::string label, const std::valarray<double> r)
 {
-    npar ++;
-    system->ndim = r.size();
-    particles.push_back(Particle(label, r));
+    add_particle(Particle(label, r));
 }
 
 
@@ -82,9 +85,9 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
 
 void Box::add_particles(std::vector<Particle> particles_in)
 {
-    npar += particles_in.size();
-    system->ndim = particles_in[0].r.size();
-    particles.insert(particles.end(), particles_in.begin(), particles_in.end());
+    for (Particle particle : particles_in) {
+        add_particle(particle);
+    }
 }
 
 

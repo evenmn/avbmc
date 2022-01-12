@@ -32,7 +32,7 @@ System::System(std::string working_dir_in)
     time = temp = chempot = 0.;
 
     initialized = false;
-    nbox = ntype = nmove = nprocess = step = 0;
+    nbox = nmove = nprocess = step = 0;
     ndim = 3;
 
     // set default objects
@@ -95,6 +95,7 @@ void System::set_mass(const std::string label, const double mass)
 void System::set_forcefield(class ForceField* forcefield_in)
 {
     forcefield = forcefield_in;
+    initialized = true;
 }
 
 
@@ -131,11 +132,17 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
 
 /* --------------------------------------------------
    Add move type and the corresponding probability.
-   The probabilities have to add up to 1.
+   The probabilities have to add up to 1. Forcefield
+   has to initialized first, to link AVBMC atoms
+   to types.
 ----------------------------------------------------- */
 
 void System::add_move(Moves* move, double prob)
 {
+    if (!initialized) {
+        std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 143);
+    }
     nmove ++;
     moves.emplace_back(move);
     moves_prob.push_back(prob);
@@ -196,7 +203,7 @@ void System::check_masses()
 /* ----------------------------------------------------
    Initialize molecules used by AVBMCMol types of moves
 ------------------------------------------------------- */
-
+/*
 void System::init_molecules()
 {
     // If molecule configuration is not set, let all single particles
@@ -218,7 +225,7 @@ void System::init_molecules()
         molecule_types->molecule_types.push_back(types); 
     }
 }
-
+*/
 
 /* -------------------------------------------------------
    Initialize variables needed before simulation.
@@ -226,7 +233,7 @@ void System::init_molecules()
    All forcefields should have a label1_vec, which covers
    all element labels
 ---------------------------------------------------------- */
-
+/*
 void System::init_simulation()
 {
     // find unique labels
@@ -260,7 +267,7 @@ void System::init_simulation()
     // Sort forcefield parameters according to particle types
     forcefield->sort_params();
 }
-
+*/
 
 /* -------------------------------------------------------
    Returns the last iteration
@@ -319,30 +326,18 @@ void System::print_info()
               << " " << forcefield->paramfile << std::endl;
     std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of particle types: " << ntype << std::endl;
+    std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
     std::cout << "Unique particle types:";
-    for(int i=0; i < ntype; i++){
-        std::cout << " " << unique_labels[i];
+    for(int i=0; i < forcefield->ntype; i++){
+        std::cout << " " << forcefield->unique_labels[i];
     }
     std::cout << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of boxes:          " << nbox << std::endl;
+    std::cout << "Number of boxes: " << nbox << std::endl;
     for(int i=0; i < nbox; i++){
         std::cout << "  Box " << i+1 << ":" << std::endl;
         std::cout << "    Number of atoms:   " << boxes[i]->npar << std::endl;
         std::cout << "    Boundary:          " << boxes[i]->boundary->label << std::endl;
-    }
-    std::cout << std::endl;
-    std::cout << "Number of molecule types: " << molecule_types->ntype << std::endl;
-    for(int i=0; i < molecule_types->ntype; i++){
-        std::cout << "  Molecule type " << i+1 << ":" << std::endl;
-        std::cout << "    Atoms:            ";
-        for(std::string element : molecule_types->molecule_elements[i]){
-            std::cout << " " << element;
-        }
-        std::cout << std::endl;
-        std::cout << "    Critical distance: " << molecule_types->rcs[i] << std::endl;
-        std::cout << "    Probability:       " << molecule_types->molecule_probs[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -404,8 +399,8 @@ void Box::run_md(const int nsteps)
 
 void System::run_mc(const int nsteps, const int nmoves)
 {
-    init_simulation();
-    init_molecules();
+    //init_simulation();
+    //init_molecules();
     for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;

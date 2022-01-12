@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "moves.h"
+#include "../particle.h"
 #include "../system.h"
 #include "../rng/rng.h"
 
@@ -112,40 +113,40 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
    Check if particles match molecule type recursively.
 ------------------------------------------------------------------ */
 
-void Moves::check_neighbors(const int k, const int i, unsigned int elm_count,
-                                    std::vector<int> &elm_idx, std::vector<Particle> particles){
-    if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
-        if(particles[k].type == molecule_types[i][elm_count]){  // check if element is matching
-            elm_idx.push_back(k);  // add atom to molecule atom idxs
+void Moves::check_neighbors(const int k, std::vector<Particle> molecule, unsigned int elm_count,
+                            std::vector<int> &elm_idx, std::vector<Particle> particles, double rc) {
+    if (elm_count <= molecule.size()) {  // ensure that recursion stops when molecule has correct size
+        if (particles[k].type == molecule[elm_count].type) {
+            elm_idx.push_back(k);
             elm_count ++;
-            std::vector<int> neigh_list = build_neigh_list(particles, k, rcs[i]);
-            for(int neigh : neigh_list){
-                check_neighbors(neigh, i, elm_count, elm_idx, particles);
+            std::vector<int> neigh_list = build_neigh_list(particles, k, rc);
+            for (int neigh : neigh_list) {
+                check_neighbors(neigh, molecule, elm_count, elm_idx, particles, rc);
             }
         }
     }
 }
 
 
-/* ---------------------------------------------------------------
-   Detect molecule of type 'i' randomly by picking a random 
+/* ----------------------------------------------------------------------------
+   Detect molecule of the same types as 'molecule'. randomly by picking a random 
    atom among the elements and checking the neighbor list.
    Returning a list of atom ids if molecule is detected
------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
-                                        std::vector<int> molecule_types, const double  bool &detected)
+                                        std::vector<Particle> molecule,
+                                        bool &detected, double rc)
 {
     std::vector<int> elm_idx;
-    long unsigned int count = 0;
-    while (count < particles.size())
+    unsigned int count = 0;
+    while (count < particles.size() || !detected)
     {
         elm_idx.clear();
         int k = system->rng->next_int(particles.size());     // pick initial particle
-        check_neighbors(k, i, 0, elm_idx, particles);
-        if(elm_idx.size() == molecule_elements[i].size()){
+        check_neighbors(k, molecule, 0, elm_idx, particles, rc);
+        if (elm_idx.size() == particles.size()) {
             detected = true;
-            break;
         }
         count ++;
     }
