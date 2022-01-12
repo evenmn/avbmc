@@ -15,7 +15,7 @@
 -------------------------------------------------------------- */
 
 AVBMCMol::AVBMCMol(System* system_in, Box* box_in, std::vector<class Particle> particles_in, double r_inner_max_in, const double r_below_in, const double r_above_in)
-    : Moves(system_in), AVBMCMolIn(system_in, box_in, particles_in, r_below_in, r_above_in, r_inner_max_in), AVBMCMolOut(system_in, box_in, r_above_in)
+    : Moves(system_in), AVBMCMolIn(system_in, box_in, particles_in, r_below_in, r_above_in, r_inner_max_in), AVBMCMolOut(system_in, box_in, particles_in, r_above_in, r_inner_max_in)
 {
     box = box_in;
     r_below = r_below_in;

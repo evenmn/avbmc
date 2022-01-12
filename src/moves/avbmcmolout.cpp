@@ -17,7 +17,7 @@
    fictitous inter-box move, and works in the grand
    canonical ensemble only
 -------------------------------------------------------- */
-
+/*
 AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, const double r_above_in)
     : Moves(system_in)
 {
@@ -27,14 +27,17 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, const double r_above_in
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
     label = "AVBMCMolOut";
 }
+*/
 
-
-AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, std::vector<std::string> molecule_elements, const double r_above_in, const double r_max_inner_in)
+AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, std::vector<Particle> molecule_in, const double r_above_in, const double r_max_inner_in)
     : Moves(system_in)
 {
     box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
+    r_max_inner = r_max_inner_in;
+    molecule = molecule_in;
+    natom = molecule.size();
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
     label = "AVBMCMolOut";
 }
@@ -48,17 +51,13 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, std::vector<std::string
 void AVBMCMolOut::perform_move()
 {
     reject_move = true;
-    // pick molecule type to be removed
-    MoleculeTypes* molecule_types = system->molecule_types;
-    int mol_idx = rng->choice(molecule_types->molecule_probs);
-    int natom = molecule_types->molecule_types[mol_idx].size();
-    if (box->npar > 2 * natom){
+    if (box->npar > 2 * natom - 1) {
         bool detected_out = false;
-        int count = 0;
-        while (!detected_out && count < box->npar){
+        unsigned int count = 0;
+        while (!detected_out && count < box->npar) {
             bool detected_target = false;
-            std::vector<int> target_molecule = molecule_types->detect_molecule(box->particles, mol_idx, detected_target);
-            if (detected_target){
+            std::vector<int> target_molecule = detect_molecule(box->particles, molecule, detected_target, r_max_inner);
+            if (detected_target) {
                 int i = target_molecule[0];  // center atom
                 std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);  // neigh list of i
                 int n_in = neigh_listi.size();  // number of neighbors of i
@@ -67,7 +66,7 @@ void AVBMCMolOut::perform_move()
                     for (int j=0; j < n_in; j++){
                         particles.push_back(box->particles[neigh_listi[j]]);
                     }
-                    std::vector<int> molecule_out = molecule_types->detect_molecule(particles, mol_idx, detected_out);
+                    std::vector<int> molecule_out = detect_molecule(particles, molecule, detected_out, r_max_inner);
                     if (detected_out) {
                         // compute change of energy when removing molecule
                         du = 0.;
@@ -81,7 +80,7 @@ void AVBMCMolOut::perform_move()
                             box->particles.erase(box->particles.begin() + j);
                         }
                         box->poteng += du;
-                        box->npar -= molecule_out.size();
+                        box->npar -= natom;
                         nmolavg = (double) n_in / natom;
                         reject_move = false;
                         break;
@@ -91,7 +90,6 @@ void AVBMCMolOut::perform_move()
             count ++;
         }  // end while
     }  // end if npar
-    delete molecule_types;
 }  // end perform_move
 
 
@@ -106,8 +104,8 @@ double AVBMCMolOut::accept(double temp, double chempot)
         return 0.;
     }
     else {
-        double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + molecule_out->natom);
-        return nmolavg * box->npar / (v_in * (box->npar - molecule_out->natom)) * std::exp(-(du+chempot+dw)/temp);
+        double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + natom);
+        return nmolavg * box->npar / (v_in * (box->npar - natom)) * std::exp(-(du+chempot+dw)/temp);
     }
 }
 
@@ -119,7 +117,7 @@ double AVBMCMolOut::accept(double temp, double chempot)
 void AVBMCMolOut::reset()
 {
     if (!reject_move) {
-        box->npar += molecule_out->natom;
+        box->npar += natom;
         box->poteng -= du;
         box->particles = particles_old;
     }
