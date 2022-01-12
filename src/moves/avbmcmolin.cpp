@@ -15,7 +15,6 @@
 #include "../box.h"
 #include "../system.h"
 #include "../particle.h"
-#include "../molecule.h"
 #include "../rng/rng.h"
 #include "../sampler/sampler.h"
 #include "../forcefield/forcefield.h"
