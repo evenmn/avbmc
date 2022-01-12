@@ -1,3 +1,5 @@
+![build docs](https://github.com/henriasv/molecular-builder/workflows/build%20docs/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 # AVBMC
 Monte Carlo package for estimating the free energy and surface tension of water droplets of various sizes. Code is written in C++.
 
