@@ -11,7 +11,7 @@ class AVBMCMolIn : virtual public Moves
 {
 public:
     AVBMCMolIn(class System *, class Box *, double = 0.9, double = 1.5);
-    //AVBMCMolIn(class System *, class Box *, double = 0.9, double = 1.5, std::vector<std::string>, std::vector<std::valarray<double> >);
+    AVBMCMolIn(class System *, class Box *, std::vector<std::string>, std::vector<std::valarray<double> >, double, double = 0.9, double = 1.5);
     void perform_move();
     double accept(double, double);
     void reset();
@@ -20,8 +20,10 @@ public:
 
 private:
     bool reject_move;
-    int natom;
-    double r_below, r_above, r_belowsq, r_abovesq, v_in, nmolavg;
-    class Molecule* molecule_in = nullptr;
+    unsigned int natom;
+    double r_below, r_above, r_max_inner, r_belowsq, r_abovesq, v_in, nmolavg;
+    std::vector<std::string> molecule_elements;
+    std::vector<std::valarray<double> > atom_positions;
+    std::vector<int> atom_types;
     class Box* box = nullptr;
 };

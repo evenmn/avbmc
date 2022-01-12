@@ -3,7 +3,6 @@
 #include <valarray>
 #include <string>
 #include <vector>
-#include <memory>
 
 
 class Moves
@@ -25,6 +24,10 @@ public:
 protected:
     std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
     double norm(std::valarray<double>);
+    std::vector<int> build_neigh_list(std::vector<class Particle>, int, double);
+    void check_neighbors(int, int, unsigned int, std::vector<int>&,
+                         std::vector<class Particle>);
+    std::vector<int> detect_molecule(std::vector<class Particle>, int, bool&);
 
     const double pi = 3.14159265358979323846;
     double du;

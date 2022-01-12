@@ -27,7 +27,7 @@
    molecule, defined by inner radius 'r_below_in' and
    outer radius 'r_above_in'. 
 -------------------------------------------------------- */
-
+/*
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
                        const double r_below_in, const double r_above_in)
     : Moves(system_in)
@@ -40,23 +40,28 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     label = "AVBMCMolIn";
 }
+*/
 
-/*
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
                        const double r_below_in, const double r_above_in,
-                       std::vector<std::string> molecule_elements,
-                       std::vector<std::valarray<double> > atom_positions)
+                       const double r_max_inner_in,
+                       std::vector<std::string> molecule_elements_in,
+                       std::vector<std::valarray<double> > atom_positions_in)
     : Moves(system_in)
 {
     box = box_in;
     r_below = r_below_in;
     r_above = r_above_in;
+    r_max_inner = r_max_inner_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
+    molecule_elements = molecule_elements_in;
+    atom_positions = atom_positions_in;
+    natom = molecule_elements.size();
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     label = "AVBMCMolIn";
 }
-*/
+
 
 /* ------------------------------------------------------------
    Insert molecule into the bonded region of an equivalent
@@ -66,24 +71,20 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
 void AVBMCMolIn::perform_move()
 {
     // pick molecule type to be inserted
-    MoleculeTypes* molecule_types = system->molecule_types;
-    std::cout << "LENGTH: " << system->molecule_types->molecule_probs.size() << std::endl;
-    for (double prob : molecule_types->molecule_probs) {
-        std::cout << "prob: " << prob << std::endl;
-    }
-    int mol_idx = rng->choice(molecule_types->molecule_probs);
-    std::vector<std::valarray<double> > positions = molecule_types->default_mols[mol_idx];
-    natom = molecule_types->molecule_elements[mol_idx].size();
+    //MoleculeTypes* molecule_types = system->molecule_types;
+    //int mol_idx = rng->choice(molecule_types->molecule_probs);
+    //std::vector<std::valarray<double> > positions = molecule_types->default_mols[mol_idx];
+    //natom = molecule_types->molecule_elements[mol_idx].size();
 
     // rotate molecule arbitrary
-    positions = rotate_molecule(positions);
+    positions = rotate_molecule(atom_positions);
 
     // detect target molecule
     bool detected = false;
-    std::vector<int> target_molecule = molecule_types->detect_molecule(box->particles, mol_idx, detected);
+    std::vector<int> target_molecule = detect_molecule(box->particles, mol_idx, detected);
+    //std::vector<int> target_molecule = system->molecule_types->detect_molecule(box->particles, mol_idx, detected);
     if (!detected) {
         reject_move = true;
-        std::cout << "rejected" << std::endl;
     }
     else {
         reject_move = false;

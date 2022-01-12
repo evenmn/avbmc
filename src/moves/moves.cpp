@@ -80,10 +80,80 @@ double Moves::norm(std::valarray<double> array)
 }
 
 
-/*
-Moves::~Moves()
+/* -------------------------------------------------------------
+   Build neighbor list of particle 'i' with maximum neighbor
+   distance squared 'rsq'
+---------------------------------------------------------------- */
+
+std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
 {
-    delete system;
-    delete rng;
+    unsigned int npar = particles.size();
+    double rijsq;
+    std::valarray<double> ri = particles[i].r;
+    std::vector<int> neigh_list;
+    for(unsigned int j=0; j<i; j++){
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    for(unsigned int j=i+1; j<npar; j++){
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
 }
-*/
+
+
+
+/* ---------------------------------------------------------------
+   Check if particles match molecule type recursively.
+------------------------------------------------------------------ */
+
+void Moves::check_neighbors(const int k, const int i, unsigned int elm_count,
+                                    std::vector<int> &elm_idx, std::vector<Particle> particles){
+    if(elm_count <= molecule_elements[i].size()){  // ensure that recursion stops when molecule has correct size
+        if(particles[k].type == molecule_types[i][elm_count]){  // check if element is matching
+            elm_idx.push_back(k);  // add atom to molecule atom idxs
+            elm_count ++;
+            std::vector<int> neigh_list = build_neigh_list(particles, k, rcs[i]);
+            for(int neigh : neigh_list){
+                check_neighbors(neigh, i, elm_count, elm_idx, particles);
+            }
+        }
+    }
+}
+
+
+/* ---------------------------------------------------------------
+   Detect molecule of type 'i' randomly by picking a random 
+   atom among the elements and checking the neighbor list.
+   Returning a list of atom ids if molecule is detected
+------------------------------------------------------------------ */
+
+std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
+                                        std::vector<int> molecule_types, const double  bool &detected)
+{
+    std::vector<int> elm_idx;
+    long unsigned int count = 0;
+    while (count < particles.size())
+    {
+        elm_idx.clear();
+        int k = system->rng->next_int(particles.size());     // pick initial particle
+        check_neighbors(k, i, 0, elm_idx, particles);
+        if(elm_idx.size() == molecule_elements[i].size()){
+            detected = true;
+            break;
+        }
+        count ++;
+    }
+    if (!detected)
+    {
+        elm_idx.clear();
+    }
+    return elm_idx;
+}
+
+
