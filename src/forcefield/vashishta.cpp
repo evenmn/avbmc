@@ -8,7 +8,6 @@
 #include "vashishta.h"
 #include "../system.h"
 #include "../particle.h"
-#include "../molecule.h"
 
 
 /* -----------------------------------------------------------------
@@ -46,16 +45,16 @@ void Vashishta::read_param_file(const std::string params)
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
-        if (line.rfind("#", 0) == 0){
+        if (line.rfind("#", 0) == 0) {
             // comments are allowed in parameter file
             continue;
         }
-        else if (line.empty()){
+        else if (line.empty()) {
             // empty lines are allowed in parameter file
             continue;
         }
         else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1
-                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta){ 
+                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta) { 
             label1_vec.push_back(label1);
             label2_vec.push_back(label2);
             label3_vec.push_back(label3);
@@ -75,7 +74,7 @@ void Vashishta::read_param_file(const std::string params)
             costheta_vec.push_back(costheta);
             nline ++;
         }
-        else{
+        else {
             std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
             std::cout << "Ignoring line: '" + line + "'" << std::endl;
         }
@@ -179,9 +178,8 @@ void Vashishta::free_memory()
 void Vashishta::sort_params()
 {
     // link list of chemical symbols to list of type indices
-    std::vector<int> types1_vec;
-    std::vector<int> types2_vec;
-    std::vector<int> types3_vec;
+    unsigned int type1, type2, type3, i;
+    std::vector<int> types1_vec, types2_vec, types3_vec;
     for(std::string label : label1_vec){
         types1_vec.push_back(label2type.at(label));
     }
@@ -192,8 +190,7 @@ void Vashishta::sort_params()
         types3_vec.push_back(label2type.at(label));
     }
     // fill up matrices with parameters
-    unsigned int type1, type2, type3;
-    for (unsigned int i=0; i < nline; i++) {
+    for (i=0; i < nline; i++) {
         type1 = types1_vec[i];
         type2 = types2_vec[i];
         type3 = types3_vec[i];
@@ -257,8 +254,8 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 {
     double rijinv, rijinv2, rijinv4, rijinv6, energy;
 
-    energy = 0.0;
-    if (rij < rc_mat[typei][typej]){
+    energy = 0.;
+    if (rij < rc_mat[typei][typej]) {
         rijinv = 1.0 / rij;
         rijinv2 = rijinv * rijinv;
         rijinv4 = rijinv2 * rijinv2;
@@ -283,16 +280,16 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
    is the actual distance between particle i and j.
 ------------------------------------------------------------------ */
 
-double Vashishta::comp_threebody_par(const int typei, const int typej, const int typek,
-        const std::valarray<double> delij, const std::valarray<double> delik, const double rij,
+double Vashishta::comp_threebody_par(const int typei, const int typej,
+        const int typek, const std::valarray<double> delij,
+        const std::valarray<double> delik, const double rij,
         std::valarray<double> &force, const bool comp_force)
 {
     double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
 
+    energy = 0.;
     rik = std::sqrt(norm(delik));
-
-    energy = 0.0;
-    if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]){
+    if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]) {
         costhetaijk = (delij * delik).sum() / (rij * rik);
         expij = std::exp(gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]));
         expik = std::exp(gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]));
@@ -303,7 +300,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej, const int
             // do something
         }
     }
-    return energy;
+    return (energy);
 }
 
 
@@ -316,21 +313,21 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
                                   std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int typei = particles[i].type; 
-    int typej, typek;
-    int npar = particles.size();
     double rij, energy;
+    int typei, typej, typek, npar, j, k;
     std::valarray<double> delij, delik;
+    typei = particles[i].type; 
+    npar = particles.size();
 
-    energy = 0.0;
-    for(int j=0; j<i; j++){
+    energy = 0.;
+    for(j=0; j<i; j++){
         // two-body
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
-        for(int k=0; k<npar; k++){
+        for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
 
             // three-body
@@ -340,14 +337,14 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
         }
     }
 
-    for(int j=i+1; j<npar; j++){
+    for(j=i+1; j<npar; j++){
         // two-body
         typej = particles[j].type;
         delij = particles[j].r - particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
-        for(int k=0; k<npar; k++){
+        for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
 
             // three-body

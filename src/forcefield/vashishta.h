@@ -17,8 +17,6 @@ public:
     
     double comp_twobody_par(int, int, double, std::valarray<double> &, bool);
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
-
-    double comp_energy_par(std::vector<class Particle>, int);
     double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
 
     ~Vashishta();

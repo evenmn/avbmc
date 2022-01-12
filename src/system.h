@@ -22,14 +22,9 @@ public:
     void set_mass(std::string, double);
 
     void add_move(class Moves *, double);
-    void add_molecule_type(std::string, double);
-    void add_molecule_type(std::vector<std::string>, double, double,
-                           std::vector<std::valarray<double> >);
     void add_box(class Box *);
 
     void check_masses();
-    void init_simulation();
-    void init_molecules();
     int get_maxiter(int);
     void print_logo();
     void print_info();
@@ -45,7 +40,6 @@ public:
     //class Integrator* integrator = nullptr;
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
-    class MoleculeTypes* molecule_types = nullptr;
 
     bool initialized;
     int nbox, ndim, nmove, nprocess, step, rank;

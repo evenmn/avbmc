@@ -18,7 +18,6 @@
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
-#include "molecule.h"
 
 
 /* -------------------------------------------------------
@@ -34,15 +33,6 @@ System::System(std::string working_dir_in)
     initialized = false;
     nbox = nmove = nprocess = step = 0;
     ndim = 3;
-
-    // set default objects
-    //MersenneTwister rngrng();
-    //rng = &rngrng;
-    //integrator = new VelocityVerlet(this);
-    //forcefield = new LennardJones(this);
-    //sampler = new Metropolis(this);
-    //MoleculeTypes moleculetypes(this);
-    molecule_types = new MoleculeTypes(this);
 
     // initialize MPI
     int initialized_mpi;
@@ -149,31 +139,6 @@ void System::add_move(Moves* move, double prob)
 }
 
 
-/* ------------------------------------------------------
-   Add new molecule type when molecule is defined by
-   one atom.
---------------------------------------------------------- */
-
-void System::add_molecule_type(std::string element, const double molecule_prob)
-{
-    std::vector<std::string> elements = {element};
-    std::valarray<double> default_atom(0.0, ndim);
-    std::vector<std::valarray<double> > default_mol = {default_atom};
-    molecule_types->add_molecule_type(elements, 0.0, molecule_prob, default_mol);
-}
-
-
-/* ------------------------------------------------------
-   Add new molecule type consisting of several atoms
---------------------------------------------------------- */
-
-void System::add_molecule_type(std::vector<std::string> elements, const double rc, const double molecule_prob,
-                            std::vector<std::valarray<double> > default_mol)
-{
-    molecule_types->add_molecule_type(elements, rc, molecule_prob, default_mol);
-}
-
-
 /* -----------------------------------------------------
    Add box 'box_in' to system
 -------------------------------------------------------- */
@@ -199,75 +164,6 @@ void System::check_masses()
     }
 }
 
-
-/* ----------------------------------------------------
-   Initialize molecules used by AVBMCMol types of moves
-------------------------------------------------------- */
-/*
-void System::init_molecules()
-{
-    // If molecule configuration is not set, let all single particles
-    // be considered as molecules
-    if (!molecule_types->configured)
-    {
-        for(std::string label : unique_labels) {
-            add_molecule_type(label, 1./ntype);
-        }
-    }
-
-    // Since particles are associated with types rather than labels,
-    // also molecule configuration labels have to be converted to types
-    for(std::vector<std::string> elements : molecule_types->molecule_elements) {
-        std::vector<int> types;
-        for (std::string element : elements) {
-            types.push_back(label2type.at(element));
-        }
-        molecule_types->molecule_types.push_back(types); 
-    }
-}
-*/
-
-/* -------------------------------------------------------
-   Initialize variables needed before simulation.
-   Ensure that all particles are covered by parameter file.
-   All forcefields should have a label1_vec, which covers
-   all element labels
----------------------------------------------------------- */
-/*
-void System::init_simulation()
-{
-    // find unique labels
-    unique_labels = forcefield->label1_vec;
-    std::sort( unique_labels.begin(), unique_labels.end() );
-    unique_labels.erase( std::unique( unique_labels.begin(),
-                         unique_labels.end() ), unique_labels.end() );
-    ntype = unique_labels.size();
-
-    // map labels to types
-    for (int i=0; i < ntype; i++){
-        label2type[unique_labels[i]] = i;
-        std::cout << unique_labels[i] << std::endl;
-    }
-
-    // go through all particles in all boxes and assert that    
-    // all element labels are covered by parameter file
-    for (Box* box : boxes) {
-        for (Particle& particle : box->particles) {
-            try {
-                // will throw exception if label is not known
-                particle.type = label2type.at(particle.label);
-            }
-            catch (...) {
-                std::cout << "Particle label '" + particle.label; 
-                std::cout << "' is not covered by parameter file!" << std::endl;
-                MPI_Abort(MPI_COMM_WORLD, 143);
-            }
-        }
-    }
-    // Sort forcefield parameters according to particle types
-    forcefield->sort_params();
-}
-*/
 
 /* -------------------------------------------------------
    Returns the last iteration
@@ -470,6 +366,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 ------------------------------------------------------------ */
 System::~System()
 {
-    delete molecule_types;
     MPI_Finalize();
 }
