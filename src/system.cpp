@@ -295,8 +295,6 @@ void Box::run_md(const int nsteps)
 
 void System::run_mc(const int nsteps, const int nmoves)
 {
-    //init_simulation();
-    //init_molecules();
     for(Box* box : boxes){
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
@@ -306,6 +304,9 @@ void System::run_mc(const int nsteps, const int nmoves)
         move->ndrawn = 0;
         move->naccept = 0;
     }
+
+    double sum_prob = std::accumulate(moves_prob.begin(), moves_prob.end(), 0.);
+    assert ((sum_prob - 1.0) < 0.01);
 
     if (rank == 0) {
         print_logo();
