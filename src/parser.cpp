@@ -7,41 +7,36 @@
 #include <iterator>
 #include <vector>
 
-//#include <mpi.h>
-
 #include "parser.h"
 #include "io.h"
 #include "box.h"
+#include "system.h"
 #include "init_position.h"
 #include "particle.h"
+#include "rng/mersennetwister.h"
 //#include "init_velocity.h"
 
-//#include "integrator/integrator.h"
 //#include "integrator/euler.h"
 //#include "integrator/eulercromer.h"
 //#include "integrator/velocityverlet.h"
 //#include "integrator/rungekutta4.h"
 
-#include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
 #include "forcefield/vashishta.h"
 
-#include "sampler/sampler.h"
 #include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
 
-#include "moves/moves.h"
 #include "moves/trans.h"
-//#include "moves/transmh.h"
+#include "moves/transmh.h"
 #include "moves/avbmc.h"
 #include "moves/avbmcin.h"
 #include "moves/avbmcout.h"
 #include "moves/avbmcmol.h"
-#include "moves/avbmcinmol.h"
-#include "moves/avbmcoutmol.h"
+#include "moves/avbmcmolin.h"
+#include "moves/avbmcmolout.h"
 
-#include "boundary/boundary.h"
-//#include "boundary/fixed.h"
+#include "boundary/fixed.h"
 #include "boundary/stillinger.h"
 
 
@@ -54,12 +49,18 @@
 
 void parser(int argc, char** argv)
 {
-    if (argc >= 2){  // check if input script is given
+    if (argc >= 2) {  // check if input script is given
         std::string filename = argv[1];
         std::ifstream f(filename);
 
-        if (f.is_open()){ 
-            Box box("");  // initialize box where everything will be added
+        if (f.is_open()) { 
+            System system("");
+            Box box(&system);
+            Metropolis sampler(&system);
+            MersenneTwister rng(void);
+            system.add_box(&box);
+            system.set_sampler(&sampler);
+            system.set_rng(&rng);
             std::string line;
             while (std::getline(f, line))
             {
@@ -67,46 +68,46 @@ void parser(int argc, char** argv)
                     // Continue if line is blank
                     continue;
                 }
-                else if (line.rfind("#", 0) == 0){
+                else if (line.rfind("#", 0) == 0) {
                     // Continue if line is commented out
                     continue;
                 }
-                else{
+                else {
                     std::vector<std::string> splitted = split(line);
                     int argc = splitted.size();
                     std::string cmd_cat = splitted[0];
-                    if(cmd_cat == "set"){
-                        set(box, splitted, argc);
+                    if (cmd_cat == "set") {
+                        set(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "add"){
-                        add(box, splitted, argc);
+                    else if (cmd_cat == "add") {
+                        add(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "take"){
-                        take(box, splitted, argc);
+                    else if (cmd_cat == "take") {
+                        take(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "run"){
-                        run(box, splitted, argc);
+                    else if (cmd_cat == "run") {
+                        run(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "thermo"){
-                        thermo(box, splitted, argc);
+                    else if (cmd_cat == "thermo") {
+                        thermo(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "dump"){
-                        dump(box, splitted, argc);
+                    else if (cmd_cat == "dump") {
+                        dump(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "write"){
-                        write(box, splitted, argc);
+                    else if (cmd_cat == "write") {
+                        write(system, box, splitted, argc);
                     }
-                    else if(cmd_cat == "rm"){
-                        rm(box, splitted, argc);
+                    else if (cmd_cat == "rm") {
+                        rm(system, box, splitted, argc);
                     }
-                    else{
+                    else {
                         std::cout << "There is no category '" + cmd_cat + "'! Aborting." << std::endl;
                         exit(0);
                     }
                 }
             }
         }
-        else{
+        else {
             std::cout << "Could not open the file '" + filename + "'!" << std::endl;
             exit(0);
         }
@@ -125,31 +126,33 @@ void parser(int argc, char** argv)
    overwrite the previous value
 ------------------------------------------------------- */
 
-void set(Box& box, const std::vector<std::string> splitted, const int argc)
+void set(System & system, Box& box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
     std::string keyword = splitted[1];
     if(keyword == "temp"){
-        box.set_temp(std::stod(splitted[2]));
+        system.set_temp(std::stod(splitted[2]));
     }
     else if(keyword == "chempot"){
-        box.set_chempot(std::stod(splitted[2]));
+        system.set_chempot(std::stod(splitted[2]));
     }
     else if(keyword == "mass"){
         assert(argc > 3);
         std::string label = splitted[2];
         double mass = std::stod(splitted[3]);
-        box.set_mass(label, mass);
+        system.set_mass(label, mass);
     }
     else if(keyword == "forcefield"){
         assert(argc > 3);
         std::string forcefield = splitted[2];
         std::string paramfile = splitted[3];
         if(forcefield == "lennardjones"){
-            box.set_forcefield(new LennardJones(&box, paramfile));
+            LennardJones forcefield(&system, paramfile);
+            system.set_forcefield(&forcefield);
         }
         else if(forcefield == "vashishta"){
-            box.set_forcefield(new Vashishta(&box, paramfile));
+            Vashishta forcefield(&system, paramfile);
+            system.set_forcefield(&forcefield);
         }
         else{
             std::cout << "Forcefield '" + forcefield + "' is not known! Aborting." << std::endl;
@@ -205,7 +208,8 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
     else if(keyword == "sampler"){
         std::string sampler = splitted[2];
         if(sampler == "metropolis"){
-            box.set_sampler(new Metropolis(&box));
+            Metropolis sampler(&system);
+            system.set_sampler(&sampler);
         }
         else if(sampler == "umbrella"){
             assert(argc > 6);
@@ -215,14 +219,16 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
                 double b = std::stod(splitted[5]);
                 double c = std::stod(splitted[6]);
                 auto f = [a, b, c] (const int x) { return (a * x * x + b * x + c); };
-                box.set_sampler(new Umbrella(&box, f));
+                Umbrella sampler(&system, f);
+                system.set_sampler(&sampler);
             }
             else if(umbrella_type == "square"){
                 double nc = std::stod(splitted[4]);
                 double k = std::stod(splitted[5]);
                 double nv = std::stod(splitted[6]);
                 auto f = [nc, k, nv] (const int n) { return (k * (n - nc) * (n - nc)) + nv; };
-                box.set_sampler(new Umbrella(&box, f));
+                Umbrella sampler(&system, f);
+                system.set_sampler(&sampler);
             }
             else{
                 std::cout << "Umbrella type '" + umbrella_type + "' is not known! Aborting." << std::endl;
@@ -237,7 +243,8 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
     else if(keyword == "rng"){
         std::string rng = splitted[2];
         if(rng == "mersennetwister"){
-            box.set_rng(new MersenneTwister());
+            MersenneTwister rng(void);
+            system.set_rng(&rng);
         }
         else{
             std::cout << "Random number generator '" + rng + "' is not known! Aborting." << std::endl;
@@ -249,29 +256,31 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
         std::string boundary = splitted[2];
         if(boundary == "stillinger"){
             double rc = std::stod(splitted[3]);
-            box.set_boundary(new Stillinger(&box, rc));
+            Stillinger boundary(&box, rc);
+            box.set_boundary(&boundary);
         }
-        /*
         else if(boundary == "fixed"){
             if(argc == 4){
                 // one box length, indicating one dimension
                 double lx = stod(splitted[3]);
-                box.set_boundary(new Fixed(&box, lx));
+                Fixed boundary(&box, {lx});
+                box.set_boundary(&boundary);
             }
             else if(argc == 5){
                 // two box lengths, indicating two dimensions
                 double lx = stod(splitted[3]);
                 double ly = stod(splitted[4]);
-                box.set_boundary(new Fixed(&box, lx, ly));
+                Fixed boundary(&box, {lx, ly});
+                box.set_boundary(&boundary);
             }
             else if(argc == 6){
                 double lx = stod(splitted[3]);
                 double ly = stod(splitted[4]);
                 double lz = stod(splitted[5]);
-                box.set_boundary(new Fixed(&box, lx, ly, lz));
+                Fixed boundary(&box, {lx, ly, lz});
+                box.set_boundary(&boundary);
             }
         }
-        */
         else{
             std::cout << "Boundary '" + boundary + "' is not known! Aborting." << std::endl;
             exit(0);
@@ -312,7 +321,7 @@ void set(Box& box, const std::vector<std::string> splitted, const int argc)
    a vector (particles, moves, molecule types etc..)
 ------------------------------------------------------------------- */
 
-void add(Box& box, const vector<string> splitted, const int argc)
+void add(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 1);
     std::string keyword = splitted[1];
@@ -323,66 +332,90 @@ void add(Box& box, const vector<string> splitted, const int argc)
         double prob = std::stod(splitted[3]);
         if(move == "trans"){
             if(argc == 4){
-                box.add_move(new Trans(&box), prob);
+                Trans move(&system, &box);
+                system.add_move(&move, prob);
             }
             else{
                 double dx = std::stod(splitted[4]);
-                box.add_move(new Trans(&box, dx), prob);
+                Trans move(&system, &box, dx);
+                system.add_move(&move, prob);
             }
         }
-        /*
         else if(move == "transmh"){
             if(argc == 4){
-                box.add_move(new TransMH(&box), prob);
+                TransMH move(&system, &box);
+                system.add_move(&move, prob);
             }
             else if(argc == 5){
                 double dx = std::stod(splitted[4]);
-                box.add_move(new TransMH(&box, dx), prob);
+                TransMH move(&system, &box, dx);
+                system.add_move(&move, prob);
             }
             else{
                 double dx = std::stod(splitted[4]);
                 double Ddt = std::stod(splitted[5]);
-                box.add_move(new TransMH(&box, dx, Ddt), prob);
+                TransMH move(&system, &box, dx, Ddt);
+                system.add_move(&move, prob);
             }
         }
-        */
         else if(move == "avbmc"){
-            if(argc == 4){
-                box.add_move(new AVBMC(&box), prob);
+            assert(argc > 4);
+            std::string label = splitted[4];
+            if(argc == 5){
+                AVBMCIn move1(&system, &box, label); 
+                AVBMCOut move2(&system, &box, label);
+                system.add_move(&move1, prob / 2.);
+                system.add_move(&move2, prob / 2.);
             }
-            else if(argc == 5){
-                double r_below = std::stod(splitted[4]);
-                box.add_move(new AVBMC(&box, r_below), prob);
+            else if(argc == 6){
+                double r_below = std::stod(splitted[5]);
+                AVBMCIn move1(&system, &box, label, r_below);
+                AVBMCOut move2(&system, &box, label);
+                system.add_move(&move1, prob / 2.);
+                system.add_move(&move2, prob / 2.);
             }
             else{
-                double r_below = std::stod(splitted[4]);
-                double r_above = std::stod(splitted[5]);
-                box.add_move(new AVBMC(&box, r_below, r_above), prob);
+                double r_below = std::stod(splitted[5]);
+                double r_above = std::stod(splitted[6]);
+                AVBMCIn move1(&system, &box, label, r_below, r_above);
+                AVBMCOut move2(&system, &box, label, r_above);
+                system.add_move(&move1, prob / 2.);
+                system.add_move(&move2, prob / 2.);
             }
         }
         else if(move == "avbmcin"){
-            if(argc == 4){
-                box.add_move(new AVBMCIn(&box), prob);
+            assert(argc > 4);
+            std::string label = splitted[4];
+            if(argc == 5){
+                AVBMCIn move(&system, &box, label); 
+                system.add_move(&move, prob);
             }
-            else if(argc == 5){
-                double r_below = std::stod(splitted[4]);
-                box.add_move(new AVBMCIn(&box, r_below), prob);
+            else if(argc == 6){
+                double r_below = std::stod(splitted[5]);
+                AVBMCIn move(&system, &box, label, r_below); 
+                system.add_move(&move, prob);
             }
             else{
-                double r_below = std::stod(splitted[4]);
-                double r_above = std::stod(splitted[5]);
-                box.add_move(new AVBMCIn(&box, r_below, r_above), prob);
+                double r_below = std::stod(splitted[5]);
+                double r_above = std::stod(splitted[6]);
+                AVBMCIn move(&system, &box, label, r_below, r_above); 
+                system.add_move(&move, prob);
             }
         }
         else if(move == "avbmcout"){
-            if(argc == 4){
-                box.add_move(new AVBMCOut(&box), prob);
+            assert(argc > 4);
+            std::string label = splitted[4];
+            if(argc == 5){
+                AVBMCOut move(&system, &box, label);
+                system.add_move(&move, prob);
             }
             else{
-                double r_below = std::stod(splitted[4]);
-                box.add_move(new AVBMCOut(&box, r_below), prob);
+                double r_above = std::stod(splitted[5]);
+                AVBMCOut move(&system, &box, label, r_above);
+                system.add_move(&move, prob);
             }
         }
+        /*
         else if(move == "avbmcmol"){
             if(argc == 4){
                 box.add_move(new AVBMCMol(&box), prob);
@@ -397,7 +430,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCMol(&box, r_below, r_above), prob);
             }
         }
-        else if(move == "avbmcinmol"){
+        else if(move == "avbmcmolin"){
             if(argc == 4){
                 box.add_move(new AVBMCInMol(&box), prob);
             }
@@ -411,7 +444,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCInMol(&box, r_below, r_above), prob);
             }
         }
-        else if(move == "avbmcoutmol"){
+        else if(move == "avbmcmolout"){
             if(argc == 4){
                 box.add_move(new AVBMCOutMol(&box), prob);
             }
@@ -420,6 +453,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
                 box.add_move(new AVBMCOutMol(&box, r_below), prob);
             }
         }
+        */
         else{
             std::cout << "Move '" + move + "' is not known! Aborting." << std::endl;
             exit(0);
@@ -427,30 +461,22 @@ void add(Box& box, const vector<string> splitted, const int argc)
     }
     else if(keyword == "particle"){
         assert(argc > 3);
-        //std::cout << "particle1" << std::endl;
-        //Particle* particle;
-        //std::cout << "particle2" << std::endl;
-        //particle->label = splitted[2];
-        //std::cout << "particle3" << std::endl;
         std::string label = splitted[2];
         double x = std::stod(splitted[3]);
         if(argc == 4){
             // assuming 1d
-            std::valarray<double> r = {x};  // initializer list supported after C++11
-            box.add_particle(label, r);
+            box.add_particle(label, {x});
         }
         if(argc == 5){
             // assuming 2d
             double y = std::stod(splitted[4]);
-            std::valarray<double> r = {x, y};  // initializer list supported after C++11
-            box.add_particle(label, r);
+            box.add_particle(label, {x, y});
         }
         else{
             // assuming 3d
             double y = std::stod(splitted[4]);
             double z = std::stod(splitted[5]);
-            std::valarray<double> r = {x, y, z};  // initializer list supported after C++11
-            box.add_particle(label, r);
+            box.add_particle(label, {x, y, z});
         }
     }
     else if(keyword == "particles"){
@@ -475,13 +501,14 @@ void add(Box& box, const vector<string> splitted, const int argc)
         }
         else if(init_type == "xyz"){
             std::string filename = splitted[3];
-            std::vector<Particle *> particles_in = read_xyz(filename);
+            std::vector<Particle> particles_in = read_xyz(filename);
             box.add_particles(particles_in);
         }
         else{
             std::cout << "Particle initialization type '" + init_type + "' is not known! Aborting." << std::endl;
         }
     }
+    /*
     else if (keyword == "moleculetype"){
         assert (argc > 3);
         std::vector<std::string> elements;
@@ -597,6 +624,7 @@ void add(Box& box, const vector<string> splitted, const int argc)
             exit(0);
         }
     }
+    */
     else{
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
@@ -610,14 +638,14 @@ void add(Box& box, const vector<string> splitted, const int argc)
    here, but have no idea right now
 ---------------------------------------------------------------- */
 
-void take(Box& box, const std::vector<std::string> splitted, const int argc)
+void take(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 1);
     std::string keyword = splitted[1];
     if(keyword == "snapshot"){
         assert(argc > 2);
         std::string filename = splitted[2];
-        box.snapshot(filename);
+        //box.snapshot(filename);
     }
     else{
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
@@ -631,7 +659,7 @@ void take(Box& box, const std::vector<std::string> splitted, const int argc)
    run_mc and run_md. 
 ------------------------------------------------------------------ */
 
-void run(Box& box, const std::vector<std::string> splitted, const int argc)
+void run(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
     std::string keyword = splitted[1];
@@ -639,11 +667,11 @@ void run(Box& box, const std::vector<std::string> splitted, const int argc)
     if(keyword == "mc"){
         assert(argc > 3);
         int nmoves = std::stod(splitted[3]);
-        box.run_mc(nsteps, nmoves);
+        system.run_mc(nsteps, nmoves);
     }
     /*
     else if(keyword == "md"){
-        box.run_md(nsteps);
+        system.run_md(nsteps);
     }
     */
     else{
@@ -657,7 +685,7 @@ void run(Box& box, const std::vector<std::string> splitted, const int argc)
    This function takes care of the thermo output command
 ------------------------------------------------------------------ */
 
-void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
+void thermo(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 3);
     int freq = stoi(splitted[1]);
@@ -666,7 +694,7 @@ void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
     for(int i=3; i<argc; i++){
         outputs.push_back(splitted[i]);
     }
-    box.set_thermo(freq, filename, outputs);
+    //box.set_thermo(freq, filename, outputs);
 }
 
 
@@ -674,7 +702,7 @@ void thermo(Box& box, const std::vector<std::string> splitted, const int argc)
    This function takes care of the dump output command
 ----------------------------------------------------------------- */
 
-void dump(Box& box, const std::vector<std::string> splitted, const int argc)
+void dump(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 3);
     int freq = std::stoi(splitted[1]);
@@ -683,7 +711,7 @@ void dump(Box& box, const std::vector<std::string> splitted, const int argc)
     for(int i=3; i<argc; i++){
         outputs.push_back(splitted[i]);
     }
-    box.set_dump(freq, filename, outputs);
+    //box.set_dump(freq, filename, outputs);
 }
 
 
@@ -691,20 +719,13 @@ void dump(Box& box, const std::vector<std::string> splitted, const int argc)
    This function takes care of the write output command
 ----------------------------------------------------------------- */
 
-void write(Box& box, const std::vector<std::string> splitted, const int argc)
+void write(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
     std::string keyword = splitted[1];
     if (keyword == "nsystemsize") {
-        //MPI_Barrier(MPI_COMM_WORLD);
-        //MPI_Reduce(
-        //MPI_Gather(
         std::string filename = splitted[2];
-        std::ofstream f(filename);
-        for (int i=0; i < box.sampler->nsystemsize.size(); i++){
-            f << box.sampler->nsystemsize[i] << std::endl;
-        }
-        f.close();
+        box.write_nsystemsize(filename);
     }
     else {
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
@@ -713,11 +734,24 @@ void write(Box& box, const std::vector<std::string> splitted, const int argc)
 }
 
 
+void special(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
+{
+    assert (argc > 1);
+    std::string keyword = splitted[0];
+    if (keyword == "new") {
+        std::string opt = splitted[1];
+        if (opt == "box") {
+            // set second box as default box
+        }
+    }
+}
+
+
 /* -------------------------------------------------------------- 
    This function takes care of the remove output command
 ----------------------------------------------------------------- */
 
-void rm(Box& box, const std::vector<std::string> splitted, const int argc)
+void rm(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 1);
     std::cout << "Remove is not yet implemented in the parser" << std::endl;
