@@ -10,9 +10,9 @@
 #include "../particle.h"
 
 
-/* -----------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Vashishta constructor, which takes a parameter file 'params'
--------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 Vashishta::Vashishta(System* system_in, const std::string params)
     : ForceField(system_in)
@@ -26,7 +26,7 @@ Vashishta::Vashishta(System* system_in, const std::string params)
 }
 
 
-/* -----------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Read parameter file 'params' and store parameters
    globally. The file takes the following form:
    <label1> <label2> <label3> <H> <eta> <Zi> <Zj> <lambda1> <D> <lambda4>
@@ -34,57 +34,63 @@ Vashishta::Vashishta(System* system_in, const std::string params)
    The file is inspired by LAMMPS, and for an explanation of the 
    symbols and the way it is used, see the LAMMPS Vashishta
    documentation.
--------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Vashishta::read_param_file(const std::string params)
 {
     nline = 0;
     std::ifstream infile(params);
-    std::string line, label1, label2, label3;
-    double H, eta, Zi, Zj, lambda1, D, lambda4, W, rc, B, gamma, r0, C, costheta;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        if (line.rfind("#", 0) == 0) {
-            // comments are allowed in parameter file
-            continue;
+    if (infile.is_open()) {
+        std::string line, label1, label2, label3;
+        double H, eta, Zi, Zj, lambda1, D, lambda4, W, rc, B, gamma, r0, C, costheta;
+        while (std::getline(infile, line))
+        {
+            std::istringstream iss(line);
+            if (line.rfind("#", 0) == 0) {
+                // comments are allowed in parameter file
+                continue;
+            }
+            else if (line.empty()) {
+                // empty lines are allowed in parameter file
+                continue;
+            }
+            else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1
+                         >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta) { 
+                label1_vec.push_back(label1);
+                label2_vec.push_back(label2);
+                label3_vec.push_back(label3);
+                H_vec.push_back(H);
+                eta_vec.push_back(eta);
+                Zi_vec.push_back(Zi);
+                Zj_vec.push_back(Zj);
+                lambda1_vec.push_back(lambda1);
+                D_vec.push_back(D);
+                lambda4_vec.push_back(lambda4);
+                W_vec.push_back(W);
+                rc_vec.push_back(rc);
+                B_vec.push_back(B);
+                gamma_vec.push_back(gamma);
+                r0_vec.push_back(r0);
+                C_vec.push_back(C);
+                costheta_vec.push_back(costheta);
+                nline ++;
+            }
+            else {
+                std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
+                std::cout << "Ignoring line: '" + line + "'" << std::endl;
+            }
         }
-        else if (line.empty()) {
-            // empty lines are allowed in parameter file
-            continue;
-        }
-        else if (iss >> label1 >> label2 >> label3 >> H >> eta >> Zi >> Zj >> lambda1
-                     >> D >> lambda4 >> W >> rc >> B >> gamma >> r0 >> C >> costheta) { 
-            label1_vec.push_back(label1);
-            label2_vec.push_back(label2);
-            label3_vec.push_back(label3);
-            H_vec.push_back(H);
-            eta_vec.push_back(eta);
-            Zi_vec.push_back(Zi);
-            Zj_vec.push_back(Zj);
-            lambda1_vec.push_back(lambda1);
-            D_vec.push_back(D);
-            lambda4_vec.push_back(lambda4);
-            W_vec.push_back(W);
-            rc_vec.push_back(rc);
-            B_vec.push_back(B);
-            gamma_vec.push_back(gamma);
-            r0_vec.push_back(r0);
-            C_vec.push_back(C);
-            costheta_vec.push_back(costheta);
-            nline ++;
-        }
-        else {
-            std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
-            std::cout << "Ignoring line: '" + line + "'" << std::endl;
-        }
+    }
+    else {
+        std::cout << "\nParameter file '" + params + "' was not found!" << std::endl;
+        exit(0);
     }
 }
 
 
-/* -----------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Allocate memory
--------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Vashishta::allocate_memory()
 {
@@ -170,10 +176,10 @@ void Vashishta::free_memory()
 }
 
 
-/* -----------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Parameters have to be sorted with respect to the particle
    types, and are stored in three-dimensional arrays
--------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Vashishta::sort_params()
 {
@@ -243,11 +249,11 @@ void Vashishta::sort_params()
 }
 
 
-/* ----------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute two-body interaction energy between two particles
    i and j of types 'typei' and 'typej', respectively, 
    separated by a distance 'rij'.
-------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
                                    std::valarray<double> &force, const bool comp_force)
@@ -272,13 +278,13 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 }
 
 
-/* ---------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute three-body interaction energy between three 
    particles i, j and k of types 'typei', 'typej' and 'typek',
    respectively. 'delij' is the distance vector from i to j,
    while 'delik' is the distance vector from i to k. 'rij'
    is the actual distance between particle i and j.
------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
         const int typek, const std::valarray<double> delij,
@@ -291,23 +297,23 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
     rik = std::sqrt(norm(delik));
     if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]) {
         costhetaijk = (delij * delik).sum() / (rij * rik);
-        expij = std::exp(gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]));
-        expik = std::exp(gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]));
+        expij = gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]);
+        expik = gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]);
         delcos = costheta_mat[typei][typej][typek] - costhetaijk;
         delcossq = delcos * delcos;
-        energy += B_mat[typei][typej][typek] * delcossq / (1 + C_mat[typei][typej][typek] * delcossq) * expij * expik;
-        if (comp_force) {
-            // do something
-        }
+        energy += B_mat[typei][typej][typek] * delcossq / 
+            (1 + C_mat[typei][typej][typek] * delcossq) * std::exp(expij + expik);
+        //if (comp_force) {
+        //}
     }
     return (energy);
 }
 
 
-/* ---------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute energy contribution of a particle 'i', given a 
    vector containing all particles.
------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double Vashishta::comp_energy_par(const std::vector<Particle> particles, const int i,
                                   std::valarray<double> &force, const bool comp_force)
@@ -356,11 +362,10 @@ double Vashishta::comp_energy_par(const std::vector<Particle> particles, const i
     return (energy);
 }
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Vashishta destructor, memory of all parameter arrays
-   is released. Do this in a more elegant way in the 
-   future
------------------------------------------------------------- */
+   is released.
+------------------------------------------------------------------------------- */
 
 Vashishta::~Vashishta()
 {
