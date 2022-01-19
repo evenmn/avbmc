@@ -57,13 +57,14 @@ void parser(int argc, char** argv)
             System system("");
             Box box(&system);
             Metropolis sampler(&system);
-            MersenneTwister rng(void);
+            MersenneTwister rng;
             system.add_box(&box);
             system.set_sampler(&sampler);
             system.set_rng(&rng);
             std::string line;
             while (std::getline(f, line))
             {
+                std::cout << line << std::endl;
                 if (line.empty()) {
                     // Continue if line is blank
                     continue;
@@ -104,6 +105,7 @@ void parser(int argc, char** argv)
                         std::cout << "There is no category '" + cmd_cat + "'! Aborting." << std::endl;
                         exit(0);
                     }
+                    std::cout << "init " + system.forcefield->label << std::endl;
                 }
             }
         }
@@ -126,7 +128,7 @@ void parser(int argc, char** argv)
    overwrite the previous value
 ------------------------------------------------------- */
 
-void set(System & system, Box& box, const std::vector<std::string> splitted, const int argc)
+void set(System &system, Box &box, const std::vector<std::string> splitted, const int argc)
 {
     assert(argc > 2);
     std::string keyword = splitted[1];
@@ -243,7 +245,7 @@ void set(System & system, Box& box, const std::vector<std::string> splitted, con
     else if(keyword == "rng"){
         std::string rng = splitted[2];
         if(rng == "mersennetwister"){
-            MersenneTwister rng(void);
+            MersenneTwister rng;
             system.set_rng(&rng);
         }
         else{
@@ -256,8 +258,11 @@ void set(System & system, Box& box, const std::vector<std::string> splitted, con
         std::string boundary = splitted[2];
         if(boundary == "stillinger"){
             double rc = std::stod(splitted[3]);
+            std::cout << "boundary " + system.forcefield->label << std::endl;
             Stillinger boundary(&box, rc);
+            std::cout << "boundary " + system.forcefield->label << std::endl;
             box.set_boundary(&boundary);
+            std::cout << "boundary " + system.forcefield->label << std::endl;
         }
         else if(boundary == "fixed"){
             if(argc == 4){
@@ -308,7 +313,7 @@ void set(System & system, Box& box, const std::vector<std::string> splitted, con
         }
     }
     */
-    else{
+    else {
         std::cout << "Keyword '" + keyword + "' is not known! Aborting." << std::endl;
         exit(0);
     }
@@ -375,12 +380,18 @@ void add(System &system, Box &box, const std::vector<std::string> splitted, cons
                 system.add_move(&move2, prob / 2.);
             }
             else{
+                std::cout << "Here" << std::endl;
                 double r_below = std::stod(splitted[5]);
                 double r_above = std::stod(splitted[6]);
+                std::cout << "Here" << std::endl;
                 AVBMCIn move1(&system, &box, label, r_below, r_above);
+                std::cout << "Here" << std::endl;
                 AVBMCOut move2(&system, &box, label, r_above);
+                std::cout << "Here" << std::endl;
                 system.add_move(&move1, prob / 2.);
+                std::cout << "Here" << std::endl;
                 system.add_move(&move2, prob / 2.);
+                std::cout << "Here" << std::endl;
             }
         }
         else if(move == "avbmcin"){
