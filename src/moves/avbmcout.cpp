@@ -1,3 +1,15 @@
+/* ----------------------------------------------------------------------------
+------------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+   Aggregation-volume-biased Monte Carlo (AVBMC) deletion move. This is a
+   fictitious inter-box move, and works in the grand-canonical essemble only.
+   To maintain detailed balance, this move always have to be used in
+   conjunction with an AVBMC insertion move, with the same radius of the 
+   bonded region and the same move probability. This is ensured when applying
+   the 'AVBMC' move. The AVBMC moves were first proposed by Chen (2000).
+------------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <vector>
@@ -12,11 +24,9 @@
 #include "../forcefield/forcefield.h"
 
 
-/* -----------------------------------------------------
-   Aggregate-volume-biased out move. This is a 
-   fictitous inter-box move, and works in the grand
-   canonical ensemble only
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   AVBMCOut constructor
+------------------------------------------------------------------------------- */
 
 AVBMCOut::AVBMCOut(System* system_in, Box* box_in, std::string label_in,
                    const double r_above_in)
@@ -31,10 +41,10 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in, std::string label_in,
 }
 
 
-/* ------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Remove a random particle from the bonded region of
    another particle.
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCOut::perform_move()
 {
@@ -80,10 +90,10 @@ void AVBMCOut::perform_move()
 }
 
 
-/* -------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Return the acceptance probability of move, given temperature
    'temp' and chemical potential 'chempot'.
----------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double AVBMCOut::accept(double temp, double chempot)
 {
@@ -93,14 +103,15 @@ double AVBMCOut::accept(double temp, double chempot)
     else {
         bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
-        return n_in * box->npar / (v_in * (box->npar - 1)) * std::exp(-(du+chempot+dw)/temp) * accept_boundary;
+        double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
+        return prefactor * std::exp(-(du+chempot+dw)/temp) * accept_boundary;
     }
 }
 
 
-/* ------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Set back to old state if move is rejected
---------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCOut::reset()
 {
@@ -112,10 +123,10 @@ void AVBMCOut::reset()
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Update number of time this system size has occured if
    move was accepted
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCOut::update_nsystemsize()
 {
@@ -126,14 +137,15 @@ void AVBMCOut::update_nsystemsize()
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string AVBMCOut::repr()
 {
     std::string move_info;
     move_info += "AVBMC particle deletion move\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
+    move_info += "    Label of inserted atom: " + particle_label + "\n";
     return move_info;
 }

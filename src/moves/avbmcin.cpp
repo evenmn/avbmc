@@ -1,3 +1,15 @@
+/* ----------------------------------------------------------------------------
+------------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+   Aggregation-volume-biased Monte Carlo (AVBMC) insertion move. This is a
+   fictitious inter-box move, and works in the grand-canonical essemble only.
+   To maintain detailed balance, this move always have to be used in
+   conjunction with an AVBMC deletion move, with the same radius of the 
+   bonded region and the same move probability. This is ensured when applying
+   the 'AVBMC' move. The AVBMC moves were first proposed by Chen (2000).
+------------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <valarray>
@@ -13,11 +25,9 @@
 #include "../forcefield/forcefield.h"
 
 
-/* -----------------------------------------------------
-   Aggregate-volume-biased in move. This is a fictitious 
-   inter-box move, and works in the grand canonical 
-   essemble only. A defined molecule is inserted
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   AVBMCIn constructor
+------------------------------------------------------------------------------- */
 
 
 AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string label_in,
@@ -37,9 +47,9 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, std::string label_in,
 }
 
 
-/* ------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Insert molecule into the bonded region 
---------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCIn::perform_move()
 {
@@ -69,21 +79,22 @@ void AVBMCIn::perform_move()
 }
 
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Get acceptance probability of move
------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double AVBMCIn::accept(double temp, double chempot)
 {
     bool accept_boundary = box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
-    return (v_in * box->npar) / ((n_in + 1) * (box->npar + 1)) * std::exp(-(du-chempot+dw)/temp) * accept_boundary;
+    double prefactor = v_in * box->npar / ((n_in + 1) * (box->npar + 1));
+    return prefactor * std::exp(-(du-chempot+dw)/temp) * accept_boundary;
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Set back to old state before move is move was rejected
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCIn::reset()
 {
@@ -93,10 +104,9 @@ void AVBMCIn::reset()
 }
 
 
-/* ----------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
-------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Update number of time this system size has occured if move was accepted
+------------------------------------------------------------------------------- */
 
 void AVBMCIn::update_nsystemsize()
 {
@@ -107,9 +117,9 @@ void AVBMCIn::update_nsystemsize()
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string AVBMCIn::repr()
 {
