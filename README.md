@@ -1,13 +1,13 @@
 ![build docs](https://github.com/henriasv/molecular-builder/workflows/build%20docs/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # AVBMC
-Monte Carlo package for estimating the free energy and surface tension of water droplets of various sizes. Code is written in C++.
+Monte Carlo package for simulating systems of non-bonded particles. Open (uVT) and closed systems (NVT) are supported thought various move types, including translational moves and insertation/deletion moves (AVBMC). Additionally, a groups of particles can be inserted/removed, allowing non-bonded molecule to be inserted/removed. Code is written in C++.
 
 ## Prerequisites
-The code depends on several features that were introduced in C++11. GCC 4.8.1 or any later version needed. MPI (MPICH or OpenMPI) is needed for parallel processing.
+The code depends on several features that were introduced in C++11. GCC 4.8.1 or any later version needed. MPI is needed for parallel processing. Nightly runs on macOS and Linux is performed using MPICH and OpenMPI.
 
 ## Build and run
-There are two ways to build the code; with or without a parser. 
+There are two ways to build the code; with or without an input file parser. 
 
 ### With parser (recommended)
 Build with:
@@ -17,6 +17,7 @@ make parser
 and thereafter run with input script as an argument:
 ```bash
 avbmc input.in
+mpirun -n 4 avbmc input.in
 ```
 
 ### Without parser
@@ -27,6 +28,7 @@ make dev
 This procedure builds `src/main.cpp`, so this file has to be modified in order to configure the simulation. Thereafter, run with
 ```bash
 make run
+mpirun -n 4 ./main.out
 ```
 
 ## Configure simulations
@@ -113,4 +115,4 @@ int main()
 ## File formats
 We try to stick to standard input file formats. For datafiles, the xyz-format is supported both to initialize the system and for dump files. The parameter files follow the LAMMPS standard. Both xyz-files and LAMMPS parameter files are oriented around chemical symbols (in contrast to for instance LAMMPS data files, which are oriented around particle types). This means that the user never needs to deal with the particle type indices, only the chemical symbols. Particles with the same chemical symbol will have the same properties (mass, charge and other properties given by the parameter file).
 
-## Licence
+## License

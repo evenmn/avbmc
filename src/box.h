@@ -17,20 +17,20 @@ public:
     void add_particle(std::string, std::valarray<double>);
     void add_particles(std::vector<class Particle>);
 
-    //void snapshot(std::string);
-    //void set_dump(int, std::string, std::vector<std::string>);
-    //void set_thermo(int, std::string, std::vector<std::string>);
+    void snapshot(std::string, bool = true);
+    void set_dump(int, std::string, std::vector<std::string>);
+    void set_thermo(int, std::string, std::vector<std::string>);
     std::vector<int> build_neigh_list(int, double);
     void write_nsystemsize(std::string);
 
     // variables
-    //class Dump* dump = nullptr;
-    //class Thermo* thermo = nullptr;
+    class Dump* dump = nullptr;
+    class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
     //class Velocity* velocity = nullptr;
     class System* system = nullptr;
 
-    unsigned int npar, step, ntype, nmove;
+    unsigned int npar, step, ntype, nmove, box_id;
     double poteng, time;
 
     std::vector<int> nsystemsize;

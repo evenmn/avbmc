@@ -145,8 +145,9 @@ void System::add_move(Moves* move, double prob)
 
 void System::add_box(Box* box_in)
 {
-    nbox ++;
+    box_in->box_id = nbox;
     boxes.push_back(box_in);
+    nbox ++;
 }
 
 
@@ -295,12 +296,12 @@ void Box::run_md(const int nsteps)
 
 void System::run_mc(const int nsteps, const int nmoves)
 {
-    for(Box* box : boxes){
+    for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
     }
 
-    for (Moves* move : moves){
+    for (Moves* move : moves) {
         move->ndrawn = 0;
         move->naccept = 0;
     }
@@ -327,9 +328,11 @@ void System::run_mc(const int nsteps, const int nmoves)
     while(step < maxiter){
         if (rank == 0){
             bar.progress(step * nprocess, maxiter * nprocess);
+            //for (Box* box : boxes) {
+            //    box->dump->print_frame(step);
+            //    box->thermo->print_line(step);
+            //}
         }
-        //box->dump->print_frame(step);
-        //box->thermo->print_line(step);
         sampler->sample(nmoves);
         step ++;
     }

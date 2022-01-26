@@ -115,8 +115,8 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
 
 void Moves::check_neighbors(const int k, std::vector<Particle> molecule, unsigned int elm_count,
                             std::vector<int> &elm_idx, std::vector<Particle> particles, double rc) {
-    if (elm_count <= molecule.size()) {  // ensure that recursion stops when molecule has correct size
-        if (particles[k].type == molecule[elm_count].type) {
+    if (elm_idx.size() < molecule.size()) {  // ensure that recursion stops when molecule has reaced correct size
+        if (particles[k].label == molecule[elm_count].label) {
             elm_idx.push_back(k);
             elm_count ++;
             std::vector<int> neigh_list = build_neigh_list(particles, k, rc);
@@ -140,12 +140,12 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
 {
     std::vector<int> elm_idx;
     unsigned int count = 0;
-    while (count < particles.size() || !detected)
+    while (count < particles.size() && !detected)
     {
         elm_idx.clear();
-        int k = system->rng->next_int(particles.size());     // pick initial particle
+        int k = rng->next_int(particles.size());     // pick initial particle
         check_neighbors(k, molecule, 0, elm_idx, particles, rc);
-        if (elm_idx.size() == particles.size()) {
+        if (elm_idx.size() == molecule.size()) {
             detected = true;
         }
         count ++;

@@ -11,7 +11,6 @@
 class LennardJones : public ForceField
 {
 public:
-    //LennardJones(class System *);
     LennardJones(class System *, std::string);
     void read_param_file(std::string);
     void allocate_memory();

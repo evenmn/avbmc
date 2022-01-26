@@ -9,25 +9,6 @@
 #include "../particle.h"
 
 
-/* -----------------------------------------------------
-   This is the default constructor when parameter
-   file is not given. It only works for pure Argon
--------------------------------------------------------- */
-/*
-LennardJones::LennardJones(System* system_in)
-    : ForceField(system_in)
-{
-    label1_vec = {"Ar"};
-    label2_vec = {"Ar"};
-    sigma_vec = {1.};
-    epsilon_vec = {1.};
-    rc_vec = {5.};
-    nline = 1;
-    label = "Lennard-Jones";
-    paramfile = "";
-}
-*/
-
 /* ------------------------------------------------------
    This is the default constructor when a parameter
    file 'params' is given.
@@ -55,31 +36,37 @@ void LennardJones::read_param_file(const std::string params)
 {
     nline = 0;
     std::ifstream infile(params);
-    std::string line, label1, label2;
-    double sigma, epsilon, rc;
-    while (std::getline(infile, line))
-    {
-        std::istringstream iss(line);
-        if (line.rfind("#", 0) == 0) {
-            // comments are allowed in parameter file
-            continue;
+    if (infile.is_open()) {
+        std::string line, label1, label2;
+        double sigma, epsilon, rc;
+        while (std::getline(infile, line))
+        {
+            std::istringstream iss(line);
+            if (line.rfind("#", 0) == 0) {
+                // comments are allowed in parameter file
+                continue;
+            }
+            else if (line.empty()) {
+                // empty lines are allowed in parameter file
+                continue;
+            }
+            else if (iss >> label1 >> label2 >> sigma >> epsilon >> rc) { 
+                label1_vec.push_back(label1);
+                label2_vec.push_back(label2);
+                sigma_vec.push_back(sigma);
+                epsilon_vec.push_back(epsilon);
+                rc_vec.push_back(rc);
+                nline ++;
+            }
+            else {
+                std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
+                std::cout << "Ignoring line: '" + line + "'" << std::endl;
+            }
         }
-        else if (line.empty()) {
-            // empty lines are allowed in parameter file
-            continue;
-        }
-        else if (iss >> label1 >> label2 >> sigma >> epsilon >> rc) { 
-            label1_vec.push_back(label1);
-            label2_vec.push_back(label2);
-            sigma_vec.push_back(sigma);
-            epsilon_vec.push_back(epsilon);
-            rc_vec.push_back(rc);
-            nline ++;
-        }
-        else {
-            std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
-            std::cout << "Ignoring line: '" + line + "'" << std::endl;
-        }
+    }
+    else {
+        std::cout << "\nParameter file '" + params + "' was not found!" << std::endl;
+        exit(0);
     }
 }
 
@@ -124,10 +111,6 @@ void LennardJones::free_memory()
 /* ------------------------------------------------------
    Parameters have to be sorted with respect to
    the particle types, and are stored in matrices.
-
-   TODO: Since the possible particle labels (chemical
-   elements) are defined by the parameter file, this 
-   function can be called by the constructor.
 --------------------------------------------------------- */
 
 void LennardJones::sort_params()
