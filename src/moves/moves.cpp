@@ -9,9 +9,9 @@
 #include "../rng/rng.h"
 
 
-/* --------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Moves base class constructor
------------------------------------------------------------ */
+------------------------------------------------------------------------------- */
 
 Moves::Moves(System* system_in)
 {
@@ -20,55 +20,53 @@ Moves::Moves(System* system_in)
 }
 
 
-/* --------------------------------------------------------
-   Rotate molecule by a random angle in all dimensions. Might
-   send in positions as a reference in the future, even
-   though we still may need to copy the positions
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Rotate molecule by a random angle in all dimensions. Might send in positions
+   as a reference in the future, even though we still may need to copy the
+   positions
+------------------------------------------------------------------------------- */
 
-std::vector<std::valarray<double> > Moves::rotate_molecule(std::vector<std::valarray<double> > positions_in)
+std::vector<Particle> Moves::rotate_molecule(std::vector<Particle> particles)
 {
-    std::vector<std::valarray<double> > positions_out;
     if(system->ndim == 1){
-        return positions_in;
+        // cannot rotate in 1D
     }
     else if(system->ndim == 2){
         double angle = 2 * pi * rng->next_double();
-        for(std::valarray<double> position_in : positions_in){
-            std::valarray<double> position_out = {
-                position_in[0] * std::cos(angle) - position_in[1] * std::sin(angle),
-                position_in[0] * std::sin(angle) + position_in[1] * std::cos(angle)
+        for(Particle &particle : particles){
+            std::valarray<double> r = particle.r;
+            particle.r = {
+                r[0] * std::cos(angle) - r[1] * std::sin(angle),
+                r[0] * std::sin(angle) + r[1] * std::cos(angle)
             };
-            positions_out.push_back(position_out);
         }
-        return positions_out;
     }
     else{
         double anglex = 2 * pi * rng->next_double();
         double angley = 2 * pi * rng->next_double();
         double anglez = 2 * pi * rng->next_double();
-        for(std::valarray<double> position_in : positions_in){
-            std::valarray<double> position_out = {
-                position_in[0] * (1 + std::cos(angley) + std::cos(anglez))
-                    - position_in[2] * std::sin(anglez)
-                    + position_in[1] * std::sin(angley),
-                position_in[1] * (1 + std::cos(anglex) + std::cos(anglez))
-                    + position_in[0] * std::sin(angley)
-                    - position_in[2] * std::sin(anglex),
-                position_in[2] * (1 + std::cos(anglex) + std::cos(angley))
-                    - position_in[0] * std::sin(angley)
-                    + position_in[1] * std::sin(anglex)
+        for(Particle &particle : particles){
+            std::valarray<double> r = particle.r;
+            particle.r = {
+                r[0] * (1 + std::cos(angley) + std::cos(anglez))
+                    - r[2] * std::sin(anglez)
+                    + r[1] * std::sin(angley),
+                r[1] * (1 + std::cos(anglex) + std::cos(anglez))
+                    + r[0] * std::sin(angley)
+                    - r[2] * std::sin(anglex),
+                r[2] * (1 + std::cos(anglex) + std::cos(angley))
+                    - r[0] * std::sin(angley)
+                    + r[1] * std::sin(anglex)
             };
-            positions_out.push_back(position_out);
         }
-        return positions_out;
     }
+    return particles;
 }
 
 
-/* -------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute the squared norm of a valarray 'array'
----------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double Moves::norm(std::valarray<double> array)
 {
@@ -81,10 +79,10 @@ double Moves::norm(std::valarray<double> array)
 }
 
 
-/* -------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Build neighbor list of particle 'i' with maximum neighbor
    distance squared 'rsq'
----------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
 {
@@ -108,10 +106,9 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
 }
 
 
-
-/* ---------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Moves::check_neighbors(const int k, std::vector<Particle> molecule, unsigned int elm_count,
                             std::vector<int> &elm_idx, std::vector<Particle> particles, double rc) {

@@ -22,7 +22,7 @@ public:
     std::string label;
 
 protected:
-    std::vector<std::valarray<double> > rotate_molecule(std::vector<std::valarray<double> >);
+    std::vector<class Particle> rotate_molecule(std::vector<class Particle>);
     double norm(std::valarray<double>);
     std::vector<int> build_neigh_list(std::vector<class Particle>, int, double);
     void check_neighbors(int, std::vector<Particle>, unsigned int, std::vector<int>&,

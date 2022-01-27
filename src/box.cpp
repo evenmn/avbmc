@@ -13,6 +13,7 @@
 #include "dump.h"
 #include "thermo.h"
 #include "system.h"
+#include "forcefield/forcefield.h"
 #include "boundary/stillinger.h"
 //#include "velocity/zero.h"
 
@@ -31,10 +32,10 @@ Box::Box(System* system_in)
     //velocity = new Zero();
 
     // set default outputs
-    //std::vector<std::string> outputs;
-    //dump = new Dump(this, 0, "", outputs);
-    //outputs = {"step", "atoms", "poteng"};
-    //thermo = new Thermo(this, 0, "", outputs);
+    std::vector<std::string> outputs;
+    dump = new Dump(this, 0, "", outputs);
+    outputs = {"step", "atoms", "poteng"};
+    thermo = new Thermo(this, 0, "", outputs);
 }
 
 
@@ -59,7 +60,7 @@ void Box::add_particle(Particle particle)
         MPI_Abort(MPI_COMM_WORLD, 143);
     }
     npar ++;
-    particle.type = forcefield->label2type.at(particle.label);
+    particle.type = system->forcefield->label2type.at(particle.label);
     system->ndim = particle.r.size();
     particles.push_back(particle);
 }
@@ -90,13 +91,32 @@ void Box::add_particles(std::vector<Particle> particles_in)
 
 
 /* ----------------------------------------------------------------------------
-   Dump snapshot of system using the "write_xyz"-function. 
+   Returning a string with information about rank-ID and box-ID if there are
+   more than one rank/box. The string can then be added to a filename to 
+   mark the file.
+------------------------------------------------------------------------------- */
+
+std::string Box::file_marking()
+{
+    std::string str;
+    if (system->nbox > 1) {
+        str = "BOX" + std::to_string(box_id) + "_";
+    }
+    if (system->nprocess > 1) {
+        str += "RANK" + std::to_string(system->rank) + "_";
+    }
+    return str;
+}
+
+/* ----------------------------------------------------------------------------
+   Dump snapshot of system using the "write_xyz"-function from io.cpp to file
+   'filename', which is marked with box-ID and rank-ID if 'mark_file' is true
 ------------------------------------------------------------------------------- */
    
-void Box::snapshot(const std::string filename, const bool mark_box)
+void Box::snapshot(std::string filename, const bool mark_file)
 {
-    if (mark_box) {
-        filename = std::to_string(box_id) + "_" + filename;
+    if (mark_file) {
+        filename = file_marking() + filename;
     }
     std::vector<std::string> outputs = {"xyz"};
     Dump* tmp_dump = new Dump(this, 1, filename, outputs);
@@ -107,28 +127,30 @@ void Box::snapshot(const std::string filename, const bool mark_box)
 /* ----------------------------------------------------------------------------
    Specify dump output
 ------------------------------------------------------------------------------- */
-/*
-void Box::set_dump(const int freq, const std::string filename, const std::vector<std::string> outputs)
+
+void Box::set_dump(const int freq, std::string filename, 
+                   std::vector<std::string> outputs, const bool mark_file)
 {
-    delete dump;
-    dump = nullptr;
-    Dump dumper(this, freq, filename, outputs);
-    dump = &dumper;
-    //dump = new Dump(this, freq, filename, outputs);
+    if (mark_file) {
+        filename = file_marking() + filename;
+    }
+    dump = new Dump(this, freq, filename, outputs);
 }
-*/
+
 
 /* ----------------------------------------------------------------------------
    Specify thermo output
 ------------------------------------------------------------------------------- */
-/*
-void Box::set_thermo(const int freq, const std::string filename, const std::vector<std::string> outputs)
+
+void Box::set_thermo(const int freq, std::string filename,
+                     std::vector<std::string> outputs, const bool mark_file)
 {
-    delete thermo;
-    thermo = nullptr;
+    if (mark_file) {
+        filename = file_marking() + filename;
+    }
     thermo = new Thermo(this, freq, filename, outputs);
 }
-*/
+
 
 /* ----------------------------------------------------------------------------
    Build neighbor list of particle 'i' with maximum neighbor
@@ -186,4 +208,14 @@ void Box::write_nsystemsize(std::string filename)
         write_array(nsystemsizetot, maxsize, filename, "\n");
     }
     delete[] nsystemsizetot;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Box destructor, deleting thermo and dump pointers
+------------------------------------------------------------------------------- */
+Box::~Box()
+{
+    delete dump;
+    delete thermo;
 }

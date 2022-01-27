@@ -17,11 +17,13 @@ public:
     void add_particle(std::string, std::valarray<double>);
     void add_particles(std::vector<class Particle>);
 
+    std::string file_marking();
     void snapshot(std::string, bool = true);
-    void set_dump(int, std::string, std::vector<std::string>);
-    void set_thermo(int, std::string, std::vector<std::string>);
+    void set_dump(int, std::string, std::vector<std::string>, bool = true);
+    void set_thermo(int, std::string, std::vector<std::string>, bool = true);
     std::vector<int> build_neigh_list(int, double);
     void write_nsystemsize(std::string);
+    ~Box();
 
     // variables
     class Dump* dump = nullptr;

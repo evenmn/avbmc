@@ -41,7 +41,7 @@ public:
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
 
-    bool initialized;
+    bool initialized, logo_printed;
     int nbox, ndim, nmove, nprocess, step, rank;
     double temp, chempot, poteng, time;
     std::string working_dir;
