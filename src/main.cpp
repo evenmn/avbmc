@@ -41,7 +41,9 @@
 #include "sampler/metropolis.h"
 #include "moves/trans.h"
 #include "moves/avbmcmolin.h"
+#include "moves/avbmcmolinres.h"
 #include "moves/avbmcmolout.h"
+#include "moves/avbmcmoloutres.h"
 
 
 int main()
@@ -49,7 +51,7 @@ int main()
     // initialize system
     System system("simulation");
     system.set_temp(300.);
-    system.set_chempot(-5.);
+    system.set_chempot(10.);
     Vashishta forcefield(&system, "H2O.wang.vashishta");
     system.set_forcefield(&forcefield);
     MersenneTwister rng;
@@ -57,15 +59,15 @@ int main()
 
     // initialize umbrella sampling with square function
     auto f = [] (const int n) { return (10.0 * (n - 100) * (n - 100)); };
-    Umbrella sampler(&system, f);
-    //Metropolis sampler(&system);
+    //Umbrella sampler(&system, f);
+    Metropolis sampler(&system);
     system.set_sampler(&sampler);
 
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
     Box box(&system);
     system.add_box(&box);
-    Stillinger boundary(&box, 4.0);
+    Stillinger boundary(&box, 3.0);
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
     box.set_boundary(&boundary);
@@ -73,8 +75,8 @@ int main()
 
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 0.1);
-    AVBMCMolIn move2(&system, &box, single_molecule, 3.0, 0.9, 4.0);
-    AVBMCMolOut move3(&system, &box, single_molecule, 4.0, 3.0);
+    AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 3.0);
+    AVBMCMolOutRes move3(&system, &box, single_molecule, 3.0, 1.2);
     system.add_move(&move1, 0.5);
     system.add_move(&move2, 0.25);
     system.add_move(&move3, 0.25);
@@ -85,7 +87,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e3, 1);
+    system.run_mc(1e4, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
