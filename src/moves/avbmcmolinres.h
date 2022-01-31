@@ -22,5 +22,6 @@ private:
     unsigned int natom;
     double r_below, r_above, r_max_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
     std::vector<class Particle> particles;
+    std::vector<class Particle> particles_old;
     class Box* box = nullptr;
 };

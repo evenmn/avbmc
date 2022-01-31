@@ -79,14 +79,18 @@ void AVBMCMolInRes::perform_move()
                 }
                 normsq = norm(dr);
             }
+            dr += box->particles[i].r;
 
-            // construct new particles
-            //particles = rotate_molecule(particles);
+            particles_old = box->particles;
+            // construct new molecule
+            particles = rotate_molecule(particles);
             for (j=0; j < natom; j++) {
-                particles[j].r += box->particles[i].r + dr;
-                box->particles.push_back(particles[j]);
-                box->npar ++;
+                std::valarray<double> new_pos = particles[j].r + dr;
+                Particle particle(particles[j].label, new_pos);
+                particle.type = particles[j].type;
+                box->particles.push_back(particle);
             }
+            box->npar += natom;
 
             // compute energy difference
             du = 0.;
@@ -105,15 +109,14 @@ void AVBMCMolInRes::perform_move()
 
 double AVBMCMolInRes::accept(double temp, double chempot)
 {
-    if (reject_move) {
-        return 0.;
-    }
-    else {
+    double accept_prob = 0.;
+    if (!reject_move) {
         bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
         double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
-        return prefactor * accept_boundary * std::exp(-(du-chempot+dw)/temp);
+        accept_prob = prefactor * accept_boundary * std::exp(-(du-chempot+dw)/temp);
     }
+    return accept_prob;
 }
 
 
@@ -126,14 +129,13 @@ void AVBMCMolInRes::reset()
     if (!reject_move) {
         box->npar -= natom;
         box->poteng -= du;
-        box->particles.erase(box->particles.begin() + box->npar);
+        box->particles = particles_old;
     }
 }
 
 
 /* ----------------------------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
+   Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
 void AVBMCMolInRes::update_nsystemsize()
