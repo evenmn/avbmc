@@ -30,7 +30,8 @@
 AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
                        std::vector<Particle> particles_in,
                        const double r_max_inner_in,
-                       const double r_below_in, const double r_above_in)
+                       const double r_below_in, const double r_above_in,
+                       const bool energy_bias_in, const bool target_mol_in)
     : Moves(system_in)
 {
     box = box_in;
@@ -39,11 +40,13 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     r_max_inner = r_max_inner_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
+    energy_bias = energy_bias_in;
+    target_mol = target_mol_in;
     particles = particles_in;
     natom = particles.size();
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
-    label = "AVBMCMolInRes";
+    label = "AVBMCMolIn";
 
     // ensure that first particle is located at origin
     for (Particle &particle : particles) {
@@ -59,13 +62,22 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
 
 void AVBMCMolInRes::perform_move()
 {
+    bool detected_target;
     unsigned int count, i, j;
     count = 0;
     reject_move = true;
+    detected_target = false;
     while (count < box->npar && reject_move) {
         count ++;
-        i = rng->next_int(box->npar);
-        if (box->particles[i].type == particles[0].type) {
+        if (target_mol) {
+            std::vector<int> target_molecule = detect_molecule(box->particles, particles, detected_target, r_max_inner);
+            i = target_molecule[0];
+        }
+        else {
+            i = rng->next_int(box->npar);
+            detected_target = (box->particles[i].type == particles[0].type);
+        }
+        if (detected_target) {
             reject_move = false;
             std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
             nmolavg = neigh_listi.size() * natom_inv;
@@ -154,8 +166,10 @@ void AVBMCMolInRes::update_nsystemsize()
 std::string AVBMCMolInRes::repr()
 {
     std::string move_info;
-    move_info += "AVBMC molecule insertion move (restricted)\n";
+    move_info += "AVBMC molecule insertion move\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
     move_info += "    Radius of inner sphere: " + std::to_string(r_below) + "\n";
+    move_info += "    Energy bias:            " + std::to_string(energy_bias) + "\n";
+    move_info += "    Search target molecule: " + std::to_string(target_mol) + "\n";
     return move_info;
 }

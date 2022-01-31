@@ -19,18 +19,21 @@
 
 AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
          std::vector<Particle> molecule_in, const double r_above_in,
-         const double r_max_inner_in)
+         const double r_max_inner_in, const bool energy_bias_in,
+         const bool target_mol_in)
     : Moves(system_in)
 {
     box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     r_max_inner = r_max_inner_in;
+    energy_bias = energy_bias_in;
+    target_mol = target_mol_in;
     molecule = molecule_in;
     natom = molecule.size();
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
-    label = "AVBMCMolOutRes";
+    label = "AVBMCMolOut";
 
     for (Particle &particle : molecule) {
         particle.type = system->forcefield->label2type.at(particle.label);
@@ -44,18 +47,26 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
 
 void AVBMCMolOutRes::perform_move()
 {
-    bool detected_out;
+    bool detected_out, detected_target;
     unsigned int count, i, n_in;
     reject_move = true;
     if (box->npar > 2 * natom - 1) {
         count = 0;
         while (count < box->npar && reject_move) {
             count ++;
-            i = rng->next_int(box->npar);
-            if (box->particles[i].type == molecule[0].type) {
-                std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);  // neigh list of i
-                n_in = neigh_listi.size();  // number of neighbors of i
-                if (n_in >= natom) {  // check that i has enough neighbors to potentially remove molecule
+            detected_target = false;
+            if (target_mol) {
+                std::vector<int> target_molecule = detect_molecule(box->particles, molecule, detected_target, r_max_inner);
+                i = target_molecule[0];
+            }
+            else {
+                i = rng->next_int(box->npar);
+                detected_target = (box->particles[i].type == molecule[0].type);
+            }
+            if (detected_target) {
+                std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+                n_in = neigh_listi.size();
+                if (n_in >= natom) {
                     std::vector<Particle> particles;
                     for (unsigned int j=0; j < n_in; j++){
                         particles.push_back(box->particles[neigh_listi[j]]);
@@ -146,7 +157,9 @@ void AVBMCMolOutRes::update_nsystemsize()
 std::string AVBMCMolOutRes::repr()
 {
     std::string move_info;
-    move_info += "AVBMC molecule deletion move (restricted)\n";
+    move_info += "AVBMC molecule deletion move\n";
     move_info += "    Radius of outer sphere: " + std::to_string(r_above) + "\n";
+    move_info += "    Energy bias:            " + std::to_string(energy_bias) + "\n";
+    move_info += "    Search target molecule: " + std::to_string(target_mol) + "\n";
     return move_info;
 }
