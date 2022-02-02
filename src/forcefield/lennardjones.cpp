@@ -9,10 +9,9 @@
 #include "../particle.h"
 
 
-/* ------------------------------------------------------
-   This is the default constructor when a parameter
-   file 'params' is given.
---------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   This is the default constructor when a parameter file 'params' is given.
+------------------------------------------------------------------------------- */
 
 LennardJones::LennardJones(System* system_in, const std::string params)
     : ForceField(system_in)
@@ -26,11 +25,11 @@ LennardJones::LennardJones(System* system_in, const std::string params)
 }
 
 
-/* ------------------------------------------------------
-   Read parameter file 'params' and store parameters 
-   globally. It takes the following form:
+/* ----------------------------------------------------------------------------
+   Read parameter file 'params' and store parameters globally. It takes the
+   following form:
        <label1> <label2> <sigma> <epsilon> <rc>
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void LennardJones::read_param_file(const std::string params)
 {
@@ -71,47 +70,10 @@ void LennardJones::read_param_file(const std::string params)
 }
 
 
-/* ---------
-   Allocate memory for matrices
----------------------------------- */
-
-void LennardJones::allocate_memory()
-{
-    sigma_mat = new double*[ntype];
-    epsilon_mat = new double*[ntype];
-    rc_sqrd_mat = new double*[ntype];
-    shift_mat = new double*[ntype];
-    for (unsigned int i=0; i<ntype; i++) {
-        sigma_mat[i] = new double[ntype];
-        epsilon_mat[i] = new double[ntype];
-        rc_sqrd_mat[i] = new double[ntype];
-        shift_mat[i] = new double[ntype];
-    }
-}
-
-
-/* --------------
-   Free memory for matrices
-------------------------------- */
-
-void LennardJones::free_memory()
-{
-    for (unsigned int i = 0; i < ntype; i++) {
-        delete[] sigma_mat[i];
-        delete[] epsilon_mat[i];
-        delete[] rc_sqrd_mat[i];
-        delete[] shift_mat[i];
-    }
-    delete[] sigma_mat;
-    delete[] epsilon_mat;
-    delete[] rc_sqrd_mat;
-    delete[] shift_mat;
-}
-
-/* ------------------------------------------------------
-   Parameters have to be sorted with respect to
-   the particle types, and are stored in matrices.
---------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Parameters have to be sorted with respect to the particle types, and are
+   stored in matrices.
+------------------------------------------------------------------------------- */
 
 void LennardJones::sort_params()
 {
@@ -146,12 +108,11 @@ void LennardJones::sort_params()
 }
 
 
-/* ------------------------------------------------------
-   Compute interaction energy between two particles of
-   types 'typei' and 'typej', respectively, separated
-   by a distance vector 'delij'. Updates a force array
-   'force' if 'comp_force' is true.
---------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Compute interaction energy between two particles of types 'typei' and
+   'typej', respectively, separated by a distance vector 'delij'. Updates a
+   force array 'force' if 'comp_force' is true.
+------------------------------------------------------------------------------- */
 
 double LennardJones::comp_twobody_par(const int typei, const int typej,
                                       const std::valarray<double> delij,
@@ -174,9 +135,9 @@ double LennardJones::comp_twobody_par(const int typei, const int typej,
 }
 
 
-/* -------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i'
----------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par(const std::vector<Particle> particles, const int i,
                                      std::valarray<double> &force, const bool comp_force)
@@ -200,14 +161,51 @@ double LennardJones::comp_energy_par(const std::vector<Particle> particles, cons
         energy += comp_twobody_par(typei, typej, delij, force, comp_force);
     }
     force *= 24;
-    return (4 * energy);
+    return 4 * energy;
 }
 
 
-/* --------------------------------------------------
-   LennardJones destructor, releasing memory of all
-   parameter arrays
------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Allocate memory for matrices
+------------------------------------------------------------------------------- */
+
+void LennardJones::allocate_memory()
+{
+    sigma_mat = new double*[ntype];
+    epsilon_mat = new double*[ntype];
+    rc_sqrd_mat = new double*[ntype];
+    shift_mat = new double*[ntype];
+    for (unsigned int i=0; i<ntype; i++) {
+        sigma_mat[i] = new double[ntype];
+        epsilon_mat[i] = new double[ntype];
+        rc_sqrd_mat[i] = new double[ntype];
+        shift_mat[i] = new double[ntype];
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Free memory for matrices
+------------------------------------------------------------------------------- */
+
+void LennardJones::free_memory()
+{
+    for (unsigned int i = 0; i < ntype; i++) {
+        delete[] sigma_mat[i];
+        delete[] epsilon_mat[i];
+        delete[] rc_sqrd_mat[i];
+        delete[] shift_mat[i];
+    }
+    delete[] sigma_mat;
+    delete[] epsilon_mat;
+    delete[] rc_sqrd_mat;
+    delete[] shift_mat;
+}
+
+
+/* ----------------------------------------------------------------------------
+   LennardJones destructor, releasing memory of all parameter arrays
+------------------------------------------------------------------------------- */
 
 LennardJones::~LennardJones()
 {
