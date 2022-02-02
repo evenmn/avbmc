@@ -50,9 +50,9 @@ int main()
 {
     // initialize system
     System system("simulation");
-    system.set_temp(300.);
-    system.set_chempot(10.);
-    Vashishta forcefield(&system, "H2O.wang.vashishta");
+    system.set_temp(298.15);
+    system.set_chempot(-400.);
+    Vashishta forcefield(&system, "H2O.nordhagen.vashishta");
     system.set_forcefield(&forcefield);
     MersenneTwister rng;
     system.set_rng(&rng);
@@ -67,19 +67,22 @@ int main()
     // criterion initialized with one Argon atom
     Box box(&system);
     system.add_box(&box);
-    Stillinger boundary(&box, 3.0);
+    Stillinger boundary(&box);
+    boundary.set_crit("O", "O", 4.0);
+    boundary.set_crit("O", "H", 1.4);
+    boundary.set_crit("H", "H", 0.0);
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
     box.set_boundary(&boundary);
     box.add_particles(single_molecule);
 
     // initialize translation and AVBMC moves
-    Trans move1(&system, &box, 0.1);
-    AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 3.0);
-    AVBMCMolOutRes move3(&system, &box, single_molecule, 3.0, 1.2);
-    system.add_move(&move1, 0.5);
-    system.add_move(&move2, 0.25);
-    system.add_move(&move3, 0.25);
+    Trans move1(&system, &box, 0.2);
+    AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 4.0);
+    AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 1.2);
+    system.add_move(&move1, 0.94);
+    system.add_move(&move2, 0.03);
+    system.add_move(&move3, 0.03);
 
     // set sampling outputs
     box.set_dump(1, "mc_single.xyz", {"x", "y", "z"});
@@ -87,7 +90,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e4, 1);
+    system.run_mc(1e6, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
