@@ -97,6 +97,7 @@ void Vashishta::sort_params()
 {
     // link list of chemical symbols to list of type indices
     unsigned int type1, type2, type3, i;
+    double lambda1inv, lambda4inv, shift_factor;
     std::vector<int> types1_vec, types2_vec, types3_vec;
     for(std::string label : label1_vec){
         types1_vec.push_back(label2type.at(label));
@@ -123,12 +124,14 @@ void Vashishta::sort_params()
             Zi_mat[type2][type1] = Zi_vec[i];
             Zj_mat[type1][type2] = Zj_vec[i];
             Zj_mat[type2][type1] = Zj_vec[i];
-            lambda1inv_mat[type1][type2] = 1.0 / lambda1_vec[i];
-            lambda1inv_mat[type2][type1] = 1.0 / lambda1_vec[i];
+            lambda1inv = 1.0 / lambda1_vec[i];
+            lambda1inv_mat[type1][type2] = lambda1inv;
+            lambda1inv_mat[type2][type1] = lambda1inv;
             D_mat[type1][type2] = D_vec[i];
             D_mat[type2][type1] = D_vec[i];
-            lambda4inv_mat[type1][type2] = 1.0 / lambda4_vec[i];
-            lambda4inv_mat[type2][type1] = 1.0 / lambda4_vec[i];
+            lambda4inv = 1.0 / lambda4_vec[i];
+            lambda4inv_mat[type1][type2] = lambda4inv;
+            lambda4inv_mat[type2][type1] = lambda4inv;
             W_mat[type1][type2] = W_vec[i];
             W_mat[type2][type1] = W_vec[i];
             rc_mat[type1][type2] = rc_vec[i];
@@ -137,6 +140,14 @@ void Vashishta::sort_params()
             gamma_mat[type2][type1] = gamma_vec[i];
             r0_mat[type1][type2] = r0_vec[i];
             r0_mat[type2][type1] = r0_vec[i];
+
+            // construct shift matrix
+            shift_factor = H_vec[i] / std::pow(rc_vec[i], eta_vec[i]);
+            shift_factor += Zi_vec[i] * Zj_vec[i] * std::exp(-rc_vec[i] * lambda1inv) / rc_vec[i];
+            shift_factor -= D_vec[i] * std::exp(-rc_vec[i] * lambda4inv) / std::pow(rc_vec[i], 4);
+            shift_factor -= W_vec[i] / std::pow(rc_vec[i], 6);
+            shift_mat[type1][type2] = shift_factor;
+            shift_mat[type2][type1] = shift_factor;
         }
         // three-body parameters
         B_mat[type1][type2][type3] = B_vec[i];
@@ -162,9 +173,8 @@ void Vashishta::sort_params()
 
 
 /* ----------------------------------------------------------------------------
-   Compute two-body interaction energy between two particles
-   i and j of types 'typei' and 'typej', respectively, 
-   separated by a distance 'rij'.
+   Compute two-body interaction energy between two particles i and j of types
+   'typei' and 'typej', respectively, separated by a distance 'rij'.
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
@@ -185,16 +195,16 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
         //if (comp_force) {
             // do something
         //}
+        energy -= shift_mat[typei][typej];
     }
     return energy;
 }
 
 
 /* ----------------------------------------------------------------------------
-   Compute three-body interaction energy between three 
-   particles i, j and k of types 'typei', 'typej' and 'typek',
-   respectively. 'delij' is the distance vector from i to j,
-   while 'delik' is the distance vector from i to k. 'rij'
+   Compute three-body interaction energy between three particles i, j and k of
+   types 'typei', 'typej' and 'typek', respectively. 'delij' is the distance
+   vector from i to j, while 'delik' is the distance vector from i to k. 'rij'
    is the actual distance between particle i and j.
 ------------------------------------------------------------------------------- */
 
@@ -341,6 +351,7 @@ void Vashishta::allocate_memory()
     rc_mat = new double*[ntype];
     gamma_mat = new double*[ntype];
     r0_mat = new double*[ntype];
+    shift_mat = new double*[ntype];
     B_mat = new double**[ntype];
     C_mat = new double**[ntype];
     costheta_mat = new double**[ntype];
@@ -356,6 +367,7 @@ void Vashishta::allocate_memory()
         rc_mat[i] = new double[ntype];
         gamma_mat[i] = new double[ntype];
         r0_mat[i] = new double[ntype];
+        shift_mat[i] = new double[ntype];
         B_mat[i] = new double*[ntype];
         C_mat[i] = new double*[ntype];
         costheta_mat[i] = new double*[ntype];
@@ -392,6 +404,7 @@ void Vashishta::free_memory()
         delete[] B_mat[i];
         delete[] gamma_mat[i];
         delete[] r0_mat[i];
+        delete[] shift_mat[i];
         delete[] C_mat[i];
         delete[] costheta_mat[i];
     }
@@ -407,6 +420,7 @@ void Vashishta::free_memory()
     delete[] B_mat;
     delete[] gamma_mat;
     delete[] r0_mat;
+    delete[] shift_mat;
     delete[] C_mat;
     delete[] costheta_mat;
 }

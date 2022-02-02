@@ -29,7 +29,7 @@ private:
 
     // matrices to store sorted params
     double **H_mat, **eta_mat, **Zi_mat, **Zj_mat, **lambda1inv_mat, **D_mat, **lambda4inv_mat;
-    double **W_mat, **rc_mat, ***B_mat, **gamma_mat, **r0_mat, ***C_mat, ***costheta_mat;
+    double **W_mat, **rc_mat, ***B_mat, **gamma_mat, **r0_mat, **shift_mat, ***C_mat, ***costheta_mat;
 
     std::vector<std::vector<int> > neigh_lists;
 };
