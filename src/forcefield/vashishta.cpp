@@ -137,15 +137,6 @@ void Vashishta::sort_params()
             gamma_mat[type2][type1] = gamma_vec[i];
             r0_mat[type1][type2] = r0_vec[i];
             r0_mat[type2][type1] = r0_vec[i];
-
-            std::cout << H_mat[type1][type2] << std::endl;
-            std::cout << eta_mat[type1][type2] << std::endl;
-            std::cout << Zi_mat[type1][type2] << std::endl;
-            std::cout << Zj_mat[type1][type2] << std::endl;
-            std::cout << lambda1inv_mat[type1][type2] << std::endl;
-            std::cout << D_mat[type1][type2] << std::endl;
-            std::cout << lambda4inv_mat[type1][type2] << std::endl;
-            std::cout << W_mat[type1][type2] << std::endl;
         }
         // three-body parameters
         B_mat[type1][type2][type3] = B_vec[i];
