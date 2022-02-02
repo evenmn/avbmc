@@ -22,6 +22,7 @@ public:
     void set_dump(int, std::string, std::vector<std::string>, bool = true);
     void set_thermo(int, std::string, std::vector<std::string>, bool = true);
     std::vector<int> build_neigh_list(int, double);
+    std::vector<int> build_neigh_list(int, double**);
     void write_nsystemsize(std::string);
     ~Box();
 
