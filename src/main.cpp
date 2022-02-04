@@ -50,17 +50,17 @@ int main()
 {
     // initialize system
     System system("simulation");
-    system.set_temp(298.15);
-    system.set_chempot(-400.);
+    system.set_temp(320.);
+    system.set_chempot(-2.1);
     Vashishta forcefield(&system, "H2O.nordhagen.vashishta");
     system.set_forcefield(&forcefield);
     MersenneTwister rng;
     system.set_rng(&rng);
 
     // initialize umbrella sampling with square function
-    auto f = [] (const int n) { return (10.0 * (n - 100) * (n - 100)); };
-    //Umbrella sampler(&system, f);
-    Metropolis sampler(&system);
+    auto f = [] (const int n) { return (0.003 * (n - 20) * (n - 20)); };
+    Umbrella sampler(&system, f);
+    //Metropolis sampler(&system);
     system.set_sampler(&sampler);
 
     // initialize box with Stillinger boundary
@@ -69,7 +69,7 @@ int main()
     system.add_box(&box);
     Stillinger boundary(&box);
     boundary.set_crit("O", "O", 4.0);
-    boundary.set_crit("O", "H", 1.4);
+    boundary.set_crit("O", "H", 1.6);
     boundary.set_crit("H", "H", 0.0);
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
@@ -77,7 +77,7 @@ int main()
     box.add_particles(single_molecule);
 
     // initialize translation and AVBMC moves
-    Trans move1(&system, &box, 0.2);
+    Trans move1(&system, &box, 0.3);
     AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 4.0);
     AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 1.2);
     system.add_move(&move1, 0.94);
@@ -85,15 +85,15 @@ int main()
     system.add_move(&move3, 0.03);
 
     // set sampling outputs
-    box.set_dump(1, "mc_single.xyz", {"x", "y", "z"});
+    box.set_dump(100, "mc.xyz", {"x", "y", "z"});
     box.set_thermo(100, "mc.log", {"step", "atoms", "poteng"});
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e6, 1);
-    //box.snapshot("final.xyz");
+    system.run_mc(2e6, 1);
+    box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
-    //box.write_nsystemsize("nsystemsize_biased_water.txt");
+    box.write_nsystemsize("nsystemsize_biased_water.txt");
     return 0;
 }

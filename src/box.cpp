@@ -189,7 +189,7 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
 
 std::vector<int> Box::build_neigh_list(const int i, double **rsq)
 {
-    unsigned int typei, typej;
+    unsigned int typei, typej, equaltypecount;
     double rijsq;
     typei = particles[i].type;
     std::valarray<double> ri = particles[i].r;
@@ -199,6 +199,7 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
         rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq[typei][typej]){
             neigh_list.push_back(j);
+            if (typej == typei) equaltypecount++;
         }
     }
     for(unsigned int j=i+1; j<npar; j++){
@@ -206,7 +207,11 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
         rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq[typei][typej]){
             neigh_list.push_back(j);
+            if (typej == typei) equaltypecount++;
         }
+    }
+    if (particles[i].label == "O" && npar > 6 && equaltypecount < 2) {
+        neigh_list.clear();
     }
     return neigh_list;
 }
