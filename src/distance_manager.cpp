@@ -98,15 +98,13 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
 void DistanceManager::clear_neigh(unsigned int i)
 {
     unsigned int k, l;
-    std::vector<int> nl;
     std::vector<int>::iterator position;
 
     for (k=0; k<ncutoff; k++) {
         neigh_lists[k][i].clear();
         for (l=0; l<neigh_lists[k].size(); l++) {
-            nl = neigh_lists[k][l];
-            position = std::find(nl.begin(), nl.end(), i);
-            if (position != nl.end()) {
+            position = std::find(neigh_lists[k][l].begin(), neigh_lists[k][l].end(), i);
+            if (position != neigh_lists[k][l].end()) {
                 neigh_lists[k][l].erase(position);
             }
         }
@@ -279,7 +277,7 @@ void DistanceManager::update_remove(unsigned int i)
 
 void DistanceManager::update_insert(unsigned int i)
 {
-    double rij, cutoff;
+    double rij;
     unsigned int j, k;
     std::valarray<double> delij;
 
@@ -288,7 +286,8 @@ void DistanceManager::update_insert(unsigned int i)
 
     // extend neighbor lists
     for (k=0; k<ncutoff; k++) {
-        neigh_lists[k].insert(neigh_lists[k].begin() + i, {});
+        //neigh_lists[k].insert(neigh_lists[k].begin() + i, {});
+        neigh_lists[k].push_back({});
     }
 
     // extend distance matrix and update distance matrix and neighbor lists

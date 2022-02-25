@@ -44,6 +44,7 @@
 #include "moves/avbmcmolinres.h"
 #include "moves/avbmcmolout.h"
 #include "moves/avbmcmoloutres.h"
+#include "constraint/maxdistance.h"
 
 
 int main()
@@ -51,7 +52,7 @@ int main()
     // initialize system
     System system("simulation");
     system.set_temp(320.);
-    system.set_chempot(-2.1);
+    system.set_chempot(10.);
     Vashishta forcefield(&system, "H2O.nordhagen.vashishta");
     system.set_forcefield(&forcefield);
     MersenneTwister rng;
@@ -59,14 +60,18 @@ int main()
 
     // initialize umbrella sampling with square function
     auto f = [] (const int n) { return (0.003 * (n - 20) * (n - 20)); };
-    Umbrella sampler(&system, f);
-    //Metropolis sampler(&system);
+    //Umbrella sampler(&system, f);
+    Metropolis sampler(&system);
     system.set_sampler(&sampler);
 
     // initialize box with Stillinger boundary
     // criterion initialized with one Argon atom
     Box box(&system);
     system.add_box(&box);
+    MaxDistance constraint1(&box, "O", "O", 4.0);
+    MaxDistance constraint2(&box, "O", "H", 1.6);
+    MaxDistance constraint3(&box, "H", "H", 0.0);
+    //box.add_constraint(constraint1);
     Stillinger boundary(&box);
     boundary.set_crit("O", "O", 4.0);
     boundary.set_crit("O", "H", 1.6);
@@ -77,12 +82,12 @@ int main()
     box.add_particles(single_molecule);
 
     // initialize translation and AVBMC moves
-    Trans move1(&system, &box, 0.3);
+    Trans move1(&system, &box, 0.08);
     AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 4.0);
     AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 1.2);
-    system.add_move(&move1, 0.94);
-    system.add_move(&move2, 0.03);
-    system.add_move(&move3, 0.03);
+    system.add_move(&move1, 0.98);
+    system.add_move(&move2, 0.01);
+    system.add_move(&move3, 0.01);
 
     // set sampling outputs
     box.set_dump(100, "mc.xyz", {"x", "y", "z"});
@@ -90,7 +95,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(2e6, 1);
+    system.run_mc(1e4, 1);
     box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
