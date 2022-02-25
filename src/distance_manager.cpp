@@ -4,8 +4,9 @@
 #include <algorithm>  // for removing vector element by value
 
 #include "distance_manager.h"
-#include "system.h"
 #include "box.h"
+#include "system.h"
+#include "forcefield/forcefield.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -21,37 +22,127 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 
 
 /* ----------------------------------------------------------------------------
-   Add a cutoff to the list of cutoffs in order for the distance manager
-   to make neighbor lists. Returning the cutoff-ID, which has to be used
-   when extracting the correct neighbor list.
+   Add a cutoff to the list of cutoffs in order to make the distance manager
+   manage neighbor lists. This cutoff applies to all components. Returning the
+   cutoff-ID, which has to be used when extracting the correct neighbor list.
 ------------------------------------------------------------------------------- */
 
 unsigned int DistanceManager::add_cutoff(double rc)
 {
     double rcsq;
-    bool existing_cutoff;
-    unsigned int i, cutoffid;
+    unsigned int i;
 
     rcsq = rc * rc;
 
     // check if a similar cutoff exists
-    existing_cutoff = false;
     for (i=0; i<ncutoff; i++) {
-        if (fabs(cutoffs[i] - rcsq) < cutoff_tol) {
-            existing_cutoff = true;
-            cutoffid = i;
-            break;
+        if (!res[i] && fabs(cutoffs[i] - rcsq) < cutoff_tol) {
+            return i;
         }
     }
 
     // add cutoff to list of cutoffs if it does not already exist
-    if (!existing_cutoff) {
-        cutoffid = ncutoff;
-        ncutoff ++;
-        cutoffs.push_back(rcsq);
-        neigh_lists.push_back({});
+    ncutoff ++;
+    res.push_back(false);
+    cutoffs.push_back(rcsq);
+    neigh_lists.push_back({});
+    return ncutoff - 1;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Add a cutoff 'rc' to the list of cutoffs in order to make the distance
+   manager manage neighbor lists. Here, the cutoff is restricted for two
+   components 'label1' and 'label2'. Returning the cutoff-ID, which has to be
+   used when extracting the correct neighbor list.
+------------------------------------------------------------------------------- */
+
+unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
+                                         std::string label2)
+{
+    double rcsq;
+    unsigned int i, j, type1, type2;
+
+    rcsq = rc * rc;
+    type1 = box->system->forcefield->label2type.at(label1);
+    type2 = box->system->forcefield->label2type.at(label2);
+
+    // check if a similar cutoff exists
+    j=0;
+    for (i=0; i<ncutoff; i++) {
+        if (res[i]) {
+            if (types2[j] == type1 && types2[j] == type2 &&
+                fabs(cutoffs[i] - rcsq) < cutoff_tol) {
+                return i;
+            }
+            j ++;
+        }
     }
-    return cutoffid;
+
+    // add cutoff to list of cutoffs if it does not already exist
+    ncutoff ++;
+    res.push_back(true);
+    types1.push_back(type1);
+    types2.push_back(type2);
+    cutoffs.push_back(rcsq);
+    neigh_lists.push_back({});
+    return ncutoff - 1;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Remove neighbor lists of and clear particle 'i' from the neighbor lists.
+   This is done when a particle is moved or removed.
+------------------------------------------------------------------------------- */
+
+void DistanceManager::clear_neigh(unsigned int i)
+{
+    unsigned int k, l;
+    std::vector<int> nl;
+    std::vector<int>::iterator position;
+
+    for (k=0; k<ncutoff; k++) {
+        neigh_lists[k][i].clear();
+        for (l=0; l<neigh_lists[k].size(); l++) {
+            nl = neigh_lists[k][l];
+            position = std::find(nl.begin(), nl.end(), i);
+            if (position != nl.end()) {
+                neigh_lists[k][l].erase(position);
+            }
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Update neighbor lists of a particle pair 'i' and 'j'. This is done when a
+   particle is moved or inserted.
+------------------------------------------------------------------------------- */
+
+void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
+{
+    unsigned int k, l, typei, typej;
+
+    typei = box->particles[i].type;
+    typej = box->particles[j].type;
+
+    l=0;
+    for (k=0; k<ncutoff; k++) {
+        if (res[k]) { 
+            if (types1[l]==typei && types2[l]==typej
+                && rij < cutoffs[k]) {
+                neigh_lists[k][i].push_back(j);
+                neigh_lists[k][j].push_back(i);
+            }
+            l++;
+        }
+        else {
+            if (rij < cutoffs[k]) {
+                neigh_lists[k][i].push_back(j);
+                neigh_lists[k][j].push_back(i);
+            }
+        }
+    }
 }
 
 
@@ -80,18 +171,18 @@ double DistanceManager::normsq(std::valarray<double> array)
 void DistanceManager::initialize()
 {
     double rij;
-    unsigned int i, j, k, l, npar;
+    unsigned int i, j, k, l, typei, typej, npar;
     std::valarray<double> posi, delij;
 
     // initialize matrices
     npar = box->npar;
     distance_mat.resize(npar);
     distance_cube.resize(npar);
-    for (k=0; k<npar; k++) {
-        distance_mat[k].resize(npar);
-        distance_cube[k].resize(npar);
-        for (l=0; l<ncutoff; l++) {
-            neigh_lists[l].push_back({});
+    for (i=0; i<npar; i++) {
+        distance_mat[i].resize(npar);
+        distance_cube[i].resize(npar);
+        for (k=0; k<ncutoff; k++) {
+            neigh_lists[k].push_back({});
         }
     }
     
@@ -99,18 +190,14 @@ void DistanceManager::initialize()
     for (i=0; i<npar; i++) {
         posi = box->particles[i].r;
         for (j=0; j<i; j++) {
+            typej = box->particles[j].type;
             delij = box->particles[j].r - box->particles[i].r;
             rij = normsq(delij);
             distance_mat[i][j] = rij;
             distance_cube[i][j] = delij;
             distance_mat[j][i] = rij;
             distance_cube[j][i] = -delij;
-            for (k=0; k<ncutoff; k++) {
-                if (rij < cutoffs[k]) {
-                    neigh_lists[k][i].push_back(j);
-                    neigh_lists[k][j].push_back(i);
-                }
-            }
+            update_neigh(i, j, rij);
         }
     }
 }
@@ -124,23 +211,10 @@ void DistanceManager::initialize()
 void DistanceManager::update_trans(unsigned int i)
 {
     double rij;
-    unsigned int j, k, l;
+    unsigned int j;
     std::valarray<double> delij;
 
-    // clear neighbor lists of particle i and
-    // remove particle i from all neigh lists
-    for (k=0; k<ncutoff; k++) {
-        neigh_lists[k][i].clear();
-        for (l=0; l<neigh_lists[k].size(); l++) {
-            std::vector<int> nl = neigh_lists[k][l];
-            std::vector<int>::iterator position = std::find(nl.begin(), nl.end(), i);
-            if (position != nl.end()) {
-                neigh_lists[k][l].erase(position);
-            }
-        }
-    }
-
-    // update distance matrix and neighbor lists
+    clear_neigh(i);
     for (j=0; j<box->npar; j++) {
         delij = box->particles[j].r - box->particles[i].r;
         rij = normsq(delij);
@@ -148,12 +222,7 @@ void DistanceManager::update_trans(unsigned int i)
         distance_cube[i][j] = delij;
         distance_mat[j][i] = rij;
         distance_cube[j][i] = -delij;
-        for (k=0; k<ncutoff; k++) {
-            if (rij < cutoffs[k]) {
-                neigh_lists[k][i].push_back(j);
-                neigh_lists[k][j].push_back(i);
-            }
-        }
+        update_neigh(i, j, rij);
     }
 }
 
@@ -165,24 +234,9 @@ void DistanceManager::update_trans(unsigned int i)
 
 void DistanceManager::update_remove(unsigned int i)
 {
-    unsigned int j, k, l;
-    std::vector<int> nl;
-    std::vector<int>::iterator position;
+    unsigned int j;
 
-    // remove neighbor lists of particle i and remove
-    // i from all neighbor lists
-    for (k=0; k<ncutoff; k++) {
-        neigh_lists[k].erase(neigh_lists[k].begin() + i);
-        for (l=0; l<neigh_lists[k].size(); l++) {
-            nl = neigh_lists[k][l];
-            position = std::find(nl.begin(), nl.end(), i);
-            if (position != nl.end()) {
-                neigh_lists[k][l].erase(position);
-            }
-        }
-    }
-
-    // remove row and column from distance matrix
+    clear_neigh(i);
     distance_mat.erase (distance_mat.begin() + i);
     distance_cube.erase (distance_cube.begin() + i);
     for (j=0; j<distance_mat.size(); j++) {
@@ -221,12 +275,7 @@ void DistanceManager::update_insert(unsigned int i)
         rijs[j] = rij;
         distance_mat[j].insert(distance_mat[j].begin() + i, rij);
         distance_cube[j].insert(distance_cube[j].begin() + i, delij);
-        for (k=0; k<ncutoff; k++) {
-            if (rij < cutoffs[k]) {
-                neigh_lists[k][i].push_back(j);
-                neigh_lists[k][j].push_back(i);
-            }
-        }
+        update_neigh(i, j, rij);
     }
     distance_mat.insert(distance_mat.begin() + i, rijs);
     distance_cube.insert(distance_cube.begin() + i, delijs);
