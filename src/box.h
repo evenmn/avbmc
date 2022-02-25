@@ -13,9 +13,10 @@ public:
 
     // methods
     void set_boundary(class Boundary *);
-    void add_particle(class Particle);
+    void add_particle(Particle);
     void add_particle(std::string, std::valarray<double>);
-    void add_particles(std::vector<class Particle>);
+    void add_particles(std::vector<Particle>);
+    void add_constraint(class Constraint *);
 
     std::string file_marking();
     void snapshot(std::string, bool = true);
@@ -34,9 +35,10 @@ public:
     class System* system = nullptr;
     class DistanceManager* distance_manager = nullptr;
 
-    unsigned int npar, step, ntype, nmove, box_id;
+    unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
     std::vector<int> nsystemsize;
-    std::vector<class Particle> particles;
+    std::vector<Particle> particles;
+    std::vector<class Constraint *> constraints;
 };

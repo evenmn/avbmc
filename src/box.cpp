@@ -69,8 +69,7 @@ void Box::add_particle(Particle particle)
 
 
 /* ----------------------------------------------------------------------------
-   Add a single particle given a label 'label' and
-   initial position 'r'
+   Add a single particle given a label 'label' and initial position 'r'
 ------------------------------------------------------------------------------- */
 
 void Box::add_particle(const std::string label, const std::valarray<double> r)
@@ -80,8 +79,8 @@ void Box::add_particle(const std::string label, const std::valarray<double> r)
 
 
 /* ----------------------------------------------------------------------------
-   Add a set of particles, stored in a vector of
-   particle objects 'particles_in'.
+   Add a set of particles, stored in a vector of particle objects
+   'particles_in'.
 ------------------------------------------------------------------------------- */
 
 void Box::add_particles(std::vector<Particle> particles_in)
@@ -93,9 +92,20 @@ void Box::add_particles(std::vector<Particle> particles_in)
 
 
 /* ----------------------------------------------------------------------------
+   Add box constraint
+------------------------------------------------------------------------------- */
+
+void Box::add_constraint(class Constraint *constraint)
+{
+    nconstraint ++;
+    constraints.push_back(constraint);
+}
+
+
+/* ----------------------------------------------------------------------------
    Returning a string with information about rank-ID and box-ID if there are
-   more than one rank/box. The string can then be added to a filename to 
-   mark the file.
+   more than one rank/box. The string can then be added to a filename to mark
+   the file.
 ------------------------------------------------------------------------------- */
 
 std::string Box::file_marking()
