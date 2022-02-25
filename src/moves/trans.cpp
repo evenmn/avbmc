@@ -10,14 +10,14 @@
 #include "../rng/rng.h"
 #include "../distance_manager.h"
 #include "../boundary/boundary.h"
+#include "../constraint/constraint.h"
 #include "../forcefield/forcefield.h"
 
 
-/*---------------------------------------------------
-  Constructor of naive translational move, with
-  'dx_in' being the maximum step length (in any
-  direction)
------------------------------------------------------ */
+/*-----------------------------------------------------------------------------
+  Constructor of naive translational move, with 'dx_in' being the maximum step
+  length (in any direction)
+------------------------------------------------------------------------------- */
 
 Trans::Trans(System* system_in, Box* box_in, const double dx_in)
     : Moves(system_in)
@@ -28,9 +28,9 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
 }
 
 
-/* ---------------------------------------------------
+/* ----------------------------------------------------------------------------
    Propose particle to move and new position randomly.
------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Trans::perform_move()
 {
@@ -53,21 +53,23 @@ void Trans::perform_move()
 }
 
 
-/* -----------------------------------------------------
-   Compute acceptance probability of translational 
-   move
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Compute acceptance probability of translational move
+------------------------------------------------------------------------------- */
 
 double Trans::accept(double temp, double /*chempot*/)
 {
-    return std::exp(-du/temp) * box->boundary->correct_position();
+    bool constr_satis = true;
+    for (Constraint* constraint : box->constraints) {
+        constr_satis *= constraint->verify();
+    }
+    return constr_satis * std::exp(-du/temp) * box->boundary->correct_position();
 }
 
 
-/* -----------------------------------------------------
-   Set back to old state before move if move was
-   rejected
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Set back to old state before move if move was rejected
+------------------------------------------------------------------------------- */
 
 void Trans::reset()
 {
@@ -77,10 +79,9 @@ void Trans::reset()
 }
 
 
-/* ----------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
-------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Update number of time this system size has occured if move was accepted
+------------------------------------------------------------------------------- */
 
 void Trans::update_nsystemsize()
 {
@@ -91,9 +92,9 @@ void Trans::update_nsystemsize()
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string Trans::repr()
 {

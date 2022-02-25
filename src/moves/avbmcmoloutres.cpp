@@ -10,6 +10,7 @@
 #include "../distance_manager.h"
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
+#include "../constraint/constraint.h"
 #include "../forcefield/forcefield.h"
 
 
@@ -113,7 +114,11 @@ void AVBMCMolOutRes::perform_move()
 
 double AVBMCMolOutRes::accept(double temp, double chempot)
 {
-    if (reject_move){
+    bool constr_satis = true;
+    for (Constraint* constraint : box->constraints) {
+        constr_satis *= constraint->verify();
+    }
+    if (reject_move || !constr_satis){
         return 0.;
     }
     else {

@@ -28,7 +28,7 @@ Box::Box(System* system_in)
     system = system_in;
 
     poteng = 0.;
-    npar = ntype = nmove = step = 0;
+    npar = ntype = nmove = step = nconstraint = 0;
 
     //velocity = new Zero();
     distance_manager = new DistanceManager(this);
@@ -95,7 +95,7 @@ void Box::add_particles(std::vector<Particle> particles_in)
    Add box constraint
 ------------------------------------------------------------------------------- */
 
-void Box::add_constraint(class Constraint *constraint)
+void Box::add_constraint(class Constraint* constraint)
 {
     nconstraint ++;
     constraints.push_back(constraint);

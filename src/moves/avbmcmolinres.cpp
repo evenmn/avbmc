@@ -19,6 +19,7 @@
 #include "../distance_manager.h"
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
+#include "../constraint/constraint.h"
 #include "../forcefield/forcefield.h"
 
 
@@ -124,8 +125,12 @@ void AVBMCMolInRes::perform_move()
 
 double AVBMCMolInRes::accept(double temp, double chempot)
 {
+    bool constr_satis = true;
+    for (Constraint* constraint : box->constraints) {
+        constr_satis *= constraint->verify();
+    }
     double accept_prob = 0.;
-    if (!reject_move) {
+    if (!reject_move && constr_satis) {
         bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
         double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
