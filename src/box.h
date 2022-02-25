@@ -32,6 +32,7 @@ public:
     class Boundary* boundary = nullptr;
     //class Velocity* velocity = nullptr;
     class System* system = nullptr;
+    class DistanceManager* distance_manager = nullptr;
 
     unsigned int npar, step, ntype, nmove, box_id;
     double poteng, time;

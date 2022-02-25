@@ -20,6 +20,7 @@
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
+#include "distance_manager.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -298,6 +299,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
+        box->distance_manager->initialize();
     }
 
     for (Moves* move : moves) {

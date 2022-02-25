@@ -13,6 +13,7 @@
 #include "dump.h"
 #include "thermo.h"
 #include "system.h"
+#include "distance_manager.h"
 #include "forcefield/forcefield.h"
 #include "boundary/stillinger.h"
 //#include "velocity/zero.h"
@@ -30,6 +31,7 @@ Box::Box(System* system_in)
     npar = ntype = nmove = step = 0;
 
     //velocity = new Zero();
+    distance_manager = new DistanceManager(this);
 
     // set default outputs
     std::vector<std::string> outputs;
@@ -248,4 +250,5 @@ Box::~Box()
 {
     delete dump;
     delete thermo;
+    delete distance_manager;
 }
