@@ -75,7 +75,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                 fabs(cutoffs[i] - rcsq) < cutoff_tol) {
                 return i;
             }
-            j ++;
+            j++;
         }
     }
 
@@ -204,6 +204,30 @@ void DistanceManager::initialize()
 
 
 /* ----------------------------------------------------------------------------
+   Store old matrices
+------------------------------------------------------------------------------- */
+
+void DistanceManager::set()
+{
+    distance_mat_old = distance_mat;
+    distance_cube_old = distance_cube;
+    neigh_lists_old = neigh_lists;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Reset new matrices
+------------------------------------------------------------------------------- */
+
+void DistanceManager::reset()
+{
+    distance_mat = distance_mat_old;
+    distance_cube = distance_cube_old;
+    neigh_lists = neigh_lists_old;
+}
+
+
+/* ----------------------------------------------------------------------------
    Update distance matrix due to translational move of a particle 'i'. This 
    corresponds to updating the i'th row and column in the distance matrix.
 ------------------------------------------------------------------------------- */
@@ -268,7 +292,7 @@ void DistanceManager::update_insert(unsigned int i)
     }
 
     // extend distance matrix and update distance matrix and neighbor lists
-    for (j=0; j<box->npar; j++) {
+    for (j=0; j<box->npar-1; j++) {
         delij = box->particles[j].r - box->particles[i].r;
         rij = normsq(delij);
         delijs[j] = delij;

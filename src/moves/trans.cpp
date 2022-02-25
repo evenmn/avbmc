@@ -8,6 +8,7 @@
 #include "../system.h"
 #include "../particle.h"
 #include "../rng/rng.h"
+#include "../distance_manager.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
 
@@ -42,6 +43,8 @@ void Trans::perform_move()
         d = 2 * (rng->next_double() - 0.5);
     pos_old = box->particles[i].r;
     box->particles[i].r += dx * dr;
+    box->distance_manager->set();
+    box->distance_manager->update_trans(i);
 
     // compute new energy contribution from particle i
     double u1 = system->forcefield->comp_energy_par(box->particles, i);
@@ -68,6 +71,7 @@ double Trans::accept(double temp, double /*chempot*/)
 
 void Trans::reset()
 {
+    box->distance_manager->reset();
     box->particles[i].r = pos_old;
     box->poteng -= du;
 }

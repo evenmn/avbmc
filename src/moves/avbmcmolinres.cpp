@@ -16,6 +16,7 @@
 #include "../system.h"
 #include "../particle.h"
 #include "../rng/rng.h"
+#include "../distance_manager.h"
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
@@ -96,13 +97,15 @@ void AVBMCMolInRes::perform_move()
             particles_old = box->particles;
             // construct new molecule
             particles = rotate_molecule(particles);
+            box->distance_manager->set();
             for (j=0; j < natom; j++) {
+                box->npar ++;
                 std::valarray<double> new_pos = particles[j].r + dr;
                 Particle particle(particles[j].label, new_pos);
                 particle.type = particles[j].type;
                 box->particles.push_back(particle);
+                box->distance_manager->update_insert(j);
             }
-            box->npar += natom;
 
             // compute energy difference
             du = 0.;
@@ -139,6 +142,7 @@ double AVBMCMolInRes::accept(double temp, double chempot)
 void AVBMCMolInRes::reset()
 {
     if (!reject_move) {
+        box->distance_manager->reset();
         box->npar -= natom;
         box->poteng -= du;
         box->particles = particles_old;

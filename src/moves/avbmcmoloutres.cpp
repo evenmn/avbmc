@@ -7,6 +7,7 @@
 #include "../system.h"
 #include "../particle.h"
 #include "../rng/rng.h"
+#include "../distance_manager.h"
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
@@ -87,9 +88,11 @@ void AVBMCMolOutRes::perform_move()
                         // remove molecule
                         particles_old = box->particles;
                         std::sort(molecule_out2.begin(), molecule_out2.end(), std::greater<int>()); // sort in descending order
+                        box->distance_manager->set();
                         for (int j : molecule_out2){
                             box->particles[j] = box->particles.back();
                             box->particles.pop_back();
+                            box->distance_manager->update_remove(j);
                             //box->particles.erase(box->particles.begin() + j);
                         }
                         box->poteng += du;
@@ -129,6 +132,7 @@ double AVBMCMolOutRes::accept(double temp, double chempot)
 void AVBMCMolOutRes::reset()
 {
     if (!reject_move) {
+        box->distance_manager->reset();
         box->npar += natom;
         box->poteng -= du;
         box->particles = particles_old;
