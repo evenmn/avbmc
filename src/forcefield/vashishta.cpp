@@ -23,7 +23,8 @@ Vashishta::Vashishta(System* system_in, const std::string params)
     create_label_mapping();
     allocate_memory();
     sort_params();
-}
+    temp_scale = 8.617333262e-5;  // Have to scale all temperatures with the
+}                                 // Boltzmann factor when using metal units
 
 
 /* ----------------------------------------------------------------------------

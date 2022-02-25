@@ -28,6 +28,7 @@ public:
     unsigned int ntype;
     std::string label, paramfile;
     std::vector<std::string> label1_vec, label2_vec, unique_labels;
+    double temp_scale = 1.;
 
 protected:
     double norm(std::valarray<double>);
