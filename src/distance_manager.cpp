@@ -10,7 +10,8 @@
 
 
 /* ----------------------------------------------------------------------------
-   Distance manager class constructor. 
+   Distance manager class constructor. 'cutoff_tol_in' is the tolerance when
+   checking if two cutoffs are equivalent and should share neighbor lists.
 ------------------------------------------------------------------------------- */
 
 DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
@@ -30,20 +31,21 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 unsigned int DistanceManager::add_cutoff(double rc)
 {
     double rcsq;
-    unsigned int i;
+    unsigned int i, mode;
 
+    mode = 0;
     rcsq = rc * rc;
 
     // check if a similar cutoff exists
     for (i=0; i<ncutoff; i++) {
-        if (!res[i] && fabs(cutoffs[i] - rcsq) < cutoff_tol) {
+        if (modes[i] == mode && fabs(cutoffs[i] - rcsq) < cutoff_tol) {
             return i;
         }
     }
 
     // add cutoff to list of cutoffs if it does not already exist
     ncutoff ++;
-    res.push_back(false);
+    modes.push_back(mode);
     cutoffs.push_back(rcsq);
     neigh_lists.push_back({});
     return ncutoff - 1;
@@ -61,8 +63,9 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                                          std::string label2)
 {
     double rcsq;
-    unsigned int i, j, type1, type2;
+    unsigned int i, j, type1, type2, mode;
 
+    mode = 1;
     rcsq = rc * rc;
     type1 = box->system->forcefield->label2type.at(label1);
     type2 = box->system->forcefield->label2type.at(label2);
@@ -70,7 +73,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     // check if a similar cutoff exists
     j=0;
     for (i=0; i<ncutoff; i++) {
-        if (res[i]) {
+        if (modes[i] == mode) {
             if (types2[j] == type1 && types2[j] == type2 &&
                 fabs(cutoffs[i] - rcsq) < cutoff_tol) {
                 return i;
@@ -81,10 +84,29 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
 
     // add cutoff to list of cutoffs if it does not already exist
     ncutoff ++;
-    res.push_back(true);
+    modes.push_back(mode);
     types1.push_back(type1);
     types2.push_back(type2);
     cutoffs.push_back(rcsq);
+    neigh_lists.push_back({});
+    return ncutoff - 1;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Add a cutoff matrix 'rc' of shape (ntype, ntype) and create a combined
+   neighbor list. Returning the cutoff-ID, which has to be used when extracting
+   the correct neighbor list.
+------------------------------------------------------------------------------- */
+
+unsigned int DistanceManager::add_cutoff(double **rc)
+{
+    unsigned int mode;
+
+    mode = 2;
+    ncutoff ++;
+    modes.push_back(mode);
+    cutoff_mats.push_back(rc);
     neigh_lists.push_back({});
     return ncutoff - 1;
 }
@@ -119,23 +141,30 @@ void DistanceManager::clear_neigh(unsigned int i)
 
 void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
-    unsigned int k, l, typei, typej;
+    unsigned int k, l, m, typei, typej;
 
     typei = box->particles[i].type;
     typej = box->particles[j].type;
 
-    l=0;
+    l=m=0;
     for (k=0; k<ncutoff; k++) {
-        if (res[k]) { 
-            if (types1[l]==typei && types2[l]==typej
-                && rij < cutoffs[k]) {
+        if (modes[k] == 0) {
+            if (rij < cutoffs[m]) {
+                neigh_lists[k][i].push_back(j);
+                neigh_lists[k][j].push_back(i);
+            }
+            m++;
+        }
+        else if (modes[k] == 1) {
+            if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
                 neigh_lists[k][i].push_back(j);
                 neigh_lists[k][j].push_back(i);
             }
             l++;
+            m++;
         }
         else {
-            if (rij < cutoffs[k]) {
+            if (rij < cutoff_mats[k-m][typei][typej]) {
                 neigh_lists[k][i].push_back(j);
                 neigh_lists[k][j].push_back(i);
             }
@@ -169,7 +198,7 @@ double DistanceManager::normsq(std::valarray<double> array)
 void DistanceManager::initialize()
 {
     double rij;
-    unsigned int i, j, k, l, typei, typej, npar;
+    unsigned int i, j, k, npar;
     std::valarray<double> posi, delij;
 
     // initialize matrices
@@ -188,7 +217,6 @@ void DistanceManager::initialize()
     for (i=0; i<npar; i++) {
         posi = box->particles[i].r;
         for (j=0; j<i; j++) {
-            typej = box->particles[j].type;
             delij = box->particles[j].r - box->particles[i].r;
             rij = normsq(delij);
             distance_mat[i][j] = rij;

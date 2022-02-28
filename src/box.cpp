@@ -15,7 +15,7 @@
 #include "system.h"
 #include "distance_manager.h"
 #include "forcefield/forcefield.h"
-#include "boundary/stillinger.h"
+#include "boundary/open.h"
 //#include "velocity/zero.h"
 
 
@@ -97,6 +97,10 @@ void Box::add_particles(std::vector<Particle> particles_in)
 
 void Box::add_constraint(class Constraint* constraint)
 {
+    if (!system->initialized) {
+        std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
+        MPI_Abort(MPI_COMM_WORLD, 143);
+    }
     nconstraint ++;
     constraints.push_back(constraint);
 }

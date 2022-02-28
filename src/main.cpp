@@ -35,7 +35,7 @@
 #include "system.h"
 #include "particle.h"
 #include "rng/mersennetwister.h"
-#include "boundary/stillinger.h"
+#include "boundary/open.h"
 #include "forcefield/vashishta.h"
 #include "sampler/umbrella.h"
 #include "sampler/metropolis.h"
@@ -45,6 +45,7 @@
 #include "moves/avbmcmolout.h"
 #include "moves/avbmcmoloutres.h"
 #include "constraint/maxdistance.h"
+#include "constraint/stillinger.h"
 
 
 int main()
@@ -64,22 +65,24 @@ int main()
     Metropolis sampler(&system);
     system.set_sampler(&sampler);
 
-    // initialize box with Stillinger boundary
-    // criterion initialized with one Argon atom
+    // initialize box with open boundaries and Stillinger criterion
+    // and initially one molecule
     Box box(&system);
-    system.add_box(&box);
-    MaxDistance constraint1(&box, "O", "O", 4.0);
-    MaxDistance constraint2(&box, "O", "H", 1.6);
-    MaxDistance constraint3(&box, "H", "H", 0.0);
+    //MaxDistance constraint1(&box, "O", "O", 4.0);
+    //MaxDistance constraint2(&box, "O", "H", 1.6);
+    //MaxDistance constraint3(&box, "H", "H", 0.0);
     //box.add_constraint(constraint1);
-    Stillinger boundary(&box);
-    boundary.set_crit("O", "O", 4.0);
-    boundary.set_crit("O", "H", 1.6);
-    boundary.set_crit("H", "H", 0.0);
+    Open boundary(&box);
+    box.set_boundary(&boundary);
+    Stillinger constraint(&box);
+    constraint.set_criterion("O", "O", 4.0);
+    constraint.set_criterion("O", "H", 1.6);
+    constraint.set_criterion("H", "H", 0.0);
+    //box.add_constraint(&constraint);
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
-    box.set_boundary(&boundary);
     box.add_particles(single_molecule);
+    system.add_box(&box);
 
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 0.08);
