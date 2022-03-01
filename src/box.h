@@ -38,7 +38,7 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<int> nsystemsize;
+    std::vector<int> nsystemsize, npartype;
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
 };

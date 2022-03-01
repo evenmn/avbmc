@@ -142,7 +142,7 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
    Check if particles match molecule type recursively.
 ------------------------------------------------------------------------------- */
 
-void Moves::check_neighbors(const int i, std::vector<Particle> molecule,
+void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
                             unsigned int elm_count, std::vector<int> &elm_idx,
                             std::vector<Particle> particles, double rc) {
     if (elm_idx.size() < molecule.size()) {  
@@ -150,8 +150,9 @@ void Moves::check_neighbors(const int i, std::vector<Particle> molecule,
             elm_idx.push_back(i);
             elm_count ++;
             std::vector<int> neigh_list = build_neigh_list(particles, i, rc);
+            //for (int neigh : box->distance_manager->neigh_lists[neigh_id_inner]) {
             for (int neigh : neigh_list) {
-                check_neighbors(neigh, molecule, elm_count, elm_idx, particles, rc);
+                check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
             }
         }
     }
@@ -168,13 +169,15 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
                                         std::vector<Particle> molecule,
                                         bool &detected, double rc)
 {
+    unsigned int i, count;
     std::vector<int> elm_idx;
-    unsigned int count = 0;
+    
+    count = 0;
     while (count < particles.size() && !detected)
     {
         elm_idx.clear();
-        int i = rng->next_int(particles.size());     // pick initial particle
-        check_neighbors(i, molecule, 0, elm_idx, particles, rc);
+        i = rng->next_int(particles.size());     // pick initial particle
+        check_neigh_recu(i, molecule, 0, elm_idx, particles, rc);
         if (elm_idx.size() == molecule.size()) {
             detected = true;
         }
@@ -187,6 +190,56 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
     //for (int idx : elm_idx) {
     //    std::cout << particles[idx].label << " ";
     //}
+    return elm_idx;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Check if particles match molecule type recursively.
+------------------------------------------------------------------------------- */
+
+void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
+                            unsigned int elm_count, std::vector<int> &elm_idx,
+                            std::vector<std::vector<int> > neigh_list) {
+    if (elm_idx.size() < molecule.size()) {  
+        //if (particles[i].label == molecule[elm_count].label) {
+        elm_idx.push_back(i);
+        elm_count ++;
+        for (int neigh : neigh_list[i]) {
+            check_neigh_recu(neigh, molecule, elm_count, elm_idx, neigh_list);
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Detect molecule of the same types as 'molecule' randomly by picking a random 
+   atom among the elements and checking the neighbor list.
+   Returning a list of atom ids if molecule is detected
+------------------------------------------------------------------------------- */
+
+std::vector<int> Moves::detect_molecule(std::vector<std::vector<int> > neigh_list,
+                                        std::vector<Particle> molecule,
+                                        bool &detected)
+{
+    unsigned int i, count;
+    std::vector<int> elm_idx;
+    
+    count = 0;
+    while (count < neigh_list.size() && !detected)
+    {
+        elm_idx.clear();
+        i = rng->next_int(neigh_list.size());     // pick initial particle
+        check_neigh_recu(i, molecule, 0, elm_idx, neigh_list);
+        if (elm_idx.size() == molecule.size()) {
+            detected = true;
+        }
+        count ++;
+    }
+    if (!detected)
+    {
+        elm_idx.clear();
+    }
     return elm_idx;
 }
 

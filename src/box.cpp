@@ -63,6 +63,8 @@ void Box::add_particle(Particle particle)
     }
     npar ++;
     particle.type = system->forcefield->label2type.at(particle.label);
+    npartype.resize(system->forcefield->ntype);
+    npartype[particle.type] ++;
     system->ndim = particle.r.size();
     particles.push_back(particle);
 }

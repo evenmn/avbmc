@@ -15,20 +15,26 @@
 
 
 /* ----------------------------------------------------------------------------
-   Aggregate-volume-biased out move. This is a fictitous inter-box move, and
-   works in the grand canonical ensemble only
+   Aggregate-volume-biased molecule out move. This is a fictitous inter-box
+   move, and works in the grand canonical ensemble only. 'molecule_in'
+   specifies what molecule to remove. 'r_above_in' is the maximum distance 
+   between target molecule (main atom) and molecule to remove (main atom). 
+   'r_max_inner_in' is the maximum distance between main atom and other atoms
+   to be considered a molecule. 'energy_bias_in' is a boolean controlling
+   whether or not energy biasing should be used. 'target_mol_in' is a boolean
+   defining the target molecule as the entire molecule or main atom.
 ------------------------------------------------------------------------------- */
 
 AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
          std::vector<Particle> molecule_in, const double r_above_in,
-         const double r_max_inner_in, const bool energy_bias_in,
+         const double r_inner_in, const bool energy_bias_in,
          const bool target_mol_in)
     : Moves(system_in)
 {
     box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
-    r_max_inner = r_max_inner_in;
+    r_inner = r_inner_in;
     energy_bias = energy_bias_in;
     target_mol = target_mol_in;
     molecule = molecule_in;
@@ -36,6 +42,9 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
     label = "AVBMCMolOut";
+
+    neigh_id_above = box->distance_manager->add_cutoff(r_above, molecule[0].label, molecule[0].label);
+    neigh_id_inner = box->distance_manager->add_cutoff(r_inner, molecule[0].label, molecule[1].label);
 
     for (Particle &particle : molecule) {
         particle.type = system->forcefield->label2type.at(particle.label);
@@ -50,54 +59,66 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
 void AVBMCMolOutRes::perform_move()
 {
     bool detected_out, detected_target;
-    unsigned int count, i, n_in;
+    unsigned int count, i, j, n_in;
+    std::vector<int> target_molecule, neigh_listi;
+    std::vector<std::vector<int> > neigh_list_inner;
+
     reject_move = true;
     if (box->npar > 2 * natom - 1) {
         count = 0;
-        while (count < box->npar && reject_move) {
+        while (count < box->npar && reject_move) {  // do maximum npar attempts to detect target molecule
             count ++;
             detected_target = false;
             if (target_mol) {
-                std::vector<int> target_molecule = detect_molecule(box->particles, molecule, detected_target, r_max_inner);
+                neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
+                target_molecule = detect_molecule(neigh_list_inner, molecule, detected_target);
+                //std::vector<int> target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
                 i = target_molecule[0];
             }
             else {
                 i = rng->next_int(box->npar);
                 detected_target = (box->particles[i].type == molecule[0].type);
             }
-            if (detected_target) {
-                std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+            if (detected_target) {  // target molecule detected
+                //neigh_listi = box->build_neigh_list(i, r_abovesq);
+                neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
                 n_in = neigh_listi.size();
-                if (n_in >= natom) {
-                    std::vector<Particle> particles;
-                    for (unsigned int j=0; j < n_in; j++){
-                        particles.push_back(box->particles[neigh_listi[j]]);
+                if (n_in >= natom) {  // ensure that there is a least one molecule left
+                    std::vector<Particle> particles_tmp;
+                    for (j=0; j < n_in; j++){
+                        particles_tmp.push_back(box->particles[neigh_listi[j]]);
                     }
                     detected_out = false;
-                    std::vector<int> molecule_out = detect_molecule(particles, molecule, detected_out, r_max_inner);
-                    std::vector<int> molecule_out2;
-                    for (int idx : molecule_out) {
-                        molecule_out2.push_back(neigh_listi[idx]);
-                    }
+
+                    //std::vector<int> molecule_out = detect_molecule(
+                    std::vector<int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
                     if (detected_out) {
+                        std::vector<int> molecule_out2;
+                        for (int idx : molecule_out) {
+                            molecule_out2.push_back(neigh_listi[idx]);
+                        }
                         reject_move = false;
                         // compute change of energy when removing molecule
                         du = 0.;
                         for (int j : molecule_out2) {
-                            du -= system->forcefield->comp_energy_par(box->particles, i);
+                            du -= system->forcefield->comp_energy_par(box->particles, j);
                         }
                         // remove molecule
+                        npartype_old = box->npartype;
                         particles_old = box->particles;
                         std::sort(molecule_out2.begin(), molecule_out2.end(), std::greater<int>()); // sort in descending order
                         box->distance_manager->set();
                         for (int j : molecule_out2){
+                            box->npartype[box->particles[j].type] --;
                             box->particles[j] = box->particles.back();
                             box->particles.pop_back();
                             box->distance_manager->update_remove(j);
+                            box->npar --;
+
                             //box->particles.erase(box->particles.begin() + j);
                         }
                         box->poteng += du;
-                        box->npar -= natom;
+                        //box->npar -= natom;
                         nmolavg = n_in * natom_inv;
                     }  // end 
                 }  // end if n_in
@@ -139,6 +160,7 @@ void AVBMCMolOutRes::reset()
     if (!reject_move) {
         box->distance_manager->reset();
         box->npar += natom;
+        box->npartype = npartype_old;
         box->poteng -= du;
         box->particles = particles_old;
     }

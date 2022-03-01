@@ -17,9 +17,10 @@ public:
     std::string repr();
 
 private:
-    unsigned int natom;
+    unsigned int natom, neigh_id_above, neigh_id_inner;
     bool reject_move, energy_bias, target_mol;
-    double r_above, r_abovesq, v_in, nmolavg, r_max_inner, natom_inv;
+    double r_above, r_abovesq, v_in, nmolavg, r_inner, natom_inv;
+    std::vector<int> npartype_old;
     std::vector<class Particle> particles_old, molecule;
     class Box* box = nullptr;
 };

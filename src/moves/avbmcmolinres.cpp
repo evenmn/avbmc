@@ -31,7 +31,7 @@
 
 AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
                        std::vector<Particle> particles_in,
-                       const double r_max_inner_in,
+                       const double r_inner_in,
                        const double r_below_in, const double r_above_in,
                        const bool energy_bias_in, const bool target_mol_in)
     : Moves(system_in)
@@ -39,9 +39,10 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     box = box_in;
     r_below = r_below_in;
     r_above = r_above_in;
-    r_max_inner = r_max_inner_in;
+    r_inner = r_inner_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
+
     energy_bias = energy_bias_in;
     target_mol = target_mol_in;
     particles = particles_in;
@@ -49,6 +50,9 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     label = "AVBMCMolIn";
+
+    neigh_id_above = box->distance_manager->add_cutoff(r_above, particles[0].label, particles[0].label);
+    neigh_id_inner = box->distance_manager->add_cutoff(r_inner, particles[0].label, particles[1].label);
 
     // ensure that first particle is located at origin
     for (Particle &particle : particles) {
@@ -66,13 +70,17 @@ void AVBMCMolInRes::perform_move()
 {
     bool detected_target;
     unsigned int count, i, j;
+    std::vector<int> neigh_listi;
+    std::vector<std::vector<int> > neigh_list_inner;
+
     count = 0;
     reject_move = true;
     detected_target = false;
     while (count < box->npar && reject_move) {
         count ++;
         if (target_mol) {
-            std::vector<int> target_molecule = detect_molecule(box->particles, particles, detected_target, r_max_inner);
+            neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
+            std::vector<int> target_molecule = detect_molecule(neigh_list_inner, particles, detected_target);
             i = target_molecule[0];
         }
         else {
@@ -81,10 +89,13 @@ void AVBMCMolInRes::perform_move()
         }
         if (detected_target) {
             reject_move = false;
-            std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+            
+            //neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
+            neigh_listi = box->build_neigh_list(i, r_abovesq);
             nmolavg = neigh_listi.size() * natom_inv;
 
             // shift in-molecule relative to target molecule
+            // replace with sin/cos
             std::valarray<double> dr(system->ndim);
             double normsq = norm(dr);
             while (normsq > r_abovesq || normsq < r_belowsq) {
@@ -95,6 +106,7 @@ void AVBMCMolInRes::perform_move()
             }
             dr += box->particles[i].r;
 
+            npartype_old = box->npartype;
             particles_old = box->particles;
             // construct new molecule
             particles = rotate_molecule(particles);
@@ -104,8 +116,9 @@ void AVBMCMolInRes::perform_move()
                 std::valarray<double> new_pos = particles[j].r + dr;
                 Particle particle(particles[j].label, new_pos);
                 particle.type = particles[j].type;
+                box->npartype[particle.type] ++;
                 box->particles.push_back(particle);
-                box->distance_manager->update_insert(j);
+                box->distance_manager->update_insert(box->npar - 1);
             }
 
             // compute energy difference
@@ -150,6 +163,7 @@ void AVBMCMolInRes::reset()
         box->distance_manager->reset();
         box->npar -= natom;
         box->poteng -= du;
+        box->npartype = npartype_old;
         box->particles = particles_old;
     }
 }

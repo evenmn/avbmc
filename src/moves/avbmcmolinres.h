@@ -20,9 +20,9 @@ public:
 
 private:
     bool reject_move, energy_bias, target_mol;
-    unsigned int natom;
-    double r_below, r_above, r_max_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
-    std::vector<class Particle> particles;
-    std::vector<class Particle> particles_old;
+    unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner;
+    double r_below, r_above, r_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
+    std::vector<int> npartype_old;
+    std::vector<class Particle> particles, particles_old;
     class Box* box = nullptr;
 };

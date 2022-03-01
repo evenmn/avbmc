@@ -40,12 +40,31 @@ MaxDistance::MaxDistance(Box* box_in, std::string label1, std::string label2,
 bool MaxDistance::verify()
 {
     unsigned int i, typei;
-    neigh_list = box->distance_manager->neigh_lists[cutoff_id];
 
-    for (i=0; i<box->npar; i++) {
-        typei = box->particles[i].type;
-        if ((typei==type1 || typei==type2) && neigh_list[i].size()==0) {
-            return false;
+    /*
+    std::cout << "NPARTYPE ";
+    for (int n : box->npartype) {
+        std::cout << n << " ";
+    }
+    std::cout << std::endl;
+    */
+
+    if (type1 == type2 && box->npartype[type1] < 2) {
+        // constraint does not apply if particle pair does not exist
+    }
+    else if (box->npartype[type1] == 0 || box->npartype[type2] == 0) {
+        // constraint does not apply if there is no particle of one type
+    }
+    else {
+        //std::cout << "NPAR: " << box->npar << std::endl;
+        neigh_list = box->distance_manager->neigh_lists[cutoff_id];
+
+        for (i=0; i<box->npar; i++) {
+            typei = box->particles[i].type;
+            //std::cout << "maxdistance " << i << " " << typei << " " << type1 << " " << type2 << " " << neigh_list[i].size() << std::endl;
+            if ((typei==type1 || typei==type2) && neigh_list[i].size()==0) {
+                return false;
+            }
         }
     }
     return true;

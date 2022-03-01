@@ -141,6 +141,7 @@ void DistanceManager::clear_neigh(unsigned int i)
 
 void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
+    //std::cout << "i: " << i << " j: " << j << std::endl;
     unsigned int k, l, m, typei, typej;
 
     typei = box->particles[i].type;
@@ -156,9 +157,23 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
             m++;
         }
         else if (modes[k] == 1) {
+            //std::cout << typei << " " << typej << " " << types1[l] << " " << types2[l] << std::endl;
+            //std::cout << rij << " " << cutoffs[m] << std::endl;
             if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
+                //std::cout << "ACCEPTED " << k << " " << i << std::endl;
                 neigh_lists[k][i].push_back(j);
                 neigh_lists[k][j].push_back(i);
+                //std::cout << std::endl;
+                //std::cout << neigh_lists[k][i].size() << std::endl;
+                //std::cout << neigh_lists[k][j].size() << std::endl;
+                //for (int smt : neigh_lists[k][i]) {
+                //    std::cout << smt << " ";
+                //}
+                //std::cout << std::endl;
+                //for (int smt : neigh_lists[k][j]) {
+                //    std::cout << smt << " ";
+                //}
+                //std::cout << std::endl;
             }
             l++;
             m++;
@@ -224,6 +239,7 @@ void DistanceManager::initialize()
             distance_mat[j][i] = rij;
             distance_cube[j][i] = -delij;
             update_neigh(i, j, rij);
+            //update_neigh(j, i, rij);
         }
     }
 }
@@ -266,6 +282,7 @@ void DistanceManager::update_trans(unsigned int i)
 
     clear_neigh(i);
     for (j=0; j<box->npar; j++) {
+        if (i == j) continue;
         delij = box->particles[j].r - box->particles[i].r;
         rij = normsq(delij);
         distance_mat[i][j] = rij;
@@ -320,12 +337,14 @@ void DistanceManager::update_insert(unsigned int i)
 
     // extend distance matrix and update distance matrix and neighbor lists
     for (j=0; j<box->npar-1; j++) {
+        //std::cout << "ij " << i << " " << j << std::endl;
         delij = box->particles[j].r - box->particles[i].r;
         rij = normsq(delij);
         delijs[j] = delij;
         rijs[j] = rij;
         distance_mat[j].insert(distance_mat[j].begin() + i, rij);
         distance_cube[j].insert(distance_cube[j].begin() + i, delij);
+        if (i == j) continue;
         update_neigh(i, j, rij);
     }
     distance_mat.insert(distance_mat.begin() + i, rijs);

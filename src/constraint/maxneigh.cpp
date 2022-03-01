@@ -38,12 +38,21 @@ MaxNeigh::MaxNeigh(Box* box_in, std::string label1, std::string label2,
 bool MaxNeigh::verify()
 {
     unsigned int i, typei;
-    neigh_list = box->distance_manager->neigh_lists[cutoff_id];
 
-    for (i=0; i<box->npar; i++) {
-        typei = box->particles[i].type;
-        if (typei==type1 && neigh_list[i].size()>nc) {
-            return false;
+    if (type1 == type2 && box->npartype[type1] < 2) {
+        // constraint does not apply if particle pair does not exist
+    }
+    else if (box->npartype[type1] == 0 || box->npartype[type2] == 0) {
+        // constraint does not apply if there is no particle of one type
+    }
+    else {
+        neigh_list = box->distance_manager->neigh_lists[cutoff_id];
+
+        for (i=0; i<box->npar; i++) {
+            typei = box->particles[i].type;
+            if (typei==type1 && neigh_list[i].size()>nc) {
+                return false;
+            }
         }
     }
     return true;

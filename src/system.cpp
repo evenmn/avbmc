@@ -135,7 +135,7 @@ void System::add_move(Moves* move, double prob)
         MPI_Abort(MPI_COMM_WORLD, 143);
     }
     nmove ++;
-    moves.emplace_back(move);
+    moves.push_back(move);
     moves_prob.push_back(prob);
 }
 

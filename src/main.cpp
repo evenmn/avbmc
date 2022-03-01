@@ -44,7 +44,9 @@
 #include "moves/avbmcmolinres.h"
 #include "moves/avbmcmolout.h"
 #include "moves/avbmcmoloutres.h"
+#include "constraint/minneigh.h"
 #include "constraint/maxdistance.h"
+#include "constraint/mindistance.h"
 #include "constraint/stillinger.h"
 
 
@@ -68,17 +70,23 @@ int main()
     // initialize box with open boundaries and Stillinger criterion
     // and initially one molecule
     Box box(&system);
-    //MaxDistance constraint1(&box, "O", "O", 4.0);
-    //MaxDistance constraint2(&box, "O", "H", 1.6);
-    //MaxDistance constraint3(&box, "H", "H", 0.0);
-    //box.add_constraint(constraint1);
     Open boundary(&box);
     box.set_boundary(&boundary);
+
     Stillinger constraint(&box);
     constraint.set_criterion("O", "O", 4.0);
     constraint.set_criterion("O", "H", 1.6);
     constraint.set_criterion("H", "H", 0.0);
-    //box.add_constraint(&constraint);
+    box.add_constraint(&constraint);
+    MinNeigh constraint1(&box, "O", "O", 4.0, 3);
+    //MaxDistance constraint1(&box, "O", "O", 4.0);
+    //MinDistance constraint2(&box, "O", "O", 3.0);
+    //MaxDistance constraint2(&box, "O", "H", 1.6);
+    //MaxDistance constraint3(&box, "H", "H", 0.0);
+    //box.add_constraint(&constraint1);
+    //box.add_constraint(&constraint2);
+    //box.add_constraint(&constraint3);
+
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
     box.add_particles(single_molecule);
