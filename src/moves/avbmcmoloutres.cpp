@@ -72,7 +72,7 @@ void AVBMCMolOutRes::perform_move()
             if (target_mol) {
                 neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
                 target_molecule = detect_molecule(neigh_list_inner, molecule, detected_target);
-                //std::vector<int> target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
+                //target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
                 i = target_molecule[0];
             }
             else {
@@ -92,6 +92,7 @@ void AVBMCMolOutRes::perform_move()
 
                     //std::vector<int> molecule_out = detect_molecule(
                     std::vector<int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
+                    std::cout << "detected_out: " << detected_out << " " << molecule_out.size() << std::endl;
                     if (detected_out) {
                         std::vector<int> molecule_out2;
                         for (int idx : molecule_out) {

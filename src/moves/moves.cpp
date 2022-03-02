@@ -150,7 +150,6 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
             elm_idx.push_back(i);
             elm_count ++;
             std::vector<int> neigh_list = build_neigh_list(particles, i, rc);
-            //for (int neigh : box->distance_manager->neigh_lists[neigh_id_inner]) {
             for (int neigh : neigh_list) {
                 check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
             }
@@ -187,9 +186,6 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
     {
         elm_idx.clear();
     }
-    //for (int idx : elm_idx) {
-    //    std::cout << particles[idx].label << " ";
-    //}
     return elm_idx;
 }
 

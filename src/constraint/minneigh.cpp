@@ -42,7 +42,7 @@ bool MinNeigh::verify()
     if (box->npartype[type2] < nc) {
         // type 1 cannot have nc neighbors of type2 if there is less than nc type2
     }
-    if (type1 == type2 && box->npartype[type1] < 2) {
+    if (type1 == type2 && box->npartype[type1] < nc + 1) {
         // constraint does not apply if particle pair does not exist
     }
     else if (box->npartype[type1] == 0 || box->npartype[type2] == 0) {

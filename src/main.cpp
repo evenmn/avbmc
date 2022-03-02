@@ -45,14 +45,15 @@
 #include "moves/avbmcmolout.h"
 #include "moves/avbmcmoloutres.h"
 #include "constraint/minneigh.h"
-#include "constraint/maxdistance.h"
+#include "constraint/maxneigh.h"
 #include "constraint/mindistance.h"
+#include "constraint/maxdistance.h"
 #include "constraint/stillinger.h"
 
 
 int main()
 {
-    // initialize system
+    // ======  initialize system  ======
     System system("simulation");
     system.set_temp(320.);
     system.set_chempot(10.);
@@ -61,38 +62,42 @@ int main()
     MersenneTwister rng;
     system.set_rng(&rng);
 
-    // initialize umbrella sampling with square function
+    // ======  initialize sampler  ======
     auto f = [] (const int n) { return (0.003 * (n - 20) * (n - 20)); };
     //Umbrella sampler(&system, f);
     Metropolis sampler(&system);
     system.set_sampler(&sampler);
 
-    // initialize box with open boundaries and Stillinger criterion
-    // and initially one molecule
+    // ======  initialize box  ======
+    // initialize box with open boundaries
     Box box(&system);
+    system.add_box(&box);
     Open boundary(&box);
     box.set_boundary(&boundary);
 
+    // ======  initialize box constraints  ======
     Stillinger constraint(&box);
     constraint.set_criterion("O", "O", 4.0);
     constraint.set_criterion("O", "H", 1.6);
     constraint.set_criterion("H", "H", 0.0);
-    box.add_constraint(&constraint);
-    MinNeigh constraint1(&box, "O", "O", 4.0, 3);
+    MinNeigh constraint1(&box, "O", "O", 5.0, 2);
+    MinNeigh constraint2(&box, "O", "H", 1.3, 2);
+    MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
     //MaxDistance constraint1(&box, "O", "O", 4.0);
     //MinDistance constraint2(&box, "O", "O", 3.0);
     //MaxDistance constraint2(&box, "O", "H", 1.6);
     //MaxDistance constraint3(&box, "H", "H", 0.0);
+    //box.add_constraint(&constraint);
     //box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
 
+    // ======  initialize particle positions  ======
     std::vector<Particle> single_molecule = read_xyz("water.xyz");
     //std::vector<Particle> bulk_water = read_xyz("water_bulk.xyz");
     box.add_particles(single_molecule);
-    system.add_box(&box);
 
-    // initialize translation and AVBMC moves
+    // ======  initialize moves  ======
     Trans move1(&system, &box, 0.08);
     AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 4.0);
     AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 1.2);
