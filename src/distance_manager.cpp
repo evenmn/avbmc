@@ -55,12 +55,13 @@ unsigned int DistanceManager::add_cutoff(double rc)
 /* ----------------------------------------------------------------------------
    Add a cutoff 'rc' to the list of cutoffs in order to make the distance
    manager manage neighbor lists. Here, the cutoff is restricted for two
-   components 'label1' and 'label2'. Returning the cutoff-ID, which has to be
-   used when extracting the correct neighbor list.
+   components 'label1' and 'label2'. If 'mutual' is true, both label1 and 
+   label2's neighbor lists will be updated. Returning the cutoff-ID, which has
+   to be used when extracting the correct neighbor list.
 ------------------------------------------------------------------------------- */
 
 unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
-                                         std::string label2)
+                                         std::string label2, bool mutual)
 {
     double rcsq;
     unsigned int i, j, type1, type2, mode;
@@ -75,7 +76,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     for (i=0; i<ncutoff; i++) {
         if (modes[i] == mode) {
             if (types2[j] == type1 && types2[j] == type2 &&
-                fabs(cutoffs[i] - rcsq) < cutoff_tol) {
+                mutuals[j] == mutual && fabs(cutoffs[i] - rcsq) < cutoff_tol) {
                 return i;
             }
             j++;
@@ -87,6 +88,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     modes.push_back(mode);
     types1.push_back(type1);
     types2.push_back(type2);
+    mutuals.push_back(mutual);
     cutoffs.push_back(rcsq);
     neigh_lists.push_back({});
     return ncutoff - 1;
@@ -141,7 +143,6 @@ void DistanceManager::clear_neigh(unsigned int i)
 
 void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
-    //std::cout << "i: " << i << " j: " << j << std::endl;
     unsigned int k, l, m, typei, typej;
 
     typei = box->particles[i].type;
@@ -157,23 +158,11 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
             m++;
         }
         else if (modes[k] == 1) {
-            //std::cout << typei << " " << typej << " " << types1[l] << " " << types2[l] << std::endl;
-            //std::cout << rij << " " << cutoffs[m] << std::endl;
             if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
-                //std::cout << "ACCEPTED " << k << " " << i << std::endl;
                 neigh_lists[k][i].push_back(j);
-                neigh_lists[k][j].push_back(i);
-                //std::cout << std::endl;
-                //std::cout << neigh_lists[k][i].size() << std::endl;
-                //std::cout << neigh_lists[k][j].size() << std::endl;
-                //for (int smt : neigh_lists[k][i]) {
-                //    std::cout << smt << " ";
-                //}
-                //std::cout << std::endl;
-                //for (int smt : neigh_lists[k][j]) {
-                //    std::cout << smt << " ";
-                //}
-                //std::cout << std::endl;
+                if (mutuals[l]) {
+                    neigh_lists[k][j].push_back(i);
+                }
             }
             l++;
             m++;

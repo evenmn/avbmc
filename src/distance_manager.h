@@ -10,7 +10,7 @@ class DistanceManager
 public:
     DistanceManager(class Box *, double = 1e-2);
     unsigned int add_cutoff(double);
-    unsigned int add_cutoff(double, std::string, std::string);
+    unsigned int add_cutoff(double, std::string, std::string, bool = true);
     unsigned int add_cutoff(double **);
     void initialize();
     void set(), reset();
@@ -30,6 +30,7 @@ private:
 
     double cutoff_tol;
     unsigned int ncutoff;
+    std::vector<bool> mutuals;
     std::vector<double> cutoffs;
     std::vector<unsigned int> types1, types2, modes;
 
