@@ -12,4 +12,6 @@
 
 Open::Open(Box* box_in)
     : Boundary(box_in)
-{}
+{
+    label = "Open";
+}
