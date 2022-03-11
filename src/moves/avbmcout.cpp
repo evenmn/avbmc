@@ -78,7 +78,7 @@ void AVBMCOut::perform_move()
                     countj ++;
                 }
                 if (!reject_move) {
-                    du = -system->forcefield->comp_energy_par(box->particles, j);
+                    du = -system->forcefield->comp_energy_par(box, j);
                     box->poteng += du;
                     particle_out = box->particles[j];
                     box->particles.erase(box->particles.begin() + j);

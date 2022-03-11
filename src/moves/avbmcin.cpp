@@ -74,7 +74,8 @@ void AVBMCIn::perform_move()
     box->particles.push_back(particle_in);
 
     // compute du
-    du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
+    //du = system->forcefield->comp_energy_par(box->particles, box->npar - 1);
+    du = system->forcefield->comp_energy_par(box, box->npar - 1);
     box->poteng += du;
 }
 

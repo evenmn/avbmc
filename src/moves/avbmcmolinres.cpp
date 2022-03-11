@@ -124,7 +124,7 @@ void AVBMCMolInRes::perform_move()
             // compute energy difference
             du = 0.;
             for (j=0; j < natom; j++) {
-                du += system->forcefield->comp_energy_par(box->particles, box->npar - j - 1);
+                du += system->forcefield->comp_energy_par(box, box->npar - j - 1);
             }
             box->poteng += du;
         }

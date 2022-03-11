@@ -40,7 +40,7 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
     molecule = molecule_in;
     natom = molecule.size();
     natom_inv = 1. / natom;
-    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     label = "AVBMCMolOut";
 
     neigh_id_above = box->distance_manager->add_cutoff(r_above, molecule[0].label, molecule[0].label);
@@ -71,8 +71,9 @@ void AVBMCMolOutRes::perform_move()
             detected_target = false;
             if (target_mol) {
                 neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-                target_molecule = detect_molecule(neigh_list_inner, molecule, detected_target);
-                //target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
+                //target_molecule = detect_molecule(neigh_list_inner, molecule, detected_target);
+                target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
+                //target_molecule = detect_molecule(neigh_list_inner, box->particles, molecule, detected_target);
                 i = target_molecule[0];
             }
             else {
@@ -91,6 +92,8 @@ void AVBMCMolOutRes::perform_move()
                     detected_out = false;
 
                     //std::vector<int> molecule_out = detect_molecule(
+                    //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
+                    //std::vector<int> molecule_out = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected_out);
                     std::vector<int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
                     std::cout << "detected_out: " << detected_out << " " << molecule_out.size() << std::endl;
                     if (detected_out) {
@@ -102,7 +105,7 @@ void AVBMCMolOutRes::perform_move()
                         // compute change of energy when removing molecule
                         du = 0.;
                         for (int j : molecule_out2) {
-                            du -= system->forcefield->comp_energy_par(box->particles, j);
+                            du -= system->forcefield->comp_energy_par(box, j);
                         }
                         // remove molecule
                         npartype_old = box->npartype;
