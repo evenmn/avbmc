@@ -14,10 +14,14 @@ public:
     void allocate_memory();
     void free_memory();
     void sort_params();
+    void set_cutoff_ids();
     
     double comp_twobody_par(int, int, double, std::valarray<double> &, bool);
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
-    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
+    double comp_threebody_par(int, int, int, double, double, std::valarray<double>, std::valarray<double>, std::valarray<double> &, bool);
+    double comp_energy_par(class Box *, int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh(class Box *, int, std::valarray<double> &, bool);
+    double comp_energy_par_noneigh(class Box *, int, std::valarray<double> &, bool);
 
     ~Vashishta();
 
@@ -26,6 +30,7 @@ private:
     std::vector<std::string> label3_vec;
     std::vector<double> H_vec, eta_vec, Zi_vec, Zj_vec, lambda1_vec, D_vec, lambda4_vec;
     std::vector<double> W_vec, rc_vec, B_vec, gamma_vec, r0_vec, C_vec, costheta_vec;
+    std::vector<unsigned int> neigh_ids_rc, neigh_ids_r0;
 
     // matrices to store sorted params
     double **H_mat, **eta_mat, **Zi_mat, **Zj_mat, **lambda1inv_mat, **D_mat, **lambda4inv_mat;

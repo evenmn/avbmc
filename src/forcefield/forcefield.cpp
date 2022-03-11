@@ -4,6 +4,7 @@
 #include <valarray>
 
 #include "forcefield.h"
+#include "../box.h"
 #include "../system.h"
 #include "../particle.h"
 
@@ -18,10 +19,10 @@ ForceField::ForceField(System* system_in)
    Compute energy contribution from a particle 'i'
 ---------------------------------------------------------- */
 
-double ForceField::comp_energy_par(std::vector<Particle> particles, const int i)
+double ForceField::comp_energy_par(Box* box, const int i)
 {
     std::valarray<double> force;
-    return (comp_energy_par(particles, i, force, false));
+    return (comp_energy_par(box, i, force, false));
 }
 
 

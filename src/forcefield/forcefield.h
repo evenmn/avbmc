@@ -16,11 +16,13 @@ public:
     virtual void allocate_memory() = 0;
     virtual void free_memory() = 0;
     virtual void sort_params() = 0;
-    virtual double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool) = 0;
+    virtual void set_cutoff_ids() = 0;
+    //virtual double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par(class Box *, int, std::valarray<double> &, bool) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
-    double comp_energy_par(std::vector<class Particle>, int);
+    double comp_energy_par(class Box *, int);
     std::vector<int> build_neigh_list(int, double);
 
     // Store state properties to avoid unnecessary computations
@@ -29,6 +31,7 @@ public:
     std::string label, paramfile;
     std::vector<std::string> label1_vec, label2_vec, unique_labels;
     double temp_scale = 1.;
+    double *poteng, **poteng_mat;
 
 protected:
     double norm(std::valarray<double>);

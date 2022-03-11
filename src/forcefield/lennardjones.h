@@ -16,15 +16,19 @@ public:
     void allocate_memory();
     void free_memory();
     void sort_params();
+    void set_cutoff_ids();
     
     double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
+    double comp_energy_par(class Box *, int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh(class Box *, int, std::valarray<double> &, bool);
+    double comp_energy_par_noneigh(class Box *, int, std::valarray<double> &, bool);
     ~LennardJones();
 
 private:
     int nline;
 
     // vectors to store raw data from param file
+    std::vector<int> neigh_ids;
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params
