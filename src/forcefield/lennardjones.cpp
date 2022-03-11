@@ -107,7 +107,9 @@ void LennardJones::sort_params()
         shift_mat[type1][type2] = s12 - s6;
         shift_mat[type2][type1] = s12 - s6;
     }
-    neigh_id = box->distance_manager->add_cutoff(rc_sqrd_mat);
+    if (box->store_distance) {
+        neigh_id = box->distance_manager->add_cutoff(rc_sqrd_mat);
+    }
 }
 
 
@@ -160,7 +162,7 @@ double LennardJones::comp_energy_par_noneigh(const int i,
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
         energyij = comp_twobody_par(typei, typej, delij, forceij, comp_force);
-        if (box->store_energies) {
+        if (box->store_energy) {
             poteng_mat[i][j] = energyij;
             poteng_mat[j][i] = energyij;
             force_cube[i][j] = forceij;
@@ -173,7 +175,7 @@ double LennardJones::comp_energy_par_noneigh(const int i,
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
         energyij = comp_twobody_par(typei, typej, delij, forceij, comp_force);
-        if (box->store_energies) {
+        if (box->store_energy) {
             poteng_mat[i][j] = energyij;
             poteng_mat[j][i] = energyij;
             force_cube[i][j] = forceij;
@@ -182,7 +184,7 @@ double LennardJones::comp_energy_par_noneigh(const int i,
         energy += energyij;
         force += forceij;
     }
-    if (box->store_energies) {
+    if (box->store_energy) {
         poteng_vec[i] = energy;
         force_vec[i] = force;
     }
@@ -221,7 +223,7 @@ double LennardJones::comp_energy_par_neigh(const int i, std::valarray<double> &f
             delij = box->distance_manager->distance_cube[i][j];
             forceij = 24 * epsilon_mat[typei][typej] * (2. * s6 - s12) * delij * rijinvsq;
         }
-        if (box->store_energies) {
+        if (box->store_energy) {
             poteng_mat[i][j] = energyij;
             poteng_mat[j][i] = energyij;
             force_cube[i][j] = forceij;
@@ -230,7 +232,7 @@ double LennardJones::comp_energy_par_neigh(const int i, std::valarray<double> &f
         energy += energyij;
         force += forceij;
     }
-    if (box->store_energies) {
+    if (box->store_energy) {
         poteng_vec[i] = energy;
         force_vec[i] = force;
     }
@@ -248,7 +250,7 @@ double LennardJones::comp_energy_par(const int i, std::valarray<double> &force,
 {
     double energy;
 
-    if (box->store_distances) {
+    if (box->store_distance) {
         comp_energy_par_neigh(i, force, comp_force);
     }
     else {

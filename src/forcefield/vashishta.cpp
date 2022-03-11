@@ -172,8 +172,10 @@ void Vashishta::sort_params()
         costheta_mat[type3][type1][type2] = costheta_vec[i];
         costheta_mat[type3][type2][type1] = costheta_vec[i];
     }
-    neigh_id_rc = box->distance_manager->add_cutoff(rc_mat);
-    neigh_id_r0 = box->distance_manager->add_cutoff(r0_mat);
+    if (box->store_distance) {
+        neigh_id_rc = box->distance_manager->add_cutoff(rc_mat);
+        neigh_id_r0 = box->distance_manager->add_cutoff(r0_mat);
+    }
 }
 
 
@@ -368,7 +370,7 @@ double Vashishta::comp_energy_par(const int i, std::valarray<double> &force,
                                   const bool comp_force)
 {
     double energy;
-    if (box->store_distances) {
+    if (box->store_distance) {
         energy = comp_energy_par_neigh(i, force, comp_force);
     }
     else {

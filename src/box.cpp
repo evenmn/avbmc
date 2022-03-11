@@ -49,16 +49,16 @@ Box::Box(System* system_in, const int memory_intensity)
 
     // memory intensitivity
     if (memory_intensity==1) {
-        store_distances = false;
-        store_energies = false;
+        store_distance = false;
+        store_energy = false;
     }
     else if (memory_intensity==2) {
-        store_distances = true;
-        store_energies = false;
+        store_distance = true;
+        store_energy = false;
     }
     else if (memory_intensity==3) {
-        store_distances = true;
-        store_energies = true;
+        store_distance = true;
+        store_energy = true;
     }
     else {
         std::cout << "memory_intensity has to be 1, 2 or 3! Aborting." << std::endl;

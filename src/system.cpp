@@ -294,7 +294,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
-        if (box->store_distances) {
+        if (box->store_distance) {
             box->distance_manager->initialize();
         }
     }

@@ -37,7 +37,7 @@ public:
     //class Velocity* velocity = nullptr;
     class DistanceManager* distance_manager = nullptr;
 
-    bool initialized, store_energies, store_distances;
+    bool initialized, store_energy, store_distance;
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
