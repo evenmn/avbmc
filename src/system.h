@@ -9,10 +9,9 @@
 class System
 {
 public:
-    System(std::string  = ""); 
+    System(std::string  = "."); 
 
     // methods
-    void set_forcefield(class ForceField*);
     //void set_integrator(class Integrator* integrator_in);
     void set_sampler(class Sampler*);
     void set_rng(class RandomNumberGenerator*);
@@ -36,12 +35,11 @@ public:
     ~System();
 
     // variables
-    class ForceField* forcefield = nullptr;
     //class Integrator* integrator = nullptr;
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
 
-    bool initialized, logo_printed;
+    bool logo_printed;
     int nbox, ndim, nmove, nprocess, step, rank;
     double temp, chempot, poteng, time;
     std::string working_dir;

@@ -8,7 +8,6 @@
 
 #include "minneigh.h"
 #include "../box.h"
-#include "../system.h"
 #include "../particle.h"
 #include "../distance_manager.h"
 #include "../forcefield/forcefield.h"
@@ -25,9 +24,9 @@ MinNeigh::MinNeigh(Box* box_in, std::string label1, std::string label2,
                    double rc_in, int nc_in) : Constraint(box_in)
 {
     nc = nc_in;
-    type1 = box->system->forcefield->label2type.at(label1);
-    type2 = box->system->forcefield->label2type.at(label2);
-    cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2);
+    type1 = box->forcefield->label2type.at(label1);
+    type2 = box->forcefield->label2type.at(label2);
+    cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2, false);
 }
 
 
@@ -53,7 +52,7 @@ bool MinNeigh::verify()
 
         for (i=0; i<box->npar; i++) {
             typei = box->particles[i].type;
-            if (typei==type1 && neigh_list[i].size()<nc) {
+            if (typei==type1  && neigh_list[i].size()<nc) {
                 return false;
             }
         }

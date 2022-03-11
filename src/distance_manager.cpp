@@ -5,7 +5,6 @@
 
 #include "distance_manager.h"
 #include "box.h"
-#include "system.h"
 #include "forcefield/forcefield.h"
 
 
@@ -68,8 +67,8 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
 
     mode = 1;
     rcsq = rc * rc;
-    type1 = box->system->forcefield->label2type.at(label1);
-    type2 = box->system->forcefield->label2type.at(label2);
+    type1 = box->forcefield->label2type.at(label1);
+    type2 = box->forcefield->label2type.at(label2);
 
     // check if a similar cutoff exists
     j=0;

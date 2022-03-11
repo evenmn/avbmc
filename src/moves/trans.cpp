@@ -37,7 +37,7 @@ void Trans::perform_move()
     double u0, u1;
 
     i = rng->next_int(box->npar); // particle to move
-    u0 = system->forcefield->comp_energy_par(box, i);
+    u0 = box->forcefield->comp_energy_par(i);
 
     // move particle i
     std::valarray<double> dr(system->ndim);
@@ -49,7 +49,7 @@ void Trans::perform_move()
     box->distance_manager->update_trans(i);
 
     // compute new energy contribution from particle i
-    u1 = system->forcefield->comp_energy_par(box, i);
+    u1 = box->forcefield->comp_energy_par(i);
     du = u1 - u0;
     box->poteng += du;
 }

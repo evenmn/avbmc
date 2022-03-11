@@ -16,8 +16,8 @@
    Vashishta constructor, which takes a parameter file 'params'.
 ------------------------------------------------------------------------------- */
 
-Vashishta::Vashishta(System* system_in, const std::string params)
-    : ForceField(system_in)
+Vashishta::Vashishta(Box* box_in, const std::string params)
+    : ForceField(box_in)
 {
     label = "Vashishta";
     paramfile = params;
@@ -172,20 +172,8 @@ void Vashishta::sort_params()
         costheta_mat[type3][type1][type2] = costheta_vec[i];
         costheta_mat[type3][type2][type1] = costheta_vec[i];
     }
-}
-
-
-/* ----------------------------------------------------------------------------
-   Set ids of neighbor lists associated with energy cutoff. This has to be
-   done after the boxes are defined, but before the simulation is started.
-------------------------------------------------------------------------------- */
-
-void Vashishta::set_cutoff_ids()
-{
-    for (Box* box : system->boxes) {
-        neigh_ids_rc.push_back(box->distance_manager->add_cutoff(rc_mat));
-        neigh_ids_r0.push_back(box->distance_manager->add_cutoff(r0_mat));
-    }
+    neigh_id_rc = box->distance_manager->add_cutoff(rc_mat);
+    neigh_id_r0 = box->distance_manager->add_cutoff(r0_mat);
 }
 
 
@@ -281,8 +269,8 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    if memory is an issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_noneigh(Box* box, const int i,
-                                  std::valarray<double> &force, const bool comp_force)
+double Vashishta::comp_energy_par_noneigh(const int i, std::valarray<double> &force,
+                                          const bool comp_force)
 {
     // declare variables
     double rij, energy;
@@ -336,8 +324,8 @@ double Vashishta::comp_energy_par_noneigh(Box* box, const int i,
    issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_neigh(Box* box, const int i,
-                                std::valarray<double> &force, const bool comp_force)
+double Vashishta::comp_energy_par_neigh(const int i, std::valarray<double> &force,
+                                        const bool comp_force)
 {
     // declare variables
     double rij, rik, energy;
@@ -347,8 +335,8 @@ double Vashishta::comp_energy_par_neigh(Box* box, const int i,
 
     typei = box->particles[i].type; 
     npar = box->particles.size();
-    neigh_list_rc = box->distance_manager->neigh_lists[neigh_ids_rc[box->box_id]];
-    neigh_list_r0 = box->distance_manager->neigh_lists[neigh_ids_r0[box->box_id]];
+    neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
+    neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
 
     energy = 0.;
     for (int j : neigh_list_rc[i]) {
@@ -376,15 +364,15 @@ double Vashishta::comp_energy_par_neigh(Box* box, const int i,
    Forwarding computation of the energy of particle 'i' to other functions
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par(Box* box, const int i, std::valarray<double> &force,
+double Vashishta::comp_energy_par(const int i, std::valarray<double> &force,
                                   const bool comp_force)
 {
     double energy;
-    if (system->store_distances) {
-        energy = comp_energy_par_neigh(box, i, force, comp_force);
+    if (box->store_distances) {
+        energy = comp_energy_par_neigh(i, force, comp_force);
     }
     else {
-        energy = comp_energy_par_noneigh(box, i, force, comp_force);
+        energy = comp_energy_par_noneigh(i, force, comp_force);
     }
     return energy;
 }

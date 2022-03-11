@@ -25,7 +25,13 @@
 
 /* ----------------------------------------------------------------------------
    System constructor, taking the working directory 'working_dir_in' as
-   argument
+   argument. The argument 'memory_intensity' specifies how memeory intensive
+   the simulation should be, with a memory-cpu-time tradeoff. The options are:
+
+       1: Storing necessary neighbor lists only
+       2: Storing distances and relative coordinates between particles
+       3: Storing distances, relative coordinates and energy contributions
+          of each particle
 ------------------------------------------------------------------------------- */
 
 System::System(std::string working_dir_in)
@@ -33,7 +39,7 @@ System::System(std::string working_dir_in)
     working_dir = working_dir_in;
     time = temp = chempot = 0.;
 
-    initialized = logo_printed = false;
+    logo_printed = false;
     nbox = nmove = nprocess = step = 0;
     ndim = 3;
 
@@ -82,17 +88,6 @@ void System::set_mass(const std::string label, const double mass)
 
 
 /* ----------------------------------------------------------------------------
-   Overwrite default forcefield object
-------------------------------------------------------------------------------- */
-
-void System::set_forcefield(class ForceField* forcefield_in)
-{
-    forcefield = forcefield_in;
-    initialized = true;
-}
-
-
-/* ----------------------------------------------------------------------------
    Overwrite default integrator object, velocity Verlet
 ------------------------------------------------------------------------------- */
 /*
@@ -130,10 +125,10 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
 
 void System::add_move(Moves* move, double prob)
 {
-    if (!initialized) {
-        std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 143);
-    }
+    //if (!initialized) {
+    //    std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
+    //    MPI_Abort(MPI_COMM_WORLD, 143);
+    //}
     nmove ++;
     moves.push_back(move);
     moves_prob.push_back(prob);
@@ -160,9 +155,9 @@ void System::add_box(Box* box_in)
 
 void System::check_masses()
 {
-    for (std::string mass_label : mass_labels) {
-        forcefield->label2type.at(mass_label);
-    }
+    //for (std::string mass_label : mass_labels) {
+    //    forcefield->label2type.at(mass_label);
+    //}
 }
 
 
@@ -217,15 +212,15 @@ void System::print_info()
     std::cout << "            System Information " << std::endl;
     std::cout << "=========================================" << std::endl;
     std::cout << "Number of dimensions:     " << ndim << std::endl;
-    std::cout << "Forcefield:               " << forcefield->label 
-              << " " << forcefield->paramfile << std::endl;
+    //std::cout << "Forcefield:               " << forcefield->label 
+    //          << " " << forcefield->paramfile << std::endl;
     std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
-    std::cout << "Unique particle types:";
-    for(int i=0; i < forcefield->ntype; i++){
-        std::cout << " " << forcefield->unique_labels[i];
-    }
+    //std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
+    //std::cout << "Unique particle types:";
+    //for(int i=0; i < forcefield->ntype; i++){
+    //    std::cout << " " << forcefield->unique_labels[i];
+    //}
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "Number of boxes: " << nbox << std::endl;
@@ -299,7 +294,9 @@ void System::run_mc(const int nsteps, const int nmoves)
     for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
-        box->distance_manager->initialize();
+        if (box->store_distances) {
+            box->distance_manager->initialize();
+        }
     }
 
     for (Moves* move : moves) {
@@ -346,7 +343,7 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << std::endl;
         std::cout << "                      Acceptance Ratio" << std::endl;
         std::cout << "=================================================================" << std::endl;
-        std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
+        std::cout << "Move type\t #attempts\t #accepted\t acceptance ratio" << std::endl;
     }
     for(Moves* move : moves){
         int ndrawntot, naccepttot;

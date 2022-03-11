@@ -9,9 +9,10 @@
 class Box
 {
 public:
-    Box(class System *); 
+    Box(class System *, int = 1); 
 
     // methods
+    void set_forcefield(class ForceField*);
     void set_boundary(class Boundary *);
     void add_particle(Particle);
     void add_particle(std::string, std::valarray<double>);
@@ -28,13 +29,15 @@ public:
     ~Box();
 
     // variables
+    class System* system = nullptr;
     class Dump* dump = nullptr;
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
+    class ForceField* forcefield = nullptr;
     //class Velocity* velocity = nullptr;
-    class System* system = nullptr;
     class DistanceManager* distance_manager = nullptr;
 
+    bool initialized, store_energies, store_distances;
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 

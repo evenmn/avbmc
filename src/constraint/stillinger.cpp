@@ -5,7 +5,6 @@
 
 #include "stillinger.h"
 #include "../box.h"
-#include "../system.h"
 #include "../distance_manager.h"
 #include "../forcefield/forcefield.h"
 #include "../constraint/constraint.h"
@@ -25,7 +24,7 @@ Stillinger::Stillinger(Box* box_in, double rc)
     label = "Stillinger of radius " + std::to_string(rc);
 
     // fill r_csq_mat with r_csq
-    ntype = box->system->forcefield->ntype;
+    ntype = box->forcefield->ntype;
     r_csq_mat = new double*[ntype];
     for (unsigned int i=0; i<ntype; i++) {
         r_csq_mat[i] = new double[ntype];
@@ -44,8 +43,8 @@ Stillinger::Stillinger(Box* box_in, double rc)
 
 void Stillinger::set_criterion(std::string label1, std::string label2, double rc)
 {
-    unsigned int type1 = box->system->forcefield->label2type[label1];
-    unsigned int type2 = box->system->forcefield->label2type[label2];
+    unsigned int type1 = box->forcefield->label2type[label1];
+    unsigned int type2 = box->forcefield->label2type[label2];
     
     box->distance_manager->cutoff_mats[cutoff_id][type1][type2] = rc * rc;
     box->distance_manager->cutoff_mats[cutoff_id][type2][type1] = rc * rc;

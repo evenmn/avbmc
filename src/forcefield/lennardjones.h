@@ -11,24 +11,22 @@
 class LennardJones : public ForceField
 {
 public:
-    LennardJones(class System *, std::string);
+    LennardJones(class Box *, std::string);
     void read_param_file(std::string);
     void allocate_memory();
     void free_memory();
     void sort_params();
-    void set_cutoff_ids();
     
     double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    double comp_energy_par(class Box *, int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh(class Box *, int, std::valarray<double> &, bool);
-    double comp_energy_par_noneigh(class Box *, int, std::valarray<double> &, bool);
+    double comp_energy_par(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh(int, std::valarray<double> &, bool);
+    double comp_energy_par_noneigh(int, std::valarray<double> &, bool);
     ~LennardJones();
 
 private:
-    int nline;
+    int nline, neigh_id;
 
     // vectors to store raw data from param file
-    std::vector<int> neigh_ids;
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
 
     // matrices to store sorted params

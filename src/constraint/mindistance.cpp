@@ -12,7 +12,6 @@
 
 #include "mindistance.h"
 #include "../box.h"
-#include "../system.h"
 #include "../particle.h"
 #include "../distance_manager.h"
 #include "../forcefield/forcefield.h"
@@ -27,8 +26,8 @@
 MinDistance::MinDistance(Box* box_in, std::string label1, std::string label2,
                          double rc_in) : Constraint(box_in)
 {
-    type1 = box->system->forcefield->label2type.at(label1);
-    type2 = box->system->forcefield->label2type.at(label2);
+    type1 = box->forcefield->label2type.at(label1);
+    type2 = box->forcefield->label2type.at(label2);
     cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2);
 }
 

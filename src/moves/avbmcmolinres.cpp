@@ -57,7 +57,7 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     // ensure that first particle is located at origin
     for (Particle &particle : particles) {
         particle.r -= particles[0].r;
-        particle.type = system->forcefield->label2type.at(particle.label);
+        particle.type = box->forcefield->label2type.at(particle.label);
     }
 }
 
@@ -124,7 +124,7 @@ void AVBMCMolInRes::perform_move()
             // compute energy difference
             du = 0.;
             for (j=0; j < natom; j++) {
-                du += system->forcefield->comp_energy_par(box, box->npar - j - 1);
+                du += box->forcefield->comp_energy_par(box->npar - j - 1);
             }
             box->poteng += du;
         }

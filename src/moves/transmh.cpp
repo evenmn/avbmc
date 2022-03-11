@@ -38,7 +38,7 @@ void TransMH::perform_move()
 {
     i = rng->next_int(box->npar); // particle to move
     std::valarray<double> f0;
-    double u0 = system->forcefield->comp_energy_par(box, i, f0, true);
+    double u0 = box->forcefield->comp_energy_par(i, f0, true);
 
     // move particle i
     std::valarray<double> dr(system->ndim);
@@ -50,7 +50,7 @@ void TransMH::perform_move()
 
     // compute new energy contribution from particle i
     std::valarray<double> f1;
-    double u1 = system->forcefield->comp_energy_par(box, i, f1, true);
+    double u1 = box->forcefield->comp_energy_par(i, f1, true);
     du = u1 - u0;
     df = f1 - f0;
     box->poteng += du;

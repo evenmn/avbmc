@@ -20,14 +20,22 @@
 
 
 /* ----------------------------------------------------------------------------
-   Box constructor 
+   Box constructor. The argument 'memory_intensity' specifies how memeory
+   intensive the simulation should be, with a memory-cpu-time tradeoff. The
+   options are:
+
+       1: Storing necessary neighbor lists only
+       2: Storing distances and relative coordinates between particles
+       3: Storing distances, relative coordinates and energy contributions
+          of each particle
 ------------------------------------------------------------------------------- */
 
-Box::Box(System* system_in)
+Box::Box(System* system_in, const int memory_intensity)
 {
     system = system_in;
 
     poteng = 0.;
+    initialized = false;
     npar = ntype = nmove = step = nconstraint = 0;
 
     //velocity = new Zero();
@@ -38,6 +46,37 @@ Box::Box(System* system_in)
     dump = new Dump(this, 0, "", outputs);
     outputs = {"step", "atoms", "poteng"};
     thermo = new Thermo(this, 0, "", outputs);
+
+    // memory intensitivity
+    if (memory_intensity==1) {
+        store_distances = false;
+        store_energies = false;
+    }
+    else if (memory_intensity==2) {
+        store_distances = true;
+        store_energies = false;
+    }
+    else if (memory_intensity==3) {
+        store_distances = true;
+        store_energies = true;
+    }
+    else {
+        std::cout << "memory_intensity has to be 1, 2 or 3! Aborting." << std::endl;
+        exit(0);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Overwrite default forcefield object
+------------------------------------------------------------------------------- */
+
+void Box::set_forcefield(ForceField* forcefield_in)
+{
+    forcefield = forcefield_in;
+    initialized = true;
+    //if (store_energies) {
+    //    forcefield->poteng_vec.resize(
 }
 
 
@@ -57,13 +96,13 @@ void Box::set_boundary(class Boundary* boundary_in)
 
 void Box::add_particle(Particle particle)
 {
-    if (!system->initialized) {
+    if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 143);
     }
     npar ++;
-    particle.type = system->forcefield->label2type.at(particle.label);
-    npartype.resize(system->forcefield->ntype);
+    particle.type = forcefield->label2type.at(particle.label);
+    npartype.resize(forcefield->ntype);
     npartype[particle.type] ++;
     system->ndim = particle.r.size();
     particles.push_back(particle);
@@ -99,7 +138,7 @@ void Box::add_particles(std::vector<Particle> particles_in)
 
 void Box::add_constraint(class Constraint* constraint)
 {
-    if (!system->initialized) {
+    if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 143);
     }

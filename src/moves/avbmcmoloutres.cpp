@@ -47,7 +47,7 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
     neigh_id_inner = box->distance_manager->add_cutoff(r_inner, molecule[0].label, molecule[1].label);
 
     for (Particle &particle : molecule) {
-        particle.type = system->forcefield->label2type.at(particle.label);
+        particle.type = box->forcefield->label2type.at(particle.label);
     }
 }
 
@@ -105,7 +105,7 @@ void AVBMCMolOutRes::perform_move()
                         // compute change of energy when removing molecule
                         du = 0.;
                         for (int j : molecule_out2) {
-                            du -= system->forcefield->comp_energy_par(box, j);
+                            du -= box->forcefield->comp_energy_par(j);
                         }
                         // remove molecule
                         npartype_old = box->npartype;

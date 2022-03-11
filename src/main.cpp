@@ -40,9 +40,9 @@
 #include "sampler/umbrella.h"
 #include "sampler/metropolis.h"
 #include "moves/trans.h"
-#include "moves/avbmcmolin.h"
+//#include "moves/avbmcmolin.h"
 #include "moves/avbmcmolinres.h"
-#include "moves/avbmcmolout.h"
+//#include "moves/avbmcmolout.h"
 #include "moves/avbmcmoloutres.h"
 #include "constraint/minneigh.h"
 #include "constraint/maxneigh.h"
@@ -57,8 +57,6 @@ int main()
     System system("simulation");
     system.set_temp(320.);
     system.set_chempot(10.);
-    Vashishta forcefield(&system, "H2O.nordhagen.vashishta");
-    system.set_forcefield(&forcefield);
     MersenneTwister rng;
     system.set_rng(&rng);
 
@@ -70,10 +68,14 @@ int main()
 
     // ======  initialize box  ======
     // initialize box with open boundaries
-    Box box(&system);
+    Box box(&system, 2);
     system.add_box(&box);
     Open boundary(&box);
     box.set_boundary(&boundary);
+
+    // ===== initialize forcefield =====
+    Vashishta forcefield(&box, "H2O.nordhagen.vashishta");
+    box.set_forcefield(&forcefield);
 
     // ======  initialize box constraints  ======
     Stillinger constraint(&box);
@@ -81,14 +83,14 @@ int main()
     constraint.set_criterion("O", "H", 1.6);
     constraint.set_criterion("H", "H", 0.0);
     MinNeigh constraint1(&box, "O", "O", 5.0, 2);
-    MinNeigh constraint2(&box, "O", "H", 1.3, 2);
-    MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
+    //MinNeigh constraint2(&box, "O", "H", 1.3, 2);
+    //MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
     //MaxDistance constraint1(&box, "O", "O", 4.0);
     //MinDistance constraint2(&box, "O", "O", 3.0);
     //MaxDistance constraint2(&box, "O", "H", 1.6);
     //MaxDistance constraint3(&box, "H", "H", 0.0);
-    //box.add_constraint(&constraint);
-    //box.add_constraint(&constraint1);
+    box.add_constraint(&constraint);
+    box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
 
@@ -98,12 +100,12 @@ int main()
     box.add_particles(single_molecule);
 
     // ======  initialize moves  ======
-    Trans move1(&system, &box, 0.08);
-    AVBMCMolInRes move2(&system, &box, single_molecule, 1.2, 0.9, 4.0);
-    AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 1.2);
-    system.add_move(&move1, 0.98);
-    system.add_move(&move2, 0.01);
-    system.add_move(&move3, 0.01);
+    Trans move1(&system, &box, 0.1);
+    //AVBMCMolInRes move2(&system, &box, single_molecule, 3., 0.9, 4.0);
+    //AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 3.);
+    system.add_move(&move1, 1.0);
+    //system.add_move(&move2, 0.01);
+    //system.add_move(&move3, 0.01);
 
     // set sampling outputs
     box.set_dump(100, "mc.xyz", {"x", "y", "z"});
@@ -111,7 +113,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e4, 1);
+    system.run_mc(1e7, 1);
     box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file
