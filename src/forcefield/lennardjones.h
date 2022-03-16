@@ -18,9 +18,10 @@ public:
     void sort_params();
     
     double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    double comp_energy_par(int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh(int, std::valarray<double> &, bool);
-    double comp_energy_par_noneigh(int, std::valarray<double> &, bool);
+    //double comp_energy_par(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh0_eng0(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh1_eng0(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh1_eng1(int, std::valarray<double> &, bool);
     ~LennardJones();
 
 private:

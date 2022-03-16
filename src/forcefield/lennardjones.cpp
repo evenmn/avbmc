@@ -24,6 +24,17 @@ LennardJones::LennardJones(Box* box_in, const std::string params)
     create_label_mapping();
     allocate_memory();
     sort_params();
+    /*
+    if (!box->store_distance) {
+        comp_energy_par = &LennardJones::comp_energy_par_neigh0_eng0;
+    }
+    else if (!box->store_energy) {
+        comp_energy_par = &LennardJones::comp_energy_par_neigh1_eng0;
+    }
+    else {
+        comp_energy_par = &LennardJones::comp_energy_par_neigh1_eng1;
+    }
+    */
 }
 
 
@@ -145,7 +156,7 @@ double LennardJones::comp_twobody_par(const int typei, const int typej,
    lists.
 ------------------------------------------------------------------------------- */
 
-double LennardJones::comp_energy_par_noneigh(const int i,
+double LennardJones::comp_energy_par_neigh0_eng0(const int i,
                                      std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
@@ -161,32 +172,12 @@ double LennardJones::comp_energy_par_noneigh(const int i,
     for (j=0; j<i; j++) {
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
-        energyij = comp_twobody_par(typei, typej, delij, forceij, comp_force);
-        if (box->store_energy) {
-            poteng_mat[i][j] = energyij;
-            poteng_mat[j][i] = energyij;
-            force_cube[i][j] = forceij;
-            force_cube[j][i] = -forceij;
-        }
-        energy += energyij;
-        force += forceij;
+        energy += comp_twobody_par(typei, typej, delij, forceij, comp_force);
     }
     for (j=i+1; j<npar; j++) {
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
-        energyij = comp_twobody_par(typei, typej, delij, forceij, comp_force);
-        if (box->store_energy) {
-            poteng_mat[i][j] = energyij;
-            poteng_mat[j][i] = energyij;
-            force_cube[i][j] = forceij;
-            force_cube[j][i] = -forceij;
-        }
-        energy += energyij;
-        force += forceij;
-    }
-    if (box->store_energy) {
-        poteng_vec[i] = energy;
-        force_vec[i] = force;
+        energy += comp_twobody_par(typei, typej, delij, forceij, comp_force);
     }
     return energy;
 }
@@ -196,7 +187,44 @@ double LennardJones::comp_energy_par_noneigh(const int i,
    Compute energy contribution from a particle 'i'
 ------------------------------------------------------------------------------- */
 
-double LennardJones::comp_energy_par_neigh(const int i, std::valarray<double> &force,
+double LennardJones::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> &force,
+                                     const bool comp_force)
+{
+    // declare variables
+    int npar, typei, typej;
+    double rijsq, rijinvsq, s6, s12, energy;
+    std::valarray<double> delij;
+
+    npar = box->particles.size();
+    typei = box->particles[i].type;
+    //force.resize(system->ndim, 0.);
+    std::vector<std::vector<int> > neigh_list;
+
+    neigh_list = box->distance_manager->neigh_lists[neigh_id];
+
+    energy = 0.;
+    for (int j : neigh_list[i]) {
+        typej = box->particles[j].type;
+        rijsq = box->distance_manager->distance_mat[i][j];
+        rijinvsq = 1. / rijsq;
+        s6 = std::pow(sigma_mat[typei][typej] * rijinvsq, 3);
+        s12 = s6 * s6;
+        energy +=  epsilon_mat[typei][typej] * (s12 - s6 - shift_mat[typei][typej]);
+        if (comp_force) {
+            delij = box->distance_manager->distance_cube[i][j];
+            force += epsilon_mat[typei][typej] * (2. * s6 - s12) * delij * rijinvsq;
+        }
+    }
+    force *= 24;
+    return 4 * energy;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Compute energy contribution from a particle 'i'
+------------------------------------------------------------------------------- */
+
+double LennardJones::comp_energy_par_neigh1_eng1(const int i, std::valarray<double> &force,
                                      const bool comp_force)
 {
     // declare variables
@@ -223,19 +251,15 @@ double LennardJones::comp_energy_par_neigh(const int i, std::valarray<double> &f
             delij = box->distance_manager->distance_cube[i][j];
             forceij = 24 * epsilon_mat[typei][typej] * (2. * s6 - s12) * delij * rijinvsq;
         }
-        if (box->store_energy) {
-            poteng_mat[i][j] = energyij;
-            poteng_mat[j][i] = energyij;
-            force_cube[i][j] = forceij;
-            force_cube[j][i] = -forceij;
-        }
+        poteng_mat[i][j] = energyij;
+        poteng_mat[j][i] = energyij;
+        force_cube[i][j] = forceij;
+        force_cube[j][i] = -forceij;
         energy += energyij;
         force += forceij;
     }
-    if (box->store_energy) {
-        poteng_vec[i] = energy;
-        force_vec[i] = force;
-    }
+    poteng_vec[i] = energy;
+    force_vec[i] = force;
     return energy;
 }
 
@@ -244,7 +268,7 @@ double LennardJones::comp_energy_par_neigh(const int i, std::valarray<double> &f
    Forwarding the computations of the energy of a particle 'i' to other 
    functions
 ------------------------------------------------------------------------------- */
-
+/*
 double LennardJones::comp_energy_par(const int i, std::valarray<double> &force,
                                 const bool comp_force)
 {
@@ -258,7 +282,7 @@ double LennardJones::comp_energy_par(const int i, std::valarray<double> &force,
     }
     return energy;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Allocate memory for matrices

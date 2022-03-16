@@ -12,6 +12,16 @@ ForceField::ForceField(Box* box_in)
 {
     box = box_in;
     ntype = nline = 0;
+
+    if (!box->store_distance) {
+        comp_energy_par = &ForceField::comp_energy_par_neigh0_eng0;
+    }
+    else if (!box->store_energy) {
+        comp_energy_par = &ForceField::comp_energy_par_neigh1_eng0;
+    }
+    else {
+        comp_energy_par = &ForceField::comp_energy_par_neigh1_eng1;
+    }
 }
 
 
@@ -19,10 +29,30 @@ ForceField::ForceField(Box* box_in)
    Compute energy contribution from a particle 'i'
 ---------------------------------------------------------- */
 
-double ForceField::comp_energy_par(const int i)
+double ForceField::comp_energy_par_force0(const int i)
 {
     std::valarray<double> force;
-    return (comp_energy_par(i, force, false));
+    return (this->*(this->comp_energy_par))(i, force, false);
+}
+
+
+/* ---------------------
+   Initialize energy and force matrices
+---- */
+
+void ForceField::initialize()
+{
+    unsigned int npar, i, j;
+
+    npar = box->npar;
+    poteng_vec.resize(npar);
+    force_vec.resize(npar, {});
+    poteng_mat.resize(npar);
+    force_cube.resize(npar);
+    for (i=0; i<npar; i++) {
+        poteng_mat[i].resize(npar);
+        force_cube[i].resize(npar, {});
+    }
 }
 
 

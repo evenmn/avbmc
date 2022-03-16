@@ -105,7 +105,7 @@ void AVBMCMolOutRes::perform_move()
                         // compute change of energy when removing molecule
                         du = 0.;
                         for (int j : molecule_out2) {
-                            du -= box->forcefield->comp_energy_par(j);
+                            du -= box->forcefield->comp_energy_par_force0(j);
                         }
                         // remove molecule
                         npartype_old = box->npartype;

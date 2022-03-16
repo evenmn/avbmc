@@ -297,6 +297,9 @@ void System::run_mc(const int nsteps, const int nmoves)
         if (box->store_distance) {
             box->distance_manager->initialize();
         }
+        if (box->store_energy) {
+            box->forcefield->initialize();
+        }
     }
 
     for (Moves* move : moves) {

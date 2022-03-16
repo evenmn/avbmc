@@ -82,7 +82,7 @@ int main()
     constraint.set_criterion("O", "O", 4.0);
     constraint.set_criterion("O", "H", 1.6);
     constraint.set_criterion("H", "H", 0.0);
-    MinNeigh constraint1(&box, "O", "O", 5.0, 2);
+    //MinNeigh constraint1(&box, "O", "O", 5.0, 2);
     //MinNeigh constraint2(&box, "O", "H", 1.3, 2);
     //MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
     //MaxDistance constraint1(&box, "O", "O", 4.0);
@@ -90,7 +90,7 @@ int main()
     //MaxDistance constraint2(&box, "O", "H", 1.6);
     //MaxDistance constraint3(&box, "H", "H", 0.0);
     box.add_constraint(&constraint);
-    box.add_constraint(&constraint1);
+    //box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
 
@@ -101,10 +101,10 @@ int main()
 
     // ======  initialize moves  ======
     Trans move1(&system, &box, 0.1);
-    //AVBMCMolInRes move2(&system, &box, single_molecule, 3., 0.9, 4.0);
+    AVBMCMolInRes move2(&system, &box, single_molecule, 3., 0.9, 4.0);
     //AVBMCMolOutRes move3(&system, &box, single_molecule, 4.0, 3.);
-    system.add_move(&move1, 1.0);
-    //system.add_move(&move2, 0.01);
+    system.add_move(&move1, 0.99);
+    system.add_move(&move2, 0.01);
     //system.add_move(&move3, 0.01);
 
     // set sampling outputs
@@ -113,7 +113,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e7, 1);
+    system.run_mc(1e5, 1);
     box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

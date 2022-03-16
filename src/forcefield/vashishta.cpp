@@ -26,7 +26,19 @@ Vashishta::Vashishta(Box* box_in, const std::string params)
     allocate_memory();
     sort_params();
     temp_scale = 8.617333262e-5;  // Have to scale all temperatures with the
-}                                 // Boltzmann factor when using metal units
+                                  // Boltzmann factor when using metal units
+    /*
+    if (!box->store_distance) {
+        comp_energy_par = &Vashishta::comp_energy_par_neigh0_eng0;
+    }
+    else if (!box->store_energy) {
+        comp_energy_par = &Vashishta::comp_energy_par_neigh1_eng0;
+    }
+    else {
+        comp_energy_par = &Vashishta::comp_energy_par_neigh1_eng1;
+    }
+    */
+}
 
 
 /* ----------------------------------------------------------------------------
@@ -185,26 +197,25 @@ void Vashishta::sort_params()
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
-                                   std::valarray<double> &force, const bool comp_force)
+                                   std::valarray<double> &forceij, const bool comp_force)
 {
-    double rijinv, rijinv2, rijinv4, rijinv6, energy;
+    double rijinv, rijinv2, rijinv4, rijinv6, energyij;
 
-    energy = 0.;
     if (rij < rc_mat[typei][typej]) {
         rijinv = 1.0 / rij;
         rijinv2 = rijinv * rijinv;
         rijinv4 = rijinv2 * rijinv2;
         rijinv6 = rijinv4 * rijinv2;
-        energy += H_mat[typei][typej] * std::pow(rijinv, eta_mat[typei][typej]);
-        energy += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv * std::exp(-rij * lambda1inv_mat[typei][typej]);
-        energy -= D_mat[typei][typej] * rijinv4 * std::exp(-rij * lambda4inv_mat[typei][typej]);
-        energy -= W_mat[typei][typej] * rijinv6;
+        energyij = H_mat[typei][typej] * std::pow(rijinv, eta_mat[typei][typej]);
+        energyij += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv * std::exp(-rij * lambda1inv_mat[typei][typej]);
+        energyij -= D_mat[typei][typej] * rijinv4 * std::exp(-rij * lambda4inv_mat[typei][typej]);
+        energyij -= W_mat[typei][typej] * rijinv6;
+        energyij -= shift_mat[typei][typej];
         //if (comp_force) {
             // do something
         //}
-        energy -= shift_mat[typei][typej];
     }
-    return energy;
+    return energyij;
 }
 
 
@@ -219,18 +230,18 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
         const int typek, const double rij, double rik, std::valarray<double> delij,
         std::valarray<double> delik, std::valarray<double> &force, const bool comp_force)
 {
-    double expij, expik, costhetaijk, delcos, delcossq, energy;
+    double expij, expik, costhetaijk, delcos, delcossq, energy, energyijk;
 
     costhetaijk = (delij * delik).sum() / (rij * rik);
     expij = gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]);
     expik = gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]);
     delcos = costheta_mat[typei][typej][typek] - costhetaijk;
     delcossq = delcos * delcos;
-    energy = B_mat[typei][typej][typek] * delcossq / 
+    energyijk = B_mat[typei][typej][typek] * delcossq / 
         (1 + C_mat[typei][typej][typek] * delcossq) * std::exp(expij + expik);
     //if (comp_force) {
     //}
-    return (energy);
+    return energyijk;
 }
 
 
@@ -246,9 +257,9 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
         const std::valarray<double> delik, const double rij,
         std::valarray<double> &force, const bool comp_force)
 {
-    double rik, expij, expik, costhetaijk, delcos, delcossq, energy;
+    double rik, expij, expik, costhetaijk, delcos, delcossq, energy, energyijk;
 
-    energy = 0.;
+    energyijk = 0;
     rik = std::sqrt(norm(delik));
     if (rij < r0_mat[typei][typej] && rik < r0_mat[typei][typek]) {
         costhetaijk = (delij * delik).sum() / (rij * rik);
@@ -256,12 +267,12 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
         expik = gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]);
         delcos = costheta_mat[typei][typej][typek] - costhetaijk;
         delcossq = delcos * delcos;
-        energy += B_mat[typei][typej][typek] * delcossq / 
+        energyijk = B_mat[typei][typej][typek] * delcossq / 
             (1 + C_mat[typei][typej][typek] * delcossq) * std::exp(expij + expik);
         //if (comp_force) {
         //}
     }
-    return (energy);
+    return energyijk;
 }
 
 
@@ -271,27 +282,26 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    if memory is an issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_noneigh(const int i, std::valarray<double> &force,
+double Vashishta::comp_energy_par_neigh0_eng0(const int i, std::valarray<double> &force,
                                           const bool comp_force)
 {
     // declare variables
     double rij, energy;
     int typei, typej, typek, npar, j, k;
     std::valarray<double> delij, delik;
+
     typei = box->particles[i].type; 
     npar = box->particles.size();
-
     energy = 0.;
+
     for(j=0; j<i; j++){
         // two-body
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
-
         for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
-
             // three-body
             typek = box->particles[k].type;
             delik = box->particles[k].r - box->particles[i].r;
@@ -305,10 +315,8 @@ double Vashishta::comp_energy_par_noneigh(const int i, std::valarray<double> &fo
         delij = box->particles[j].r - box->particles[i].r;
         rij = std::sqrt(norm(delij));
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
-
         for(k=0; k<npar; k++){
             if (k==i || k == j) continue;
-
             // three-body
             typek = box->particles[k].type;
             delik = box->particles[k].r - box->particles[i].r;
@@ -326,7 +334,7 @@ double Vashishta::comp_energy_par_noneigh(const int i, std::valarray<double> &fo
    issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_neigh(const int i, std::valarray<double> &force,
+double Vashishta::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> &force,
                                         const bool comp_force)
 {
     // declare variables
@@ -339,8 +347,8 @@ double Vashishta::comp_energy_par_neigh(const int i, std::valarray<double> &forc
     npar = box->particles.size();
     neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
     neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
-
     energy = 0.;
+
     for (int j : neigh_list_rc[i]) {
         // two-body
         typej = box->particles[j].type;
@@ -363,9 +371,70 @@ double Vashishta::comp_energy_par_neigh(const int i, std::valarray<double> &forc
 
 
 /* ----------------------------------------------------------------------------
-   Forwarding computation of the energy of particle 'i' to other functions
+   Compute energy contribution of a particle 'i', given a box containing
+   particles. This function relies on neighbor lists and precalculated 
+   distances and relative coordinates, and will be used if memory is not an
+   issue.
 ------------------------------------------------------------------------------- */
 
+double Vashishta::comp_energy_par_neigh1_eng1(const int i, std::valarray<double> &force,
+                                        const bool comp_force)
+{
+    // declare variables
+    double rij, rik, energy, energyij;
+    int typei, typej, typek, npar;
+    std::valarray<double> delij, delik, forceij;
+    std::vector<std::vector<int> > neigh_list_rc, neigh_list_r0;
+
+    typei = box->particles[i].type; 
+    npar = box->particles.size();
+    neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
+    neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
+
+    energy = 0.;
+    for (int j : neigh_list_rc[i]) {
+        // two-body
+        typej = box->particles[j].type;
+        rij = std::sqrt(box->distance_manager->distance_mat[i][j]);
+        energyij = comp_twobody_par(typei, typej, rij, forceij, comp_force);
+
+        for (int k : neigh_list_r0[j]) {
+            // three-body
+            typek = box->particles[k].type;
+            rik = std::sqrt(box->distance_manager->distance_mat[i][k]);
+            if (rik < r0_mat[typei][typek]) {
+                delij = box->distance_manager->distance_cube[i][j];
+                delik = box->distance_manager->distance_cube[i][k];
+                energyij += comp_threebody_par(typei, typej, typek, rij, rik, delij, delik, forceij, comp_force);
+            }
+        }
+        energy += energyij;
+        force += forceij;
+        if (box->store_energy) {
+            poteng_mat[i][j] = energyij;
+            poteng_mat[j][i] = energyij;
+            force_cube[i][j] = forceij;
+            force_cube[j][i] = -forceij;
+        }
+    }
+    if (box->store_energy) {
+        for (int j=0; j < box->npar; j++) {
+            poteng_vec[j] = poteng_mat[j][0];
+            force_vec[j] = force_cube[j][0];
+            for (int k=1; k < box->npar; k++) {
+                poteng_vec[j] += poteng_mat[j][k];
+                force_vec[j] += force_cube[j][k];
+            }
+        }
+    }
+    return energy;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Forwarding computation of the energy of particle 'i' to other functions
+------------------------------------------------------------------------------- */
+/*
 double Vashishta::comp_energy_par(const int i, std::valarray<double> &force,
                                   const bool comp_force)
 {
@@ -378,6 +447,7 @@ double Vashishta::comp_energy_par(const int i, std::valarray<double> &force,
     }
     return energy;
 }
+*/
 
 /* ----------------------------------------------------------------------------
    Compute total energy of a system consisting of a set of particles stored

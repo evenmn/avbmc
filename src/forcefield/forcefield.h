@@ -16,11 +16,15 @@ public:
     virtual void allocate_memory() = 0;
     virtual void free_memory() = 0;
     virtual void sort_params() = 0;
-    virtual double comp_energy_par(int, std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh0_eng0(int, std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh1_eng0(int, std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh1_eng1(int, std::valarray<double> &, bool) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
-    double comp_energy_par(int);
+    void initialize();
+    double comp_energy_par_force0(int);
+    double (ForceField::*comp_energy_par)(int, std::valarray<double> &, bool) = nullptr;
 
     // Store state properties to avoid unnecessary computations
     std::map<std::string, unsigned int> label2type;
