@@ -1,15 +1,16 @@
 #pragma once
 #include <iostream>
 #include <string>
+#include <valarray>
 
 
 class Boundary
 {
 public:
     Boundary(class Box *);
-    virtual bool correct_position();
-    bool correct_velocity();   // needed for reflective boundaries
-    bool correct_distance();   // needed for periodic boundaries
+    virtual inline void correct_position(unsigned int) {};
+    virtual inline void correct_velocity(unsigned int) {};              // needed for reflective boundaries
+    virtual inline void correct_distance(std::valarray<double> &) {};   // needed for periodic boundaries
     //virtual double comp_volume() = 0;
     virtual ~Boundary() = default;
 
