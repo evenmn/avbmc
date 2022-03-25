@@ -133,6 +133,19 @@ void Box::add_particles(std::vector<Particle> particles_in)
 
 
 /* ----------------------------------------------------------------------------
+   Add a set of particles, stored in a vector of particle objects
+   'particles_in'.
+------------------------------------------------------------------------------- */
+
+void Box::add_particles(std::string label, std::vector<std::valarray<double> > positions_in)
+{
+    for (std::valarray<double> position : positions_in) {
+        add_particle(label, position);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
    Add box constraint
 ------------------------------------------------------------------------------- */
 

@@ -27,17 +27,6 @@ Vashishta::Vashishta(Box* box_in, const std::string params)
     sort_params();
     temp_scale = 8.617333262e-5;  // Have to scale all temperatures with the
                                   // Boltzmann factor when using metal units
-    /*
-    if (!box->store_distance) {
-        comp_energy_par = &Vashishta::comp_energy_par_neigh0_eng0;
-    }
-    else if (!box->store_energy) {
-        comp_energy_par = &Vashishta::comp_energy_par_neigh1_eng0;
-    }
-    else {
-        comp_energy_par = &Vashishta::comp_energy_par_neigh1_eng1;
-    }
-    */
 }
 
 
@@ -386,6 +375,8 @@ double Vashishta::comp_energy_par_neigh1_eng1(const int i, std::valarray<double>
     std::valarray<double> delij, delik, forceij;
     std::vector<std::vector<int> > neigh_list_rc, neigh_list_r0;
 
+    set();
+
     typei = box->particles[i].type; 
     npar = box->particles.size();
     neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
@@ -417,14 +408,12 @@ double Vashishta::comp_energy_par_neigh1_eng1(const int i, std::valarray<double>
             force_cube[j][i] = -forceij;
         }
     }
-    if (box->store_energy) {
-        for (int j=0; j < box->npar; j++) {
-            poteng_vec[j] = poteng_mat[j][0];
-            force_vec[j] = force_cube[j][0];
-            for (int k=1; k < box->npar; k++) {
-                poteng_vec[j] += poteng_mat[j][k];
-                force_vec[j] += force_cube[j][k];
-            }
+    for (int j=0; j < box->npar; j++) {
+        poteng_vec[j] = poteng_mat[j][0];
+        force_vec[j] = force_cube[j][0];
+        for (int k=1; k < box->npar; k++) {
+            poteng_vec[j] += poteng_mat[j][k];
+            force_vec[j] += force_cube[j][k];
         }
     }
     return energy;

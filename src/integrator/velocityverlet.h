@@ -5,8 +5,8 @@
 class VelocityVerlet : public Integrator
 {
 public:
-    VelocityVerlet(class Box* box_in, double dt_in=0.01);
-    void next_step();
+    VelocityVerlet(class Box *, double = 0.01);
+    double next_step();
 
 private:
     double dt2;

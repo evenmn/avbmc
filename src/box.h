@@ -9,7 +9,7 @@
 class Box
 {
 public:
-    Box(class System *, int = 1); 
+    Box(class System *, int = 2); 
 
     // methods
     void set_forcefield(class ForceField*);
@@ -17,6 +17,7 @@ public:
     void add_particle(Particle);
     void add_particle(std::string, std::valarray<double>);
     void add_particles(std::vector<Particle>);
+    void add_particles(std::string, std::vector<std::valarray<double> >);
     void add_constraint(class Constraint *);
 
     std::string file_marking();

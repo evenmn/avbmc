@@ -257,12 +257,11 @@ void System::print_mc_info()
 
 
 /* ----------------------------------------------------------------------------
+   Run molecular dynamics simulation
 ------------------------------------------------------------------------------- */
 /*
 void Box::run_md(const int nsteps)
 {
-    // Run molecular dynamics simulation
-    //
     init_simulation();
     check_masses();
     print_info();
@@ -276,7 +275,7 @@ void Box::run_md(const int nsteps)
         time = step * integrator->dt;
         dump->print_frame();
         thermo->print_line();
-        integrator->next_step();
+        energy = integrator->next_step();
         step ++;
     }
     auto t2 = chrono::high_resolution_clock::now();
@@ -345,8 +344,8 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
         std::cout << std::endl;
         std::cout << "                      Acceptance Ratio" << std::endl;
-        std::cout << "=================================================================" << std::endl;
-        std::cout << "Move type\t #attempts\t #accepted\t acceptance ratio" << std::endl;
+        std::cout << "===================================================================================" << std::endl;
+        std::cout << "Move type\t #attempts\t #accepted\t acceptance ratio\t time (s)" << std::endl;
     }
     for(Moves* move : moves){
         int ndrawntot, naccepttot;
@@ -356,12 +355,13 @@ void System::run_mc(const int nsteps, const int nmoves)
             std::cout << move->label << "\t "
                       << ndrawntot << "\t\t "
                       << naccepttot << "\t\t "
-                      << (double) naccepttot / ndrawntot
+                      << (double) naccepttot / ndrawntot << "\t\t "
+                      << move->cum_time
                       << std::endl;
         }
     }
     if (rank == 0) {
-        std::cout << "=================================================================" << std::endl;
+        std::cout << "===================================================================================" << std::endl;
     }
 }
 

@@ -24,17 +24,6 @@ LennardJones::LennardJones(Box* box_in, const std::string params)
     create_label_mapping();
     allocate_memory();
     sort_params();
-    /*
-    if (!box->store_distance) {
-        comp_energy_par = &LennardJones::comp_energy_par_neigh0_eng0;
-    }
-    else if (!box->store_energy) {
-        comp_energy_par = &LennardJones::comp_energy_par_neigh1_eng0;
-    }
-    else {
-        comp_energy_par = &LennardJones::comp_energy_par_neigh1_eng1;
-    }
-    */
 }
 
 
@@ -166,7 +155,7 @@ double LennardJones::comp_energy_par_neigh0_eng0(const int i,
 
     npar = box->particles.size();
     typei = box->particles[i].type;
-    //force.resize(system->ndim, 0.);
+    force.resize(box->system->ndim, 0.);
     energy = 0.;
 
     for (j=0; j<i; j++) {
@@ -197,7 +186,7 @@ double LennardJones::comp_energy_par_neigh1_eng0(const int i, std::valarray<doub
 
     npar = box->particles.size();
     typei = box->particles[i].type;
-    //force.resize(system->ndim, 0.);
+    force.resize(box->system->ndim, 0.);
     std::vector<std::vector<int> > neigh_list;
 
     neigh_list = box->distance_manager->neigh_lists[neigh_id];
@@ -232,9 +221,11 @@ double LennardJones::comp_energy_par_neigh1_eng1(const int i, std::valarray<doub
     double rijsq, rijinvsq, s6, s12, energy, energyij;
     std::valarray<double> delij, forceij;
 
+    set();
+
     npar = box->particles.size();
     typei = box->particles[i].type;
-    //force.resize(system->ndim, 0.);
+    force.resize(box->system->ndim, 0.);
     std::vector<std::vector<int> > neigh_list;
 
     neigh_list = box->distance_manager->neigh_lists[neigh_id];
