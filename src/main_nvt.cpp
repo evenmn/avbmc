@@ -32,15 +32,15 @@
 
 #include "box.h"
 #include "system.h"
+#include "init_position.h"
 #include "rng/mersennetwister.h"
-//#include "boundary/stillinger.h"
 #include "boundary/open.h"
+#include "boundary/periodic.h"
 #include "forcefield/lennardjones.h"
 //#include "sampler/umbrella.h"
 #include "sampler/metropolis.h"
 #include "moves/trans.h"
-//#include "moves/avbmcin.h"
-//#include "moves/avbmcout.h"
+#include "moves/transmh.h"
 
 
 int main()
@@ -48,9 +48,6 @@ int main()
     // initialize system
     System system("simulation");
     system.set_temp(0.7);
-    system.set_chempot(-1.3);
-    LennardJones forcefield(&system, "params.lj");
-    system.set_forcefield(&forcefield);
     MersenneTwister rng;
     system.set_rng(&rng);
 
@@ -64,31 +61,37 @@ int main()
     //Umbrella sampler(&system, f);
     system.set_sampler(&sampler);
 
-    // initialize box with Stillinger boundary
-    // criterion initialized with one Argon atom
-    Box box(&system);
+    // initialize box
+    Box box(&system, 2);
     system.add_box(&box);
-    //Stillinger boundary(&box, 1.5);
-    Open boundary(&box);
+
+    // set forcefield
+    LennardJones forcefield(&box, "params.lj");
+    box.set_forcefield(&forcefield);
+
+    // set boundary
+    Periodic boundary(&box, {30.0, 30.0, 30.0});
+    //Open boundary(&box);
     box.set_boundary(&boundary);
-    box.add_particle("Ar", {0, 0, 0});
-    box.add_particle("Ar", {1.5, 0, 0});
+
+    // add particles
+    box.add_particles("Ar", fcc(6, 30));
+    //box.add_particle("Ar", {0,0,0});
+    //box.add_particle("Ar", {1.5,0,0});
 
     // initialize translation and AVBMC moves
     Trans move1(&system, &box, 0.1);
-    //AVBMCIn move2(&system, &box, "Ar", 0.9, 1.5);
-    //AVBMCOut move3(&system, &box, "Ar", 1.5);
-    system.add_move(&move1, 1.0);
-    //system.add_move(&move2, 0.03);
-    //system.add_move(&move3, 0.03);
+    TransMH move2(&system, &box, 0.1, 0.1);
+    //system.add_move(&move1, 0.5);
+    system.add_move(&move2, 0.5);
 
     // set sampling outputs
-    box.set_dump(100, "mc.xyz", {"x", "y", "z"});
+    box.set_dump(10, "mc.xyz", {"x", "y", "z"});
     box.set_thermo(100, "mc.log", {"step", "atoms", "poteng"});
 
     // run Monte Carlo simulation
-    //box->snapshot("initial.xyz");
-    system.run_mc(1e5, 1);
+    box.snapshot("initial.xyz");
+    system.run_mc(3e3, 1);
     //box.snapshot("final.xyz");
 
     // dump number of status with a certain system size to file

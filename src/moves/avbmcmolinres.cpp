@@ -49,6 +49,7 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     natom = particles.size();
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
+    cum_time = 0.;
     label = "AVBMCMolIn";
 
     neigh_id_above = box->distance_manager->add_cutoff(r_above, particles[0].label, particles[0].label);
@@ -113,8 +114,8 @@ void AVBMCMolInRes::perform_move()
             box->distance_manager->set();
             for (j=0; j < natom; j++) {
                 box->npar ++;
-                std::valarray<double> new_pos = particles[j].r + dr;
-                Particle particle(particles[j].label, new_pos);
+                //std::valarray<double> new_pos = particles[j].r + dr;
+                Particle particle(particles[j].label, particles[j].r + dr);
                 particle.type = particles[j].type;
                 box->npartype[particle.type] ++;
                 box->particles.push_back(particle);
@@ -144,10 +145,10 @@ double AVBMCMolInRes::accept(double temp, double chempot)
     }
     double accept_prob = 0.;
     if (!reject_move && constr_satis) {
-        bool accept_boundary = box->boundary->correct_position();
+        //box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
         double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
-        accept_prob = prefactor * accept_boundary * std::exp(-(du-chempot+dw)/temp);
+        accept_prob = prefactor * std::exp(-(du-chempot+dw)/temp);
     }
     return accept_prob;
 }
@@ -161,6 +162,7 @@ void AVBMCMolInRes::reset()
 {
     if (!reject_move) {
         box->distance_manager->reset();
+        box->forcefield->reset();
         box->npar -= natom;
         box->poteng -= du;
         box->npartype = npartype_old;

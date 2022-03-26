@@ -6,6 +6,7 @@
 #include "distance_manager.h"
 #include "box.h"
 #include "forcefield/forcefield.h"
+#include "boundary/boundary.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -221,6 +222,7 @@ void DistanceManager::initialize()
         posi = box->particles[i].r;
         for (j=0; j<i; j++) {
             delij = box->particles[j].r - box->particles[i].r;
+            box->boundary->correct_distance(delij);
             rij = normsq(delij);
             distance_mat[i][j] = rij;
             distance_cube[i][j] = delij;
@@ -269,9 +271,19 @@ void DistanceManager::update_trans(unsigned int i)
     std::valarray<double> delij;
 
     clear_neigh(i);
-    for (j=0; j<box->npar; j++) {
-        if (i == j) continue;
+    for (j=0; j<i; j++) {
         delij = box->particles[j].r - box->particles[i].r;
+        box->boundary->correct_distance(delij);
+        rij = normsq(delij);
+        distance_mat[i][j] = rij;
+        distance_cube[i][j] = delij;
+        distance_mat[j][i] = rij;
+        distance_cube[j][i] = -delij;
+        update_neigh(i, j, rij);
+    }
+    for (j=i+1; j<box->npar; j++) {
+        delij = box->particles[j].r - box->particles[i].r;
+        box->boundary->correct_distance(delij);
         rij = normsq(delij);
         distance_mat[i][j] = rij;
         distance_cube[i][j] = delij;
@@ -298,6 +310,7 @@ void DistanceManager::update_remove(unsigned int i)
         distance_mat[j].erase (distance_mat[j].begin() + i);
         distance_cube[j].erase (distance_cube[j].begin() + i);
     }
+    std::cout << "NEW SIZE: " << distance_mat.size() << "x" << distance_mat[0].size() << std::endl;
 }
 
 
@@ -325,8 +338,8 @@ void DistanceManager::update_insert(unsigned int i)
 
     // extend distance matrix and update distance matrix and neighbor lists
     for (j=0; j<box->npar-1; j++) {
-        //std::cout << "ij " << i << " " << j << std::endl;
         delij = box->particles[j].r - box->particles[i].r;
+        box->boundary->correct_distance(delij);
         rij = normsq(delij);
         delijs[j] = delij;
         rijs[j] = rij;

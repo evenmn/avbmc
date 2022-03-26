@@ -85,10 +85,10 @@ void AVBMCIn::perform_move()
 
 double AVBMCIn::accept(double temp, double chempot)
 {
-    bool accept_boundary = box->boundary->correct_position();
+    //box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
     double prefactor = v_in * box->npar / ((n_in + 1) * (box->npar + 1));
-    return prefactor * std::exp(-(du-chempot+dw)/temp) * accept_boundary;
+    return prefactor * std::exp(-(du-chempot+dw)/temp);
 }
 
 

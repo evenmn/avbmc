@@ -24,6 +24,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
 {
     box = box_in;
     dx = dx_in;
+    cum_time = 0.;
     label = "Trans   ";
 }
 
@@ -37,15 +38,12 @@ void Trans::perform_move()
     double u0, u1;
 
     i = rng->next_int(box->npar); // particle to move
-    /*
     if (box->store_energy) {
         u0 = box->forcefield->poteng_vec[i];
     }
     else {
-        u0 = box->forcefield->comp_energy_par(i);
+        u0 = box->forcefield->comp_energy_par_force0(i);
     }
-    */
-    u0 = box->forcefield->comp_energy_par_force0(i);
 
     // move particle i
     std::valarray<double> dr(system->ndim);
@@ -73,7 +71,8 @@ double Trans::accept(double temp, double /*chempot*/)
     for (Constraint* constraint : box->constraints) {
         constr_satis *= constraint->verify();
     }
-    return constr_satis * std::exp(-du/temp) * box->boundary->correct_position();
+    box->boundary->correct_position(i);
+    return constr_satis * std::exp(-du/temp);
 }
 
 
@@ -84,6 +83,7 @@ double Trans::accept(double temp, double /*chempot*/)
 void Trans::reset()
 {
     box->distance_manager->reset();
+    box->forcefield->reset();
     box->particles[i].r = pos_old;
     box->poteng -= du;
 }

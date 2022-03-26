@@ -7,6 +7,7 @@
 #include "../box.h"
 #include "../system.h"
 #include "../particle.h"
+#include "../distance_manager.h"
 #include "../rng/rng.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
@@ -26,6 +27,7 @@ TransMH::TransMH(System* system_in, Box* box_in, const double dx_in,
     box = box_in;
     dx = dx_in;
     Ddt = Ddt_in;
+    cum_time = 0.;
     label = "TransMH ";
 }
 
@@ -36,9 +38,18 @@ TransMH::TransMH(System* system_in, Box* box_in, const double dx_in,
 
 void TransMH::perform_move()
 {
+    double u0, u1;
+    std::valarray<double> f0, f1;
+
     i = rng->next_int(box->npar); // particle to move
-    std::valarray<double> f0;
-    double u0 = (box->forcefield->*(box->forcefield->comp_energy_par))(i, f0, true);
+
+    if (box->store_energy) {
+        u0 = box->forcefield->poteng_vec[i];
+        f0 = box->forcefield->force_vec[i];
+    }
+    else {
+        u0 = box->forcefield->comp_energy_par_force1(i, f0);
+    }
 
     // move particle i
     std::valarray<double> dr(system->ndim);
@@ -47,10 +58,11 @@ void TransMH::perform_move()
     dr *= dx / norm(dr);
     eps = Ddt * f0 + dr;
     box->particles[i].r += eps;
+    box->distance_manager->set();
+    box->distance_manager->update_trans(i);
 
     // compute new energy contribution from particle i
-    std::valarray<double> f1;
-    double u1 = (box->forcefield->*(box->forcefield->comp_energy_par))(i, f1, true);
+    u1 = box->forcefield->comp_energy_par_force1(i, f1);
     du = u1 - u0;
     df = f1 - f0;
     box->poteng += du;
@@ -64,11 +76,14 @@ void TransMH::perform_move()
 
 double TransMH::accept(double temp, double /*chempot*/)
 {
-    double dot = 0.;
-    for (unsigned int j = 0; j < system->ndim; j++) {
-        dot += df[i] * eps[i];
+    double dot;
+    unsigned int j;
+    dot = 0.;
+    for (j = 0; j < system->ndim; j++) {
+        dot += df[j] * eps[j];
     }
-    return (std::exp(0.5 * dot) + 1) * std::exp(-du/temp) * box->boundary->correct_position();
+    box->boundary->correct_position(i);
+    return (std::exp(0.5 * dot) + 1) * std::exp(-du/temp);
 }
 
 
@@ -79,6 +94,8 @@ double TransMH::accept(double temp, double /*chempot*/)
 
 void TransMH::reset()
 {
+    box->distance_manager->reset();
+    box->forcefield->reset();
     box->particles[i].r -= eps;
     box->poteng -= du;
 }

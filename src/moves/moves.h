@@ -19,6 +19,7 @@ public:
     virtual ~Moves() = default;
 
     int ndrawn, naccept;
+    double cum_time;
     std::string label;
 
 protected:

@@ -101,10 +101,10 @@ double AVBMCOut::accept(double temp, double chempot)
         return 0.;
     }
     else {
-        bool accept_boundary = box->boundary->correct_position();
+        //box->boundary->correct_position(i);
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
         double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
-        return prefactor * std::exp(-(du+chempot+dw)/temp) * accept_boundary;
+        return prefactor * std::exp(-(du+chempot+dw)/temp);
     }
 }
 

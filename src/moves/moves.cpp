@@ -70,23 +70,6 @@ std::vector<Particle> Moves::rotate_molecule(std::vector<Particle> particles)
             particle.r[1] = Ayx*r[0] + Ayy*r[1] + Ayz*r[2];
             particle.r[2] = Azx*r[0] + Azy*r[1] + Azz*r[2];
         }
-
-        /*
-        for(Particle &particle : particles){
-            std::valarray<double> r = particle.r;
-            particle.r = {
-                r[0] * (1 + std::cos(angley) + std::cos(anglez))
-                    - r[2] * std::sin(anglez)
-                    + r[1] * std::sin(angley),
-                r[1] * (1 + std::cos(anglex) + std::cos(anglez))
-                    + r[0] * std::sin(angley)
-                    - r[2] * std::sin(anglex),
-                r[2] * (1 + std::cos(anglex) + std::cos(angley))
-                    - r[0] * std::sin(angley)
-                    + r[1] * std::sin(anglex)
-            };
-        }
-        */
     }
     return particles;
 }
@@ -114,7 +97,8 @@ double Moves::norm(std::valarray<double> array)
    'rsq'
 ------------------------------------------------------------------------------- */
 
-std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const int i, const double rsq)
+std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles,
+                                         const int i, const double rsq)
 {
     double rijsq;
     unsigned int npar, j;
@@ -122,16 +106,16 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
     npar = particles.size();
     std::valarray<double> ri = particles[i].r;
     std::vector<int> neigh_list;
-    for(j=0; j<i; j++){
+    for (j=0; j<i; j++) {
         rijsq = std::pow(particles[j].r - ri, 2).sum();
-        std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
+        //std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
-    for(j=i+1; j<npar; j++){
+    for (j=i+1; j<npar; j++) {
         rijsq = std::pow(particles[j].r - ri, 2).sum();
-        std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
+        //std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
@@ -147,14 +131,17 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles, const 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
                             unsigned int elm_count, std::vector<int> &elm_idx,
                             std::vector<Particle> particles, double rc) {
+    //std::cout << "1elm_idx.size() " << elm_idx.size() << std::endl;
     if (elm_idx.size() < molecule.size()) {  
+        //std::cout << "2elm_idx.size() " << elm_idx.size() << std::endl;
+        //std::cout << particles[i].type << " " << molecule[elm_count].type << std::endl;
         if (particles[i].type == molecule[elm_count].type) {
-            std::cout << "molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
+            //std::cout << "1molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
             elm_idx.push_back(i);
             elm_count ++;
-            std::cout << "particles.size() " << particles.size() << std::endl;
+            //std::cout << "2particles.size() " << particles.size() << std::endl;
             std::vector<int> neigh_list = build_neigh_list(particles, i, rc*rc);
-            std::cout << "neigh_list.size(): " << neigh_list.size() << std::endl;
+            //std::cout << "3neigh_list.size(): " << neigh_list.size() << std::endl;
             for (int neigh : neigh_list) {
                 check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
             }
@@ -175,7 +162,21 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
 {
     unsigned int i, count;
     std::vector<int> elm_idx;
+
+    /*
+    std::cout << "--- molecule types: ";
+    for (Particle particle : molecule) {
+        std::cout << particle.type << " ";
+    }
+    std::cout << std::endl;
     
+    std::cout << "--- particle types: ";
+    for (Particle particle : particles) {
+        std::cout << particle.type << " ";
+    }
+    std::cout << std::endl;
+    */
+
     count = 0;
     while (count < particles.size() && !detected)
     {
@@ -254,12 +255,12 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
                             unsigned int elm_count, std::vector<int> &elm_idx,
                             std::vector<std::vector<int> > neigh_list) {
     if (elm_idx.size() < molecule.size()) {  
-        std::cout << "molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
+        //std::cout << "1molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
         if (particles[i].type == molecule[elm_count].type) {
-            std::cout << "molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
+            //std::cout << "2molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
             elm_idx.push_back(i);
             elm_count ++;
-            std::cout << "neigh_list.size(): " << neigh_list[i].size() << std::endl;
+            //std::cout << "neigh_list.size(): " << neigh_list[i].size() << std::endl;
             for (int neigh : neigh_list[i]) {
                 check_neigh_recu(neigh, particles, molecule, elm_count, elm_idx, neigh_list);
             }

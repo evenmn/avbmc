@@ -13,6 +13,6 @@ public:
     std::valarray<double> f;
 
     int type;
-    double mass;
+    double mass, poteng;
     std::string label;
 };
