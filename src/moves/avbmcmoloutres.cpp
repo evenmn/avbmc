@@ -126,10 +126,10 @@ void AVBMCMolOutRes::perform_move()
                         std::cout << "NPAR: " << box->npar << std::endl;
                         for (int j : molecule_out2){
                             box->npar --;
-                            box->npartype[box->particles[j].type] --;
-                            //box->particles[j] = box->particles.back();
-                            //box->particles.pop_back();
-                            //box->distance_manager->update_remove(j);
+                            //box->npartype[box->particles[j].type] --;
+                            box->particles[j] = box->particles.back();
+                            box->particles.pop_back();
+                            box->distance_manager->update_remove(j);
 
                             //box->particles.erase(box->particles.begin() + j);
                         }

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #include "sampler.h"
 #include "../system.h"
@@ -25,6 +26,9 @@ Sampler::Sampler(System* system_in)
 
 void Sampler::sample(int nmoves)
 {
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::duration<double> fsec;
+    auto t0 = Time::now();
     for (int i=0; i<nmoves; i++){
         Moves* move = system->moves[rng->choice(system->moves_prob)];
         move->ndrawn ++;
@@ -36,5 +40,9 @@ void Sampler::sample(int nmoves)
             move->reset();
         }
         move->update_nsystemsize();
+        auto t1 = Time::now();
+        fsec fs = t1 - t0;
+        move->cum_time += fs.count();
+        t0 = t1;
     }
 }

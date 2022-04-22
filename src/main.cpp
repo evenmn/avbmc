@@ -78,10 +78,10 @@ int main()
     box.set_forcefield(&forcefield);
 
     // ======  initialize box constraints  ======
-    Stillinger constraint(&box);
-    constraint.set_criterion("O", "O", 4.0);
-    constraint.set_criterion("O", "H", 1.6);
-    constraint.set_criterion("H", "H", 0.0);
+    //Stillinger constraint(&box);
+    //constraint.set_criterion("O", "O", 4.0);
+    //constraint.set_criterion("O", "H", 1.6);
+    //constraint.set_criterion("H", "H", 0.0);
     //MinNeigh constraint1(&box, "O", "O", 5.0, 2);
     //MinNeigh constraint2(&box, "O", "H", 1.3, 2);
     //MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
@@ -89,7 +89,7 @@ int main()
     //MinDistance constraint2(&box, "O", "O", 3.0);
     //MaxDistance constraint2(&box, "O", "H", 1.6);
     //MaxDistance constraint3(&box, "H", "H", 0.0);
-    box.add_constraint(&constraint);
+    //box.add_constraint(&constraint);
     //box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
@@ -107,7 +107,7 @@ int main()
     //system.add_move(&move1, 0.495);
     //system.add_move(&move2, 0.495);
     system.add_move(&move3, 0.5);
-    system.add_move(&move4, 0.5);
+    system.add_move(&move4, 0.0);
 
     // set sampling outputs
     box.set_dump(1, "mc.xyz", {"x", "y", "z"});
