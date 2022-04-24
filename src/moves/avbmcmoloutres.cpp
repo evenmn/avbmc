@@ -99,7 +99,6 @@ void AVBMCMolOutRes::perform_move()
                     std::vector<int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
                     //std::cout << "detected_out: " << detected_out << " " << molecule_out.size() << std::endl;
                     if (detected_out) {
-                        std::cout << "DETECTED OUT" << std::endl;
                         std::vector<int> molecule_out2;
                         for (int idx : molecule_out) {
                             molecule_out2.push_back(neigh_listi[idx]);
@@ -123,7 +122,6 @@ void AVBMCMolOutRes::perform_move()
                         particles_old = box->particles;
                         std::sort(molecule_out2.begin(), molecule_out2.end(), std::greater<int>()); // sort in descending order
                         box->distance_manager->set();
-                        std::cout << "NPAR: " << box->npar << std::endl;
                         for (int j : molecule_out2){
                             box->npar --;
                             //box->npartype[box->particles[j].type] --;
@@ -133,7 +131,6 @@ void AVBMCMolOutRes::perform_move()
 
                             //box->particles.erase(box->particles.begin() + j);
                         }
-                        std::cout << std::endl;
                         box->poteng += du;
                         //box->npar -= natom;
                         nmolavg = n_in * natom_inv;

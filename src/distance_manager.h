@@ -24,7 +24,7 @@ public:
     std::vector<double **> cutoff_mats;
 
 private:
-    void clear_neigh(unsigned int);
+    void clear_neigh(unsigned int, bool = false);
     void update_neigh(unsigned int, unsigned int, double);
     double normsq(std::valarray<double>);
 

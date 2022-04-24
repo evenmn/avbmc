@@ -116,20 +116,33 @@ unsigned int DistanceManager::add_cutoff(double **rc)
 
 /* ----------------------------------------------------------------------------
    Remove neighbor lists of and clear particle 'i' from the neighbor lists.
-   This is done when a particle is moved or removed.
+   This is done when a particle is moved or removed. If a particle is removed,
+   all later particle IDs have to be shifted.
 ------------------------------------------------------------------------------- */
 
-void DistanceManager::clear_neigh(unsigned int i)
+void DistanceManager::clear_neigh(unsigned int i, bool shift_later)
 {
-    unsigned int k, l;
+    unsigned int j, k, l;
     std::vector<int>::iterator position;
 
-    for (k=0; k<ncutoff; k++) {
-        neigh_lists[k][i].clear();
-        for (l=0; l<neigh_lists[k].size(); l++) {
-            position = std::find(neigh_lists[k][l].begin(), neigh_lists[k][l].end(), i);
-            if (position != neigh_lists[k][l].end()) {
-                neigh_lists[k][l].erase(position);
+    for (j=0; j<ncutoff; j++) {
+        neigh_lists[j][i].clear();  // clear neighbor list of particle i
+        for (k=0; k<neigh_lists[j].size(); k++) {
+            position = std::find(neigh_lists[j][k].begin(), neigh_lists[j][k].end(), i);
+            if (position != neigh_lists[j][k].end()) {
+                neigh_lists[j][k].erase(position);
+            }
+            if (shift_later) {
+                for (l=0; l<neigh_lists[j][k].size(); l++) {
+                    /*
+                    if (neigh_lists[j][k][l] == i) {
+                        neigh_lists[j][k].erase(neigh_lists[j][k].begin() + l);
+                    }
+                    */
+                    if (neigh_lists[j][k][l] > i) {
+                        neigh_lists[j][k][l] -= 1;
+                    }
+                }
             }
         }
     }
@@ -303,14 +316,13 @@ void DistanceManager::update_remove(unsigned int i)
 {
     unsigned int j;
 
-    clear_neigh(i);
+    clear_neigh(i, true);
     distance_mat.erase (distance_mat.begin() + i);
     distance_cube.erase (distance_cube.begin() + i);
     for (j=0; j<distance_mat.size(); j++) {
         distance_mat[j].erase (distance_mat[j].begin() + i);
         distance_cube[j].erase (distance_cube[j].begin() + i);
     }
-    std::cout << "NEW SIZE: " << distance_mat.size() << "x" << distance_mat[0].size() << std::endl;
 }
 
 
