@@ -1,3 +1,12 @@
+/* ----------------------------------------------------------------------------
+   Cluster criterion introduced by F. H. Stillinger in his "Rigorous Basis of
+   the Frenkel‐Band Theory of Association Equilibrium" (1963). This constraint
+   forces all particles to be part of the same cluster by rejecting all moves
+   that splits up the cluster. Note that if the system is initialized with 
+   more than one cluster, all moves will be rejected unless a particle is 
+   inserted such that all clusters are bridged. 
+------------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 #include <vector>
@@ -11,7 +20,7 @@
 
 
 /* ----------------------------------------------------------------------------
-   Stillinger boundary constructor, initializing the Stillinger cluster
+   Stillinger criterion constructor, initializing the Stillinger cluster
    criterion 'rc'. This contraint differs from the 'max distance' constraint
    in the way that it ensures that the system consists of exactly one cluster
    at all times. 
@@ -55,19 +64,19 @@ void Stillinger::set_criterion(std::string label1, std::string label2, double rc
    Check if particles are in cluster. 'checked' contains information about
    which atoms that we have checked neighbor list of (to avoid circular check),
    and 'in_cluster' contains informations about which particles that are part
-   of cluster
+   of cluster.
 ------------------------------------------------------------------------------- */
 
 void Stillinger::check_neigh_recu(const int i, std::valarray<int> &in_cluster,
                                   std::valarray<int> &checked)
 {
-    if(!checked[i]){
+    if (!checked[i]) {
         checked[i] = 1;
         in_cluster[i] = 1;
-        for(int j : box->distance_manager->neigh_lists[cutoff_id][i]){
+        for (int j : box->distance_manager->neigh_lists[cutoff_id][i]) {
             in_cluster[j] = 1;
         }
-        for(int j : box->distance_manager->neigh_lists[cutoff_id][i]){
+        for (int j : box->distance_manager->neigh_lists[cutoff_id][i]) {
             check_neigh_recu(j, in_cluster, checked);
         }
     }
@@ -75,7 +84,7 @@ void Stillinger::check_neigh_recu(const int i, std::valarray<int> &in_cluster,
 
 
 /* ----------------------------------------------------------------------------
-   Check if Stillinger criterion is satisfied. If it is notsatisfied, Monte
+   Check if Stillinger criterion is satisfied. If it is not satisfied, Monte
    Carlo moves should be rejected. Molecular dynamics simulations should abort
    in the same case.
 ------------------------------------------------------------------------------- */
@@ -116,9 +125,14 @@ double Stillinger::comp_volume()
 }
 */
 
+/* ----------------------------------------------------------------------------
+   Stillinger destructor, frees up allocated memory
+------------------------------------------------------------------------------- */
+
 Stillinger::~Stillinger()
 {
-    for (unsigned int i=0; i<ntype; i++) {
+    unsigned int i;
+    for (i=0; i<ntype; i++) {
         delete[] r_csq_mat[i];
     }
     delete[] r_csq_mat;
