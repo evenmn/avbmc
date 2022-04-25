@@ -5,6 +5,6 @@
 class EulerCromer : public Integrator
 {
 public:
-    EulerCromer(class Box* box_in, double dt_in=0.01);
-    void next_step();
+    EulerCromer(class Box *, double = 0.01);
+    double next_step();
 };

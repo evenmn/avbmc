@@ -10,27 +10,36 @@
 #include "system.h"
 #include "box.h"
 #include "tqdm.h"
+#include "dump.h"
+#include "thermo.h"
+#include "rng/rng.h"
 #include "boundary/boundary.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
-#include "rng/mersennetwister.h"
 //#include "integrator/velocityverlet.h"
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
+#include "distance_manager.h"
 
 
-/* -------------------------------------------------------
-   System constructor, taking the working directory
-   'working_dir_in' as argument
----------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   System constructor, taking the working directory 'working_dir_in' as
+   argument. The argument 'memory_intensity' specifies how memeory intensive
+   the simulation should be, with a memory-cpu-time tradeoff. The options are:
+
+       1: Storing necessary neighbor lists only
+       2: Storing distances and relative coordinates between particles
+       3: Storing distances, relative coordinates and energy contributions
+          of each particle
+------------------------------------------------------------------------------- */
 
 System::System(std::string working_dir_in)
 {
     working_dir = working_dir_in;
     time = temp = chempot = 0.;
 
-    initialized = false;
+    logo_printed = false;
     nbox = nmove = nprocess = step = 0;
     ndim = 3;
 
@@ -45,9 +54,9 @@ System::System(std::string working_dir_in)
 }
 
 
-/* --------------------------------------------------------
-   Set box temperature
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Set box temperature used in NVT and uPT Monte Carlo simulations
+------------------------------------------------------------------------------- */
 
 void System::set_temp(const double temp_in)
 {
@@ -55,9 +64,9 @@ void System::set_temp(const double temp_in)
 }
 
 
-/* --------------------------------------------------------
-   Set chemical potential of system
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Set chemical potential of system used in grand canonical ensemble
+------------------------------------------------------------------------------- */
 
 void System::set_chempot(const double chempot_in)
 {
@@ -65,11 +74,11 @@ void System::set_chempot(const double chempot_in)
 }
 
 
-/* --------------------------------------------------------
-   Set mass of chemical symbol. Masses of all chemical symbols
-   have to be given if running molecular dynamics simulations,
-   as the software does not look up the masses in a table.
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Set mass of chemical symbol. Masses of all chemical symbols have to be given
+   if running molecular dynamics simulations, as the software does not look up
+   the masses in a table.
+------------------------------------------------------------------------------- */
 
 void System::set_mass(const std::string label, const double mass)
 {
@@ -78,20 +87,9 @@ void System::set_mass(const std::string label, const double mass)
 }
 
 
-/* --------------------------------------------------------
-   Overwrite default forcefield object
------------------------------------------------------------ */
-
-void System::set_forcefield(class ForceField* forcefield_in)
-{
-    forcefield = forcefield_in;
-    initialized = true;
-}
-
-
-/* --------------------------------------------------------
-   Overwrite default forcefield object, velocity Verlet
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Overwrite default integrator object, velocity Verlet
+------------------------------------------------------------------------------- */
 /*
 void System::set_integrator(class Integrator* integrator_in)
 {
@@ -99,9 +97,9 @@ void System::set_integrator(class Integrator* integrator_in)
 }
 */
 
-/* --------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Overwrite default sampler, Metropolis
------------------------------------------------------------ */
+------------------------------------------------------------------------------- */
 
 void System::set_sampler(class Sampler* sampler_in)
 {
@@ -109,10 +107,9 @@ void System::set_sampler(class Sampler* sampler_in)
 }
 
 
-/* --------------------------------------------------------
-   Overwrite default random number generator, Mersenne
-   Twister
------------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Overwrite default random number generator, Mersenne Twister
+------------------------------------------------------------------------------- */
 
 void System::set_rng(class RandomNumberGenerator* rng_in)
 {
@@ -120,72 +117,68 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
 }
 
 
-/* --------------------------------------------------
-   Add move type and the corresponding probability.
-   The probabilities have to add up to 1. Forcefield
-   has to initialized first, to link AVBMC atoms
-   to types.
------------------------------------------------------ */
+/* ----------------------------------------------------------------------------
+   Add move type and the corresponding probability. The probabilities have to
+   add up to 1. Forcefield has to initialized first, to link AVBMC atoms to
+   types.
+------------------------------------------------------------------------------- */
 
 void System::add_move(Moves* move, double prob)
 {
-    if (!initialized) {
-        std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 143);
-    }
+    //if (!initialized) {
+    //    std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
+    //    MPI_Abort(MPI_COMM_WORLD, 143);
+    //}
     nmove ++;
-    moves.emplace_back(move);
+    moves.push_back(move);
     moves_prob.push_back(prob);
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Add box 'box_in' to system
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void System::add_box(Box* box_in)
 {
-    nbox ++;
+    box_in->box_id = nbox;
     boxes.push_back(box_in);
+    nbox ++;
 }
 
 
-/* -----------------------------------------------------
-   The particles in the system have to be a subset of 
-   the particles that are given mass and  type. That 
-   has to be checked after parsing, but before 
+/* ----------------------------------------------------------------------------
+   The particles in the system have to be a subset of the particles that are
+   given mass and type. That has to be checked after parsing, but before 
    simulation is started.
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void System::check_masses()
 {
-    for (std::string mass_label : mass_labels) {
-        label2type.at(mass_label);
-    }
+    //for (std::string mass_label : mass_labels) {
+    //    forcefield->label2type.at(mass_label);
+    //}
 }
 
 
-/* -------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Returns the last iteration
----------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 int System::get_maxiter(const int nsteps)
 {
-    //int maxiter;
-    int maxiter = step + nsteps/nprocess + nsteps % nprocess;
-    //if(step == 0){
-    //    maxiter = nsteps + 1;
-    //}
-    //else{
-    //    maxiter = nsteps + step;
-    //}
+    int maxiter = 0;
+    if (step == 0) {
+        maxiter += 1;
+    }
+    maxiter = step + nsteps/nprocess + nsteps % nprocess;
     return maxiter;
 }
 
 
-/* -------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Print logo header
----------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void System::print_logo()
 {
@@ -197,12 +190,13 @@ void System::print_logo()
     std::cout << "██║  ██║ ╚████╔╝ ██████╔╝██║ ╚═╝ ██║╚██████╗" << std::endl;
     std::cout << "╚═╝  ╚═╝  ╚═══╝  ╚═════╝ ╚═╝     ╚═╝ ╚═════╝" << std::endl;
     std::cout << std::endl;
+    logo_printed = true;
 }
 
 
-/* -------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Print information about simulation
----------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void System::print_info()
 {
@@ -218,15 +212,15 @@ void System::print_info()
     std::cout << "            System Information " << std::endl;
     std::cout << "=========================================" << std::endl;
     std::cout << "Number of dimensions:     " << ndim << std::endl;
-    std::cout << "Forcefield:               " << forcefield->label 
-              << " " << forcefield->paramfile << std::endl;
+    //std::cout << "Forcefield:               " << forcefield->label 
+    //          << " " << forcefield->paramfile << std::endl;
     std::cout << "Random number generator:  " << rng->label << std::endl;
     std::cout << std::endl;
-    std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
-    std::cout << "Unique particle types:";
-    for(int i=0; i < forcefield->ntype; i++){
-        std::cout << " " << forcefield->unique_labels[i];
-    }
+    //std::cout << "Number of particle types: " << forcefield->ntype << std::endl;
+    //std::cout << "Unique particle types:";
+    //for(int i=0; i < forcefield->ntype; i++){
+    //    std::cout << " " << forcefield->unique_labels[i];
+    //}
     std::cout << std::endl;
     std::cout << std::endl;
     std::cout << "Number of boxes: " << nbox << std::endl;
@@ -239,9 +233,9 @@ void System::print_info()
 }
 
 
-/* --------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Print Monte Carlo information
------------------------------------------------------------ */
+------------------------------------------------------------------------------- */
 
 void System::print_mc_info()
 {
@@ -262,11 +256,12 @@ void System::print_mc_info()
 }
 
 
+/* ----------------------------------------------------------------------------
+   Run molecular dynamics simulation
+------------------------------------------------------------------------------- */
 /*
 void Box::run_md(const int nsteps)
 {
-    // Run molecular dynamics simulation
-    //
     init_simulation();
     check_masses();
     print_info();
@@ -280,7 +275,7 @@ void Box::run_md(const int nsteps)
         time = step * integrator->dt;
         dump->print_frame();
         thermo->print_line();
-        integrator->next_step();
+        energy = integrator->next_step();
         step ++;
     }
     auto t2 = chrono::high_resolution_clock::now();
@@ -289,18 +284,24 @@ void Box::run_md(const int nsteps)
 }
 */
 
-/* -------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Run Monte Carlo simulation
----------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void System::run_mc(const int nsteps, const int nmoves)
 {
-    for(Box* box : boxes){
+    for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
+        if (box->store_distance) {
+            box->distance_manager->initialize();
+        }
+        if (box->store_energy) {
+            box->forcefield->initialize();
+        }
     }
 
-    for (Moves* move : moves){
+    for (Moves* move : moves) {
         move->ndrawn = 0;
         move->naccept = 0;
     }
@@ -309,27 +310,29 @@ void System::run_mc(const int nsteps, const int nmoves)
     assert ((sum_prob - 1.0) < 0.01);
 
     if (rank == 0) {
-        print_logo();
-        print_info();
+        if (!logo_printed) { 
+            print_logo();
+            print_info();
+        }
         print_mc_info();
         std::cout << std::endl;
         std::cout << "            Running Monte Carlo Simulation" << std::endl;
         std::cout << "=======================================================" << std::endl;
     }
-    //thermo->print_header();
 
     int maxiter = get_maxiter(nsteps);
 
     // run Monte Carlo simulation
     double start = MPI_Wtime();
     tqdm bar;
-    //bar.set_theme_circle();
-    while(step < maxiter){
+    while (step < maxiter) {
         if (rank == 0){
             bar.progress(step * nprocess, maxiter * nprocess);
         }
-        //box->dump->print_frame(step);
-        //box->thermo->print_line(step);
+        for (Box* box : boxes) {
+            box->dump->print_frame(step);
+            box->thermo->print_line(step);
+        }
         sampler->sample(nmoves);
         step ++;
     }
@@ -341,8 +344,8 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
         std::cout << std::endl;
         std::cout << "                      Acceptance Ratio" << std::endl;
-        std::cout << "=================================================================" << std::endl;
-        std::cout << "Move type\t #drawn\t\t #accepted\t acceptance ratio" << std::endl;
+        std::cout << "===================================================================================" << std::endl;
+        std::cout << "Move type\t #attempts\t #accepted\t acceptance ratio\t time (s)" << std::endl;
     }
     for(Moves* move : moves){
         int ndrawntot, naccepttot;
@@ -352,19 +355,21 @@ void System::run_mc(const int nsteps, const int nmoves)
             std::cout << move->label << "\t "
                       << ndrawntot << "\t\t "
                       << naccepttot << "\t\t "
-                      << (double) naccepttot / ndrawntot
+                      << (double) naccepttot / ndrawntot << "\t\t "
+                      << move->cum_time
                       << std::endl;
         }
     }
     if (rank == 0) {
-        std::cout << "=================================================================" << std::endl;
+        std::cout << "===================================================================================" << std::endl;
     }
 }
 
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    System destructor, finalizing MPI
------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
+
 System::~System()
 {
     MPI_Finalize();

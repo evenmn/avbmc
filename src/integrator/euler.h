@@ -5,6 +5,6 @@
 class Euler : public Integrator
 {
 public:
-    Euler(class Box* box_in, double dt_in=0.001);
-    void next_step();
+    Euler(class Box *, double = 0.001);
+    double next_step();
 };

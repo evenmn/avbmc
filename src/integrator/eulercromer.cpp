@@ -1,17 +1,38 @@
+#include <iostream>
+#include <valarray>
+
 #include "eulercromer.h"
 #include "../box.h"
+#include "../particle.h"
+#include "../forcefield/forcefield.h"
 
 
-EulerCromer::EulerCromer(class Box* box_in, double dt_in)
+/* ------------------------
+   Euler Cromer integration class. Is proven to be stable for
+   oscillatory problems in mechanics, see A. Cromer, American Journal of Physics 49, 455 (1981)
+------------------- */
+
+EulerCromer::EulerCromer(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
 {}
 
-void EulerCromer::next_step()
-{
-    /* Move particle one step
-     */
 
-    box->velocities += box->accelerations * dt;
-    box->positions += box->velocities * dt;
-    box->poteng = box->forcefield->eval_acc(box->positions, box->accelerations, box->potengs, true);
+/* -----------------------------
+   Move to next step
+------------------ */
+
+double EulerCromer::next_step()
+{
+    unsigned int i;
+    double energy;
+
+    i = 0;
+    energy = 0.;
+    for (Particle &particle : box->particles) {
+        energy + = box->forcefield->comp_energy_par_force1(i, particle.f);
+        particle.v += particle.f * dt / box->mass[i];
+        particle.r += particle.v * dt;
+        i++;
+    }
+    return energy;
 }

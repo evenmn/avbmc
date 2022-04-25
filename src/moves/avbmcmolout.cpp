@@ -8,14 +8,14 @@
 #include "../particle.h"
 #include "../rng/rng.h"
 #include "../sampler/sampler.h"
+#include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
 
 
-/* -----------------------------------------------------
-   Aggregate-volume-biased out move. This is a 
-   fictitous inter-box move, and works in the grand
-   canonical ensemble only
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Aggregate-volume-biased out move. This is a fictitous inter-box move, and
+   works in the grand canonical ensemble only
+------------------------------------------------------------------------------- */
 /*
 AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, const double r_above_in)
     : Moves(system_in)
@@ -42,10 +42,10 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in, std::vector<Particle> m
 }
 
 
-/* ------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Remove a random molecule from the bonded region of
    another similar molecule.
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCMolOut::perform_move()
 {
@@ -92,10 +92,10 @@ void AVBMCMolOut::perform_move()
 }  // end perform_move
 
 
-/* -------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Return the acceptance probability of move, given temperature
    'temp' and chemical potential 'chempot'.
----------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double AVBMCMolOut::accept(double temp, double chempot)
 {
@@ -103,15 +103,17 @@ double AVBMCMolOut::accept(double temp, double chempot)
         return 0.;
     }
     else {
+        bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + natom);
-        return nmolavg * box->npar / (v_in * (box->npar - natom)) * std::exp(-(du+chempot+dw)/temp);
+        double prefactor = nmolavg * box->npar / (v_in * (box->npar - natom)); 
+        return prefactor * accept_boundary * std::exp(-(du+chempot+dw)/temp);
     }
 }
 
 
-/* ------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Set back to old state if move is rejected
---------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCMolOut::reset()
 {
@@ -123,10 +125,10 @@ void AVBMCMolOut::reset()
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Update number of time this system size has occured if
    move was accepted
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCMolOut::update_nsystemsize()
 {
@@ -137,9 +139,9 @@ void AVBMCMolOut::update_nsystemsize()
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string AVBMCMolOut::repr()
 {

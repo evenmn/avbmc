@@ -3,58 +3,59 @@
 #include <string>
 #include <functional>
 
+
+#include "box.h"
+#include "system.h"
 #include "thermo.h"
-#include "../box.h"
 
 
-/* ---------------------------------------------
+/* ----------------------------------------------------------------------------
    Get current step
------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 auto step = [] (Box* box) -> double {
-    return box->step;
+    return box->system->step;
 };
 
 
-/* ---------------------------------------------
+/* ----------------------------------------------------------------------------
    Get current time (for molecular dynamics)
------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 auto time_ = [] (Box* box) -> double {
     return box->time;
 };
 
 
-/* ---------------------------------------------
+/* ----------------------------------------------------------------------------
    Get current number of atoms
------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 auto atoms = [] (Box* box) -> double {
     return box->npar;
 };
 
 
-/* ---------------------------------------------
+/* ----------------------------------------------------------------------------
    Get current number of atom types
------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 auto types = [] (Box* box) -> double {
     return box->ntype;
 };
 
-/* --------------------------------------------- 
+/* ----------------------------------------------------------------------------
    Get current potential energy
------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 auto poteng = [] (Box* box) -> double {
     return box->poteng;
 };
 
 
-/* ----------------------------------------------
-   Get current kinetic energy (for molecular
-   dynamics simulations)
-------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Get current kinetic energy (for molecular dynamics simulations)
+------------------------------------------------------------------------------- */
 /*
 auto kineng = [] (Box* box) -> double {
     vec vel = box->velocities;
@@ -62,31 +63,29 @@ auto kineng = [] (Box* box) -> double {
 };
 */
 
-/* ---------------------------------------------- 
-   Get acceptance ratio of current cycle (for
-   Monte Carlo simulations)
-------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Get acceptance ratio of current cycle (for Monte Carlo simulations)
+------------------------------------------------------------------------------- */
 /*
 auto acceptance_ratio = [] (Box* box) -> double {
     return box->sampler->acceptance_ratio;
 };
 */
 
-/* ----------------------------------------------
+/* ----------------------------------------------------------------------------
    Get index of current move
-------------------------------------------------- */
+------------------------------------------------------------------------------- */
 /*
 auto move_idx = [] (Box* box) -> double {
     return box->sampler->move_idx;
 };
 */
 
-/* ----------------------------------------------
-   Constructor of thermo class. Takes dump
-   frequency, 'freq_in', thermo output filename
-   'filename' and vector of quantities to output
-   'outputs_in' as arguments.
-------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Constructor of thermo class. Takes dump frequency, 'freq_in', thermo output
+   filename 'filename' and vector of quantities to output 'outputs_in' as
+   arguments.
+------------------------------------------------------------------------------- */
 
 Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
                const std::vector<std::string> outputs_in)
@@ -98,6 +97,7 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
 
     // open file
     f.open(filename);
+    print_header();
 
     // fill vector with output functions
     for(string i : outputs_in){
@@ -135,25 +135,25 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
 }
 
 
-/* ------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Print header of thermo outputs
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Thermo::print_header()
 {
     f << "# ";
     for(std::string i : outputs){
-        std::cout << i << " ";
+        //std::cout << i << " ";
         f << i << " ";
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
     f << std::endl;
 }
 
 
-/* ------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Print thermo outputs of current step
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void Thermo::print_line(const int step)
 {
@@ -161,18 +161,18 @@ void Thermo::print_line(const int step)
         //std::cout << std::fixed; // << std::setprecision(6);
         f << std::scientific;
         for(auto func : output_functions){
-            std::cout << func(box) << "\t ";
+            //std::cout << func(box) << "\t ";
             f << func(box) << "\t ";
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
         f << std::endl;
     }
 }
 
 
-/* ------------------------------------------------------
+/* ----------------------------------------------------------------------------
   Thermo destructor, closing output file.
---------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 Thermo::~Thermo()
 {

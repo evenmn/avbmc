@@ -1,10 +1,10 @@
 /* Information */
 
-/* -----------------------------------------------------
-   Aggregate-volume-biased in move. This is a fictitious
-   inter-box move, and works in the grand canonical
-   essemble only. A predefined molecule is inserted
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Aggregate-volume-biased in move. This is a fictitious inter-box move, and
+   works in the grand canonical essemble only. A predefined molecule is
+   inserted.
+------------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <cmath>
@@ -17,15 +17,15 @@
 #include "../particle.h"
 #include "../rng/rng.h"
 #include "../sampler/sampler.h"
+#include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
 
 
-/* -----------------------------------------------------
-   AVBMC molecule insertation move constructor. Molecule
-   is inserted in the bonded region of an equivalent
-   molecule, defined by inner radius 'r_below_in' and
-   outer radius 'r_above_in'.
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   AVBMC molecule insertation move constructor. Molecule is inserted in the
+   bonded region of an equivalent molecule, defined by inner radius
+   'r_below_in' and outer radius 'r_above_in'.
+------------------------------------------------------------------------------- */
 /*
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
                        const double r_below_in, const double r_above_in)
@@ -66,10 +66,9 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
 }
 
 
-/* ------------------------------------------------------------
-   Insert molecule into the bonded region of an equivalent
-   molecule
---------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Insert molecule into the bonded region of an equivalent molecule
+------------------------------------------------------------------------------- */
 
 void AVBMCMolIn::perform_move()
 {
@@ -107,6 +106,7 @@ void AVBMCMolIn::perform_move()
         }
 
         // construct new particles
+        particles = rotate_molecule(particles);
         for (unsigned int j=0; j < natom; j++) {
             particles[j].r += box->particles[i].r + dr;
             box->particles.push_back(particles[j]);
@@ -123,9 +123,9 @@ void AVBMCMolIn::perform_move()
 }
 
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Get acceptance probability of move
------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double AVBMCMolIn::accept(double temp, double chempot)
 {
@@ -133,15 +133,17 @@ double AVBMCMolIn::accept(double temp, double chempot)
         return 0.;
     }
     else {
+        bool accept_boundary = box->boundary->correct_position();
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
-        return (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)) * std::exp(-(du-chempot+dw)/temp);
+        double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
+        return prefactor * accept_boundary * std::exp(-(du-chempot+dw)/temp);
     }
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Set back to old state before move
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCMolIn::reset()
 {
@@ -153,10 +155,10 @@ void AVBMCMolIn::reset()
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Update number of time this system size has occured if
    move was accepted
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void AVBMCMolIn::update_nsystemsize()
 {
@@ -167,9 +169,9 @@ void AVBMCMolIn::update_nsystemsize()
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string AVBMCMolIn::repr()
 {

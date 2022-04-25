@@ -11,19 +11,21 @@
 class LennardJones : public ForceField
 {
 public:
-    //LennardJones(class System *);
-    LennardJones(class System *, std::string);
+    LennardJones(class Box *, std::string);
     void read_param_file(std::string);
     void allocate_memory();
     void free_memory();
     void sort_params();
     
     double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    double comp_energy_par(std::vector<class Particle>, int, std::valarray<double> &, bool);
+    //double comp_energy_par(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh0_eng0(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh1_eng0(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh1_eng1(int, std::valarray<double> &, bool);
     ~LennardJones();
 
 private:
-    int nline;
+    int nline, neigh_id;
 
     // vectors to store raw data from param file
     std::vector<double> sigma_vec, epsilon_vec, rc_vec;
