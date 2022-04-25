@@ -204,12 +204,9 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
         }
         else if (modes[k] == 1) {
             if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
-              // std::cout << "update_neigh " << i << " " << j << " " << k << "
-              // " << typei << " " << types1[l] << " " << typej << " " <<
-              // types2[l] << " " << rij << " " << cutoffs[m] << std::endl;
-              neigh_lists[k][i].push_back(j);
-              if (mutuals[l]) {
-                neigh_lists[k][j].push_back(i);
+                neigh_lists[k][i].push_back(j);
+                if (mutuals[l]) {
+                    neigh_lists[k][j].push_back(i);
                 }
             }
             l++;

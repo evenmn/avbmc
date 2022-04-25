@@ -84,7 +84,7 @@ int main()
     constraint.set_criterion("O", "O", 3.0);
     constraint.set_criterion("O", "H", 1.6);
     constraint.set_criterion("H", "H", 0.0);
-    // MinNeigh constraint1(&box, "O", "O", 4.0, 2);
+    MinNeigh constraint1(&box, "O", "O", 3.0, 2);
     // MinNeigh constraint2(&box, "O", "H", 1.3, 2);
     // MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
     // MaxDistance constraint1(&box, "O", "O", 4.0);
@@ -92,7 +92,7 @@ int main()
     // MaxDistance constraint2(&box, "O", "H", 1.6);
     // MaxDistance constraint3(&box, "H", "H", 0.0);
     box.add_constraint(&constraint);
-    //box.add_constraint(&constraint1);
+    box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
 
@@ -103,13 +103,13 @@ int main()
 
     // ======  initialize moves  ======
     Trans move1(&system, &box, 0.1);
-    Trans move2(&system, &box, 1.0);
+    //Trans move2(&system, &box, 1.0);
     AVBMCMolInRes move3(&system, &box, single_molecule, 3., 0.9, 4.0);
     AVBMCMolOutRes move4(&system, &box, single_molecule, 4.0, 3.);
-    system.add_move(&move1, 0.9);
-    // system.add_move(&move2, 0.45);
-    system.add_move(&move3, 0.05);
-    system.add_move(&move4, 0.05);
+    system.add_move(&move1, 0.5);
+    //system.add_move(&move2, 0.45);
+    system.add_move(&move3, 0.25);
+    system.add_move(&move4, 0.25);
 
     // set sampling outputs
     box.set_dump(1, "mc.xyz", {"x", "y", "z"});

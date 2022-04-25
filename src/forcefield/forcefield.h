@@ -12,9 +12,6 @@ public:
     ForceField(class Box *);
 
     // Declare pure virtual functions
-    virtual void read_param_file(std::string) = 0;
-    virtual void allocate_memory() = 0;
-    virtual void free_memory() = 0;
     virtual double comp_energy_par_neigh0_eng0(int, std::valarray<double> &, bool) = 0;
     virtual double comp_energy_par_neigh1_eng0(int, std::valarray<double> &, bool) = 0;
     virtual double comp_energy_par_neigh1_eng1(int, std::valarray<double> &, bool) = 0;

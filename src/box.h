@@ -42,7 +42,7 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<int> nsystemsize, npartype;
+    std::vector<int> nsystemsize, npartype;  // npartype is used by stillinger
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
 };

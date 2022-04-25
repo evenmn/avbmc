@@ -26,7 +26,7 @@ MinNeigh::MinNeigh(Box* box_in, std::string label1, std::string label2,
     nc = nc_in;
     type1 = box->forcefield->label2type.at(label1);
     type2 = box->forcefield->label2type.at(label2);
-    cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2, false);
+    cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2, true);
 }
 
 
@@ -49,15 +49,8 @@ bool MinNeigh::verify()
     }
     else {
         neigh_list = box->distance_manager->neigh_lists[cutoff_id];
-        for (int j = 0; j < neigh_list.size(); j++) {
-          std::cout << neigh_list[i].size() << std::endl;
-        }
-
         for (i=0; i<box->npar; i++) {
             typei = box->particles[i].type;
-            std::cout << "minneigh " << i << " " << typei << " " << type1 << " "
-                      << type2 << " " << neigh_list[i].size() << std::endl;
-            std::cout << box->npar << std::endl;
             if (typei==type1  && neigh_list[i].size()<nc) {
                 return false;
             }
