@@ -8,6 +8,12 @@
 #include "../system.h"
 #include "../particle.h"
 
+
+/* ----------------------------------------------------------------------------
+   Forcefield base class. Making 'comp_energy_par' point to the correct energy
+   calculation function
+------------------------------------------------------------------------------- */
+
 ForceField::ForceField(Box* box_in)
 {
     box = box_in;
@@ -26,10 +32,9 @@ ForceField::ForceField(Box* box_in)
 }
 
 
-/* -------------------------------------------------------
-   Compute energy contribution from a particle 'i', when 
-   for is not needed.
----------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Compute energy contribution from a particle 'i', when force is not needed.
+------------------------------------------------------------------------------- */
 
 double ForceField::comp_energy_par_force0(const int i)
 {
@@ -38,10 +43,9 @@ double ForceField::comp_energy_par_force0(const int i)
 }
 
 
-/* -------------------------------------------------------
-   Compute energy contribution from a particle 'i', when 
-   for is needed.
----------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Compute energy contribution from a particle 'i', when force is needed.
+------------------------------------------------------------------------------- */
 
 double ForceField::comp_energy_par_force1(const int i, std::valarray<double> &force)
 {
@@ -49,9 +53,9 @@ double ForceField::comp_energy_par_force1(const int i, std::valarray<double> &fo
 }
 
 
-/* ---------------------
+/* ----------------------------------------------------------------------------
    Initialize energy and force matrices
----- */
+------------------------------------------------------------------------------- */
 
 void ForceField::initialize()
 {
@@ -79,9 +83,9 @@ void ForceField::initialize()
 }
 
 
-/* ------
+/* ----------------------------------------------------------------------------
    Store current energy and force matrices
--------- */
+------------------------------------------------------------------------------- */
 
 void ForceField::set()
 {
@@ -92,9 +96,9 @@ void ForceField::set()
 }
 
 
-/* ----------------
+/* ----------------------------------------------------------------------------
    Reset energy and force matrices
-------- */
+------------------------------------------------------------------------------- */
 
 void ForceField::reset()
 {
@@ -105,9 +109,9 @@ void ForceField::reset()
 } 
 
 
-/* -------------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Compute the squared norm of a valarray 'array'
----------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double ForceField::norm(std::valarray<double> array)
 {
@@ -119,6 +123,10 @@ double ForceField::norm(std::valarray<double> array)
     return normsq;
 }
 
+
+/* ----------------------------------------------------------------------------
+   Create mapping from label to type
+------------------------------------------------------------------------------- */
 
 void ForceField::create_label_mapping()
 {
