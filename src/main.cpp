@@ -30,16 +30,17 @@
 #include <iostream>
 #include <functional>
 
-#include "io.h"
+#include "boundary/open.h"
 #include "box.h"
-#include "system.h"
+#include "forcefield/idealgas.h"
+#include "forcefield/vashishta.h"
+#include "io.h"
+#include "moves/trans.h"
 #include "particle.h"
 #include "rng/mersennetwister.h"
-#include "boundary/open.h"
-#include "forcefield/vashishta.h"
-#include "sampler/umbrella.h"
 #include "sampler/metropolis.h"
-#include "moves/trans.h"
+#include "sampler/umbrella.h"
+#include "system.h"
 //#include "moves/avbmcmolin.h"
 #include "moves/avbmcmolinres.h"
 //#include "moves/avbmcmolout.h"
@@ -75,21 +76,22 @@ int main()
 
     // ===== initialize forcefield =====
     Vashishta forcefield(&box, "H2O.nordhagen.vashishta");
+    // IdealGas forcefield(&box, {"H", "O"});
     box.set_forcefield(&forcefield);
 
     // ======  initialize box constraints  ======
-    //Stillinger constraint(&box);
-    //constraint.set_criterion("O", "O", 4.0);
-    //constraint.set_criterion("O", "H", 1.6);
-    //constraint.set_criterion("H", "H", 0.0);
-    //MinNeigh constraint1(&box, "O", "O", 5.0, 2);
-    //MinNeigh constraint2(&box, "O", "H", 1.3, 2);
-    //MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
-    //MaxDistance constraint1(&box, "O", "O", 4.0);
-    //MinDistance constraint2(&box, "O", "O", 3.0);
-    //MaxDistance constraint2(&box, "O", "H", 1.6);
-    //MaxDistance constraint3(&box, "H", "H", 0.0);
-    //box.add_constraint(&constraint);
+    Stillinger constraint(&box);
+    constraint.set_criterion("O", "O", 3.0);
+    constraint.set_criterion("O", "H", 1.6);
+    constraint.set_criterion("H", "H", 0.0);
+    // MinNeigh constraint1(&box, "O", "O", 4.0, 2);
+    // MinNeigh constraint2(&box, "O", "H", 1.3, 2);
+    // MaxNeigh constraint3(&box, "O", "H", 1.0, 2);
+    // MaxDistance constraint1(&box, "O", "O", 4.0);
+    // MinDistance constraint2(&box, "O", "O", 3.0);
+    // MaxDistance constraint2(&box, "O", "H", 1.6);
+    // MaxDistance constraint3(&box, "H", "H", 0.0);
+    box.add_constraint(&constraint);
     //box.add_constraint(&constraint1);
     //box.add_constraint(&constraint2);
     //box.add_constraint(&constraint3);
@@ -104,10 +106,10 @@ int main()
     Trans move2(&system, &box, 1.0);
     AVBMCMolInRes move3(&system, &box, single_molecule, 3., 0.9, 4.0);
     AVBMCMolOutRes move4(&system, &box, single_molecule, 4.0, 3.);
-    //system.add_move(&move1, 0.495);
-    //system.add_move(&move2, 0.495);
-    system.add_move(&move3, 0.5);
-    system.add_move(&move4, 0.0);
+    system.add_move(&move1, 0.9);
+    // system.add_move(&move2, 0.45);
+    system.add_move(&move3, 0.05);
+    system.add_move(&move4, 0.05);
 
     // set sampling outputs
     box.set_dump(1, "mc.xyz", {"x", "y", "z"});
@@ -115,7 +117,7 @@ int main()
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
-    system.run_mc(1e2, 1);
+    system.run_mc(1e4, 1);
     box.snapshot("final.xyz");
     //system.run_mc(1e5, 1);
 

@@ -24,21 +24,22 @@ public:
     std::vector<double **> cutoff_mats;
 
 private:
-    void clear_neigh(unsigned int, bool = false);
-    void update_neigh(unsigned int, unsigned int, double);
-    double normsq(std::valarray<double>);
+  void clear_neigh(unsigned int);
+  void remove_neigh(unsigned int);
+  void update_neigh(unsigned int, unsigned int, double);
+  double normsq(std::valarray<double>);
 
-    double cutoff_tol;
-    unsigned int ncutoff;
-    std::vector<bool> mutuals;
-    std::vector<double> cutoffs;
-    std::vector<unsigned int> types1, types2, modes;
+  double cutoff_tol;
+  unsigned int ncutoff;
+  std::vector<bool> mutuals;
+  std::vector<double> cutoffs;
+  std::vector<unsigned int> types1, types2, modes;
 
-    std::vector<std::vector<std::vector<int> > > neigh_lists_old;
-    std::vector<std::vector<double> > distance_mat_old;
-    std::vector<std::vector<std::valarray<double> > > distance_cube_old;
+  std::vector<std::vector<std::vector<int>>> neigh_lists_old;
+  std::vector<std::vector<double>> distance_mat_old;
+  std::vector<std::vector<std::valarray<double>>> distance_cube_old;
 
-    class Box *box = nullptr;
+  class Box *box = nullptr;
 };
 
 

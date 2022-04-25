@@ -52,8 +52,10 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
     cum_time = 0.;
     label = "AVBMCMolIn";
 
-    neigh_id_above = box->distance_manager->add_cutoff(r_above, particles[0].label, particles[0].label);
-    neigh_id_inner = box->distance_manager->add_cutoff(r_inner, particles[0].label, particles[1].label);
+    neigh_id_above = box->distance_manager->add_cutoff(
+        r_above, particles[0].label, particles[0].label, false);
+    neigh_id_inner = box->distance_manager->add_cutoff(
+        r_inner, particles[0].label, particles[1].label, false);
 
     // ensure that first particle is located at origin
     for (Particle &particle : particles) {

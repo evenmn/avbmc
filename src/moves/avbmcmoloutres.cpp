@@ -44,6 +44,10 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
     cum_time = 0.;
     label = "AVBMCMolOut";
 
+    // neigh_id_above = box->distance_manager->add_cutoff(r_above,
+    // particles[0].label, particles[0].label, false); neigh_id_inner =
+    // box->distance_manager->add_cutoff(r_inner, particles[0].label,
+    // particles[1].label, false);
     neigh_id_above = box->distance_manager->add_cutoff(r_above);
     neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
 
@@ -72,16 +76,13 @@ void AVBMCMolOutRes::perform_move()
             detected_target = false;
             if (target_mol) {
                 neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-                //target_molecule = detect_molecule(neigh_list_inner, molecule, detected_target);
                 target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
-                //target_molecule = detect_molecule(neigh_list_inner, box->particles, molecule, detected_target);
                 i = target_molecule[0];
             }
             else {
                 i = rng->next_int(box->npar);
                 detected_target = (box->particles[i].type == molecule[0].type);
             }
-            //std::cout << "FJDSJGSRJGJSGJ " << detected_target << std::endl;
             if (detected_target) {  // target molecule detected
                 //neigh_listi = box->build_neigh_list(i, r_abovesq);
                 neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
@@ -93,11 +94,9 @@ void AVBMCMolOutRes::perform_move()
                     }
                     detected_out = false;
 
-                    //std::vector<int> molecule_out = detect_molecule(
                     //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
                     //std::vector<int> molecule_out = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected_out);
                     std::vector<int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
-                    //std::cout << "detected_out: " << detected_out << " " << molecule_out.size() << std::endl;
                     if (detected_out) {
                         std::vector<int> molecule_out2;
                         for (int idx : molecule_out) {
@@ -124,7 +123,7 @@ void AVBMCMolOutRes::perform_move()
                         box->distance_manager->set();
                         for (int j : molecule_out2){
                             box->npar --;
-                            //box->npartype[box->particles[j].type] --;
+                            box->npartype[box->particles[j].type]--;
                             box->particles[j] = box->particles.back();
                             box->particles.pop_back();
                             box->distance_manager->update_remove(j);
@@ -132,7 +131,6 @@ void AVBMCMolOutRes::perform_move()
                             //box->particles.erase(box->particles.begin() + j);
                         }
                         box->poteng += du;
-                        //box->npar -= natom;
                         nmolavg = n_in * natom_inv;
                     }  // end 
                 }  // end if n_in
