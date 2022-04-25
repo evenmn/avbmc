@@ -67,8 +67,8 @@ void Stillinger::set_criterion(std::string label1, std::string label2, double rc
    of cluster.
 ------------------------------------------------------------------------------- */
 
-void Stillinger::check_neigh_recu(const int i, std::valarray<int> &in_cluster,
-                                  std::valarray<int> &checked)
+void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
+                                  std::valarray<char> &checked)
 {
     if (!checked[i]) {
         checked[i] = 1;
