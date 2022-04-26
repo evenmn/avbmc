@@ -7,18 +7,18 @@
 #include "../forcefield/forcefield.h"
 
 
-/* ------------------
+/* ----------------------------------------------------------------------------
    Euler integration class
----------------------- */
+------------------------------------------------------------------------------- */
 
 Euler::Euler(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
 {}
 
 
-/* -----------------------------
+/* ----------------------------------------------------------------------------
    Move to next step
------------------- */
+------------------------------------------------------------------------------- */
 
 double Euler::next_step()
 {
@@ -28,9 +28,9 @@ double Euler::next_step()
     i = 0;
     energy = 0.;
     for (Particle &particle : box->particles) {
-        energy + = box->forcefield->comp_energy_par_force1(i, particle.f);
+        energy += box->forcefield->comp_energy_par_force1(i, particle.f);
         particle.r += particle.v * dt;
-        particle.v += particle.f * dt / box->mass[i];
+        particle.v += particle.f * dt / particle.mass;
         i++;
     }
     return energy;

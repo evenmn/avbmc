@@ -7,9 +7,9 @@
 #include "../forcefield/forcefield.h"
 
 
-/* -------------------
+/* ----------------------------------------------------------------------------
    Velocity Verlet integrator class
----------- */
+------------------------------------------------------------------------------- */
 
 VelocityVerlet::VelocityVerlet(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
@@ -19,9 +19,9 @@ VelocityVerlet::VelocityVerlet(Box* box_in, double dt_in)
 }
 
 
-/* -----------------------------
+/* ----------------------------------------------------------------------------
    Move to next step
------------------- */
+------------------------------------------------------------------------------- */
 
 double VelocityVerlet::next_step()
 {
@@ -33,9 +33,9 @@ double VelocityVerlet::next_step()
     energy = 0.;
     for (Particle &particle : box->particles) {
         f_old = particle.f;
-        particle.r += particle.v * dt + particle.f * ddt2 / box->mass[i];
+        particle.r += particle.v * dt + particle.f * ddt2 / particle.mass;
         energy += box->forcefield->comp_energy_par_force1(i, particle.f);
-        particle.v += (particle.f + f_old) * dt2 / box->mass[i];
+        particle.v += (particle.f + f_old) * dt2 / particle.mass;
         i++;
     }
     return energy;
