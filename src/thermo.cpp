@@ -100,7 +100,7 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
     print_header();
 
     // fill vector with output functions
-    for(string i : outputs_in){
+    for(std::string i : outputs_in){
         if(i == "step"){
             output_functions.push_back(step);
         }
