@@ -5,7 +5,7 @@
 #include <cassert>
 #include <chrono>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "system.h"
 #include "box.h"
@@ -16,7 +16,6 @@
 #include "boundary/boundary.h"
 #include "forcefield/forcefield.h"
 #include "forcefield/lennardjones.h"
-//#include "integrator/velocityverlet.h"
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
@@ -40,9 +39,11 @@ System::System(std::string working_dir_in)
     time = temp = chempot = 0.;
 
     logo_printed = false;
-    nbox = nmove = nprocess = step = 0;
+    nbox = nmove = step = 0;
+    nprocess = 1;
     ndim = 3;
 
+    /*
     // initialize MPI
     int initialized_mpi;
     MPI_Initialized(&initialized_mpi);
@@ -51,6 +52,7 @@ System::System(std::string working_dir_in)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    */
 }
 
 
@@ -86,16 +88,6 @@ void System::set_mass(const std::string label, const double mass)
     masses.push_back(mass);
 }
 
-
-/* ----------------------------------------------------------------------------
-   Overwrite default integrator object, velocity Verlet
-------------------------------------------------------------------------------- */
-/*
-void System::set_integrator(class Integrator* integrator_in)
-{
-    integrator = integrator_in;
-}
-*/
 
 /* ----------------------------------------------------------------------------
    Overwrite default sampler, Metropolis
@@ -144,20 +136,6 @@ void System::add_box(Box* box_in)
     box_in->box_id = nbox;
     boxes.push_back(box_in);
     nbox ++;
-}
-
-
-/* ----------------------------------------------------------------------------
-   The particles in the system have to be a subset of the particles that are
-   given mass and type. That has to be checked after parsing, but before 
-   simulation is started.
-------------------------------------------------------------------------------- */
-
-void System::check_masses()
-{
-    //for (std::string mass_label : mass_labels) {
-    //    forcefield->label2type.at(mass_label);
-    //}
 }
 
 
@@ -323,7 +301,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     int maxiter = get_maxiter(nsteps);
 
     // run Monte Carlo simulation
-    double start = MPI_Wtime();
+    //double start = MPI_Wtime();
     tqdm bar;
     while (step < maxiter) {
         if (rank == 0){
@@ -336,9 +314,11 @@ void System::run_mc(const int nsteps, const int nmoves)
         sampler->sample(nmoves);
         step ++;
     }
-    MPI_Barrier(MPI_COMM_WORLD);
-    double end = MPI_Wtime();
+    //MPI_Barrier(MPI_COMM_WORLD);
+    //double end = MPI_Wtime();
 
+    // write acceptance information to terminal
+    /*
     if (rank == 0) {
         std::cout << "\n" << std::endl;
         std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
@@ -363,6 +343,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     if (rank == 0) {
         std::cout << "===================================================================================" << std::endl;
     }
+    */
 }
 
 
@@ -372,5 +353,5 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
-    MPI_Finalize();
+    //MPI_Finalize();
 }

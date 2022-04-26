@@ -12,7 +12,6 @@ public:
     System(std::string  = "."); 
 
     // methods
-    //void set_integrator(class Integrator* integrator_in);
     void set_sampler(class Sampler*);
     void set_rng(class RandomNumberGenerator*);
         
@@ -35,7 +34,6 @@ public:
     ~System();
 
     // variables
-    //class Integrator* integrator = nullptr;
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
 

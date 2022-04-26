@@ -5,7 +5,7 @@
 #include <cassert>
 #include <chrono>
 
-#include <mpi.h>
+//#include <mpi.h>
 
 #include "particle.h"
 #include "io.h"
@@ -98,7 +98,8 @@ void Box::add_particle(Particle particle)
 {
     if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 143);
+        //MPI_Abort(MPI_COMM_WORLD, 143);
+        exit(0);
     }
     npar ++;
     particle.type = forcefield->label2type.at(particle.label);
@@ -153,7 +154,8 @@ void Box::add_constraint(class Constraint* constraint)
 {
     if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
-        MPI_Abort(MPI_COMM_WORLD, 143);
+        //MPI_Abort(MPI_COMM_WORLD, 143);
+        exit(0);
     }
     nconstraint ++;
     constraints.push_back(constraint);
@@ -287,7 +289,6 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
 }
 
 
-
 /* ----------------------------------------------------------------------------
    Write number of times each system size has occured to
    file 'filename'
@@ -295,19 +296,20 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
 
 void Box::write_nsystemsize(std::string filename)
 {
-    int maxsize;
-    MPI_Barrier(MPI_COMM_WORLD);
+    //int maxsize;
+    //MPI_Barrier(MPI_COMM_WORLD);
     int size = nsystemsize.size();
-    MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-    MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    nsystemsize.resize(maxsize);
-    int* nsystemsizetot = new int[maxsize];
-    MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    if (system->rank == 0)
-    {
-        write_array(nsystemsizetot, maxsize, filename, "\n");
-    }
-    delete[] nsystemsizetot;
+    //MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //nsystemsize.resize(maxsize);
+    //int* nsystemsizetot = new int[maxsize];
+    //MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    //if (system->rank == 0)
+    //{
+    //    write_array(nsystemsizetot, maxsize, filename, "\n");
+    //}
+    //delete[] nsystemsizetot;
+    write_array(nsystemsize.data(), size, filename, "\n");
 }
 
 

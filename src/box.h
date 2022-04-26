@@ -14,6 +14,7 @@ public:
     // methods
     void set_forcefield(class ForceField*);
     void set_boundary(class Boundary *);
+    //void set_integrator(class Integrator *);
     void add_particle(Particle);
     void add_particle(std::string, std::valarray<double>);
     void add_particles(std::vector<Particle>);
@@ -35,6 +36,7 @@ public:
     class Thermo* thermo = nullptr;
     class Boundary* boundary = nullptr;
     class ForceField* forcefield = nullptr;
+    //class Integrator* integrator = nullptr;
     //class Velocity* velocity = nullptr;
     class DistanceManager* distance_manager = nullptr;
 
