@@ -4,7 +4,6 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
-#include <memory>
 
 //#include <mpi.h>
 
@@ -41,13 +40,14 @@ System::System(const std::string &working_dir_in) : working_dir(working_dir_in)
     nprocess = 1;
     ndim = 3;
 
-    print_logo();
-    logo_printed = true;
+    //print_logo();
+    logo_printed = rng_allocated_externally = sampler_allocated_externally = false;
 
     // set default rng and sampler
-    //rng = new MersenneTwister;
-    //rng = std::make_unique(MersenneTwister);
-    //sampler = new Metropolis(this);
+    rng = new MersenneTwister;
+    sampler = new Metropolis(this);
+
+    
 
     /*
     // initialize MPI
@@ -81,6 +81,8 @@ System::System(const System &other)
     rank = other.rank;
     //nprocess = other.nprocess;
     ndim = other.ndim;
+    rng_allocated_externally = other.rng_allocated_externally;
+    sampler_allocated_externally = other.sampler_allocated_externally;
 }
 
 
@@ -123,7 +125,11 @@ void System::set_mass(const std::string label, const double mass)
 
 void System::set_sampler(class Sampler* sampler_in)
 {
+    if (!sampler_allocated_externally) {
+        delete sampler;
+    }
     sampler = sampler_in;
+    sampler_allocated_externally = true;
 }
 
 
@@ -133,7 +139,11 @@ void System::set_sampler(class Sampler* sampler_in)
 
 void System::set_rng(class RandomNumberGenerator* rng_in)
 {
+    if (!rng_allocated_externally) {
+        delete rng;
+    }
     rng = rng_in;
+    rng_allocated_externally = true;
 }
 
 
@@ -346,6 +356,7 @@ void System::run_mc(const int nsteps, const int nmoves)
         sampler->sample(nmoves);
         step ++;
     }
+    std::cout << std::endl;
     //MPI_Barrier(MPI_COMM_WORLD);
     //double end = MPI_Wtime();
 
@@ -385,7 +396,11 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
-    //delete rng;
-    //delete sampler;
+    if (!rng_allocated_externally) {
+        delete rng;
+    }
+    if (!sampler_allocated_externally) {
+        delete sampler;
+    }
     //MPI_Finalize();
 }

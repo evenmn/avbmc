@@ -40,7 +40,7 @@ public:
     class RandomNumberGenerator* rng = nullptr;
     //std::unique_ptr<class RandomNumberGenerator> rng = nullptr;
 
-    bool logo_printed;
+    bool logo_printed, rng_allocated_externally, sampler_allocated_externally;
     unsigned int nbox, ndim, nmove, nprocess, step, rank;
     double temp, chempot, poteng, time;
     std::string working_dir;
