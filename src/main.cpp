@@ -69,7 +69,7 @@ int main()
 
     // ======  initialize box  ======
     // initialize box with open boundaries
-    Box box(&system, 2);
+    Box box(&system);
     system.add_box(&box);
     //Open boundary(&box);
     //box.set_boundary(&boundary);

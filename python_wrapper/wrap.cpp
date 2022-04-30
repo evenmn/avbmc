@@ -68,7 +68,7 @@ void set_thermo(Box *box, double freq, std::string filename, bool mark_file,
    Python wrapper
 ------------------------------------------------------------------------------- */
 
-PYBIND11_MODULE(avbmc_core, m) {
+PYBIND11_MODULE(avbmc, m) {
 
     // Particle
     py::class_<Particle>(m, "Particle", py::dynamic_attr())
@@ -93,7 +93,7 @@ PYBIND11_MODULE(avbmc_core, m) {
 
     // System
     py::class_<System>(m, "System")
-        .def(py::init<std::string>())
+        .def(py::init<std::string>(), py::arg("working_dir_in") = "")
         .def("set_sampler", &System::set_sampler)
         .def("set_rng", &System::set_rng)
         .def("set_temp", &System::set_temp)
@@ -110,7 +110,7 @@ PYBIND11_MODULE(avbmc_core, m) {
 
     // Box
     py::class_<Box>(m, "Box")
-        .def(py::init<System *, int>()) //, py::arg("memory_intensity") = 2)
+        .def(py::init<System *>()) //, int>()) //, py::arg("memory_intensity") = 2)
         .def("set_forcefield", &Box::set_forcefield)
         .def("set_boundary", &Box::set_boundary)
         //.def("set_integrator", &Box::set_integrator)

@@ -9,7 +9,7 @@
 class Box
 {
 public:
-    Box(class System *, int = 2); 
+    Box(class System *); //, int = 2); 
     Box(const Box &);  // copy constructor
     Box& operator=(const Box &other) // overloading equal operator
     {

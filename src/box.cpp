@@ -30,7 +30,7 @@
           of each particle
 ------------------------------------------------------------------------------- */
 
-Box::Box(System* system_in, const int memory_intensity)
+Box::Box(System* system_in) //, int memory_intensity)
 {
     system = system_in;
 
@@ -50,6 +50,7 @@ Box::Box(System* system_in, const int memory_intensity)
     //thermo = new Thermo(this, 0, "", outputs);
 
     // memory intensitivity
+    int memory_intensity = 2;
     if (memory_intensity==1) {
         store_distance = false;
         store_energy = false;
