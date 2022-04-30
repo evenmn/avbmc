@@ -326,11 +326,11 @@ std::string Box::file_marking()
    'filename', which is marked with box-ID and rank-ID if 'mark_file' is true
 ------------------------------------------------------------------------------- */
    
-void Box::snapshot(std::string filename, const bool mark_file)
+void Box::snapshot(std::string filename) //, const bool mark_file)
 {
-    if (mark_file) {
-        filename = file_marking() + filename;
-    }
+    //if (mark_file) {
+    //    filename = file_marking() + filename;
+    //}
     std::vector<std::string> outputs = {"xyz"};
     Dump* dump_tmp = new Dump(this, 1, filename, outputs);
     dump_tmp->print_frame(0);

@@ -31,7 +31,7 @@ public:
     void add_constraint(class Constraint *);
 
     std::string file_marking();
-    void snapshot(std::string, bool = true);
+    void snapshot(std::string); //, bool = true);
     void set_dump(int, std::string, std::vector<std::string>, bool = true);
     void set_thermo(int, std::string, std::vector<std::string>, bool = true);
     std::vector<unsigned int> build_neigh_list(int, double);
