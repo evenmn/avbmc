@@ -32,8 +32,8 @@ public:
 
     std::string file_marking();
     void snapshot(std::string); //, bool = true);
-    void set_dump(int, std::string, std::vector<std::string>, bool = true);
-    void set_thermo(int, std::string, std::vector<std::string>, bool = true);
+    void set_dump(int, std::string, std::vector<std::string>); //, bool = true);
+    void set_thermo(int, std::string, std::vector<std::string>); //, bool = true);
     std::vector<unsigned int> build_neigh_list(int, double);
     std::vector<unsigned int> build_neigh_list(int, double**);
     void write_nsystemsize(const std::string &);
@@ -49,7 +49,8 @@ public:
     //class Velocity* velocity = nullptr;
     class DistanceManager* distance_manager = nullptr;
 
-    bool initialized, store_energy, store_distance;
+    bool initialized, store_energy, store_distance, boundary_allocated_externally;
+    bool dump_allocated_externally, thermo_allocated_externally;
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 

@@ -35,7 +35,8 @@ Box::Box(System* system_in) //, int memory_intensity)
     system = system_in;
 
     time = poteng = 0.;
-    initialized = false;
+    initialized = boundary_allocated_externally = dump_allocated_externally =
+        thermo_allocated_externally = false;
     npar = ntype = nmove = step = nconstraint = box_id = 0;
 
     // set default values
@@ -44,10 +45,10 @@ Box::Box(System* system_in) //, int memory_intensity)
     distance_manager = new DistanceManager(this);
 
     // set default outputs
-    //std::vector<std::string> outputs;
-    //dump = new Dump(this, 0, "", outputs);
-    //outputs = {"step", "atoms", "poteng"};
-    //thermo = new Thermo(this, 0, "", outputs);
+    std::vector<std::string> outputs;
+    dump = new Dump(this, 0, "", outputs);
+    outputs = {"step", "atoms", "poteng"};
+    thermo = new Thermo(this, 0, "", outputs);
 
     // memory intensitivity
     int memory_intensity = 2;
@@ -214,7 +215,11 @@ void Box::set_forcefield(ForceField* forcefield_in)
 
 void Box::set_boundary(Boundary* boundary_in)
 {
+    if (!boundary_allocated_externally) {
+        delete boundary;
+    }
     boundary = boundary_in;
+    boundary_allocated_externally = true;
 }
 
 
@@ -342,12 +347,16 @@ void Box::snapshot(std::string filename) //, const bool mark_file)
 ------------------------------------------------------------------------------- */
 
 void Box::set_dump(const int freq, std::string filename, 
-                   std::vector<std::string> outputs, const bool mark_file)
+                   std::vector<std::string> outputs) //, const bool mark_file)
 {
-    if (mark_file) {
-        filename = file_marking() + filename;
+    //if (mark_file) {
+    //    filename = file_marking() + filename;
+    //}
+    if (!dump_allocated_externally) {
+        delete dump;
     }
     dump = new Dump(this, freq, filename, outputs);
+    dump_allocated_externally = true;
 }
 
 
@@ -356,12 +365,16 @@ void Box::set_dump(const int freq, std::string filename,
 ------------------------------------------------------------------------------- */
 
 void Box::set_thermo(const int freq, std::string filename,
-                     std::vector<std::string> outputs, const bool mark_file)
+                     std::vector<std::string> outputs) //, const bool mark_file)
 {
-    if (mark_file) {
-        filename = file_marking() + filename;
+    //if (mark_file) {
+    //    filename = file_marking() + filename;
+    //}
+    if (!thermo_allocated_externally) {
+        delete thermo;
     }
     thermo = new Thermo(this, freq, filename, outputs);
+    thermo_allocated_externally = true;
 }
 
 
@@ -463,6 +476,14 @@ void Box::write_nsystemsize(const std::string &filename)
 ------------------------------------------------------------------------------- */
 Box::~Box()
 {
-    delete dump;
-    delete thermo;
+    if (!dump_allocated_externally) {
+        delete dump;
+    }
+    if (!thermo_allocated_externally) {
+        delete thermo;
+    }
+    if (!boundary_allocated_externally) {
+        delete boundary;
+    }
+    delete distance_manager;
 }
