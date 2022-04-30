@@ -6,5 +6,5 @@ class Metropolis : public Sampler
 {
 public:
     Metropolis(class System *);
-    double w(int);
+    double w(int) override;
 };

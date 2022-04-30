@@ -9,7 +9,7 @@
 class Thermo
 {
 public:
-    Thermo(class Box* box_in, const int freq_in, const std::string filename, const std::vector<std::string> outputs_in);
+    Thermo(class Box *, int, const std::string &, const std::vector<std::string> &);
     void print_header();
     void print_line(int);
     ~Thermo();

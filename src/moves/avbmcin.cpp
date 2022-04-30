@@ -55,13 +55,14 @@ void AVBMCIn::perform_move()
 {
     // pick particle i and create local neighbor list of particle
     int i = rng->next_int(box->npar);
-    std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
     // construct new particle
     std::valarray<double> dr(system->ndim);
     double normsq = norm(dr);
     while(normsq > r_abovesq || normsq < r_belowsq){
+        // std::generate
         for(double &d : dr){
             d = 2 * rng->next_double() - 1;
         }

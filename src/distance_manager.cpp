@@ -139,7 +139,7 @@ unsigned int DistanceManager::add_cutoff(double **rc)
 
 void DistanceManager::clear_neigh(unsigned int i) {
   unsigned int j, k;
-  std::vector<int>::iterator position;
+  std::vector<unsigned int>::iterator position;
 
   for (j = 0; j < ncutoff; j++) {
     neigh_lists[j][i].clear(); // clear neighbor list of particle i
@@ -161,7 +161,7 @@ void DistanceManager::clear_neigh(unsigned int i) {
 
 void DistanceManager::remove_neigh(unsigned int i) {
   unsigned int j, k, l;
-  std::vector<int>::iterator position;
+  std::vector<unsigned int>::iterator position;
 
   for (j = 0; j < ncutoff; j++) {
     neigh_lists[j].erase(neigh_lists[j].begin() + i);
@@ -248,7 +248,7 @@ void DistanceManager::initialize()
 {
     double rij;
     unsigned int i, j, k, npar;
-    std::valarray<double> posi, delij;
+    std::valarray<double> delij;
 
     // initialize matrices
     npar = box->npar;
@@ -264,7 +264,6 @@ void DistanceManager::initialize()
     
     // fill matrices
     for (i=0; i<npar; i++) {
-        posi = box->particles[i].r;
         for (j=0; j<i; j++) {
             delij = box->particles[j].r - box->particles[i].r;
             box->boundary->correct_distance(delij);

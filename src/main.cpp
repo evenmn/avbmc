@@ -62,7 +62,7 @@ int main()
     system.set_rng(&rng);
 
     // ======  initialize sampler  ======
-    auto f = [] (const int n) { return (0.003 * (n - 20) * (n - 20)); };
+    //auto f = [] (const int n) { return (0.003 * (n - 20) * (n - 20)); };
     //Umbrella sampler(&system, f);
     Metropolis sampler(&system);
     system.set_sampler(&sampler);
@@ -71,8 +71,8 @@ int main()
     // initialize box with open boundaries
     Box box(&system, 2);
     system.add_box(&box);
-    Open boundary(&box);
-    box.set_boundary(&boundary);
+    //Open boundary(&box);
+    //box.set_boundary(&boundary);
 
     // ===== initialize forcefield =====
     Vashishta forcefield(&box, "H2O.nordhagen.vashishta");
@@ -112,8 +112,8 @@ int main()
     system.add_move(&move4, 0.25);
 
     // set sampling outputs
-    box.set_dump(1, "mc.xyz", {"x", "y", "z"});
-    box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
+    //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
+    //box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
 
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");

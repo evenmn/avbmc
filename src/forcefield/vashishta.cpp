@@ -16,7 +16,7 @@
    Vashishta constructor, which takes a parameter file 'params'.
 ------------------------------------------------------------------------------- */
 
-Vashishta::Vashishta(Box* box_in, const std::string params)
+Vashishta::Vashishta(Box* box_in, const std::string &params)
     : ForceField(box_in)
 {
     label = "Vashishta";
@@ -40,7 +40,7 @@ Vashishta::Vashishta(Box* box_in, const std::string params)
    documentation.
 ------------------------------------------------------------------------------- */
 
-void Vashishta::read_param_file(const std::string params)
+void Vashishta::read_param_file(const std::string &params)
 {
     nline = 0;
     std::ifstream infile(params);
@@ -99,10 +99,10 @@ void Vashishta::read_param_file(const std::string params)
 
 void Vashishta::sort_params()
 {
-    // link list of chemical symbols to list of type indices
     unsigned int type1, type2, type3, i;
     double lambda1inv, lambda4inv, shift_factor;
-    std::vector<int> types1_vec, types2_vec, types3_vec;
+    std::vector<unsigned int> types1_vec, types2_vec, types3_vec;
+
     for(std::string label : label1_vec){
         types1_vec.push_back(label2type.at(label));
     }
@@ -186,10 +186,11 @@ void Vashishta::sort_params()
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
-                                   std::valarray<double> &forceij, const bool comp_force)
+                                   std::valarray<double> &/*forceij*/, const bool /*comp_force*/)
 {
     double rijinv, rijinv2, rijinv4, rijinv6, energyij;
 
+    energyij = 0.;
     if (rij < rc_mat[typei][typej]) {
         rijinv = 1.0 / rij;
         rijinv2 = rijinv * rijinv;
@@ -217,9 +218,9 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
         const int typek, const double rij, double rik, std::valarray<double> delij,
-        std::valarray<double> delik, std::valarray<double> &force, const bool comp_force)
+        std::valarray<double> delik, std::valarray<double> &/*force*/, const bool /*comp_force*/)
 {
-    double expij, expik, costhetaijk, delcos, delcossq, energy, energyijk;
+    double expij, expik, costhetaijk, delcos, delcossq, energyijk;
 
     costhetaijk = (delij * delik).sum() / (rij * rik);
     expij = gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]);
@@ -244,9 +245,9 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
 double Vashishta::comp_threebody_par(const int typei, const int typej,
         const int typek, const std::valarray<double> delij,
         const std::valarray<double> delik, const double rij,
-        std::valarray<double> &force, const bool comp_force)
+        std::valarray<double> &/*force*/, const bool /*comp_force*/)
 {
-    double rik, expij, expik, costhetaijk, delcos, delcossq, energy, energyijk;
+    double rik, expij, expik, costhetaijk, delcos, delcossq, energyijk;
 
     energyijk = 0;
     rik = std::sqrt(norm(delik));
@@ -271,12 +272,11 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    if memory is an issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_neigh0_eng0(const int i, std::valarray<double> &force,
-                                          const bool comp_force)
+double Vashishta::comp_energy_par_neigh0_eng0(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
-    // declare variables
     double rij, energy;
-    int typei, typej, typek, npar, j, k;
+    unsigned int typei, typej, typek, npar, j, k;
     std::valarray<double> delij, delik;
 
     typei = box->particles[i].type; 
@@ -323,28 +323,26 @@ double Vashishta::comp_energy_par_neigh0_eng0(const int i, std::valarray<double>
    issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> &force,
-                                        const bool comp_force)
+double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
-    // declare variables
     double rij, rik, energy;
-    int typei, typej, typek, npar;
+    unsigned int typei, typej, typek;
     std::valarray<double> delij, delik;
-    std::vector<std::vector<int> > neigh_list_rc, neigh_list_r0;
+    //std::vector<std::vector<unsigned int> > neigh_list_rc, neigh_list_r0;
 
     typei = box->particles[i].type; 
-    npar = box->particles.size();
-    neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
-    neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
-    energy = 0.;
+    //neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
+    //neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
 
-    for (int j : neigh_list_rc[i]) {
+    energy = 0.;
+    for (unsigned int j : box->distance_manager->neigh_lists[neigh_id_rc][i]) {
         // two-body
         typej = box->particles[j].type;
         rij = std::sqrt(box->distance_manager->distance_mat[i][j]);
         energy += comp_twobody_par(typei, typej, rij, force, comp_force);
 
-        for (int k : neigh_list_r0[j]) {
+        for (unsigned int k : box->distance_manager->neigh_lists[neigh_id_r0][j]) {
             // three-body
             typek = box->particles[k].type;
             rik = std::sqrt(box->distance_manager->distance_mat[i][k]);
@@ -366,30 +364,28 @@ double Vashishta::comp_energy_par_neigh1_eng0(const int i, std::valarray<double>
    issue.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_energy_par_neigh1_eng1(const int i, std::valarray<double> &force,
-                                        const bool comp_force)
+double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
-    // declare variables
     double rij, rik, energy, energyij;
-    int typei, typej, typek, npar;
+    unsigned int typei, typej, typek, l, m;
     std::valarray<double> delij, delik, forceij;
-    std::vector<std::vector<int> > neigh_list_rc, neigh_list_r0;
+    //std::vector<std::vector<unsigned int> > neigh_list_rc, neigh_list_r0;
 
     set();
 
     typei = box->particles[i].type; 
-    npar = box->particles.size();
-    neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
-    neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
+    //neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
+    //neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
 
     energy = 0.;
-    for (int j : neigh_list_rc[i]) {
+    for (unsigned int j : box->distance_manager->neigh_lists[neigh_id_rc][i]) {
         // two-body
         typej = box->particles[j].type;
         rij = std::sqrt(box->distance_manager->distance_mat[i][j]);
         energyij = comp_twobody_par(typei, typej, rij, forceij, comp_force);
 
-        for (int k : neigh_list_r0[j]) {
+        for (unsigned int k : box->distance_manager->neigh_lists[neigh_id_r0][j]) {
             // three-body
             typek = box->particles[k].type;
             rik = std::sqrt(box->distance_manager->distance_mat[i][k]);
@@ -408,12 +404,12 @@ double Vashishta::comp_energy_par_neigh1_eng1(const int i, std::valarray<double>
             force_cube[j][i] = -forceij;
         }
     }
-    for (int j=0; j < box->npar; j++) {
-        poteng_vec[j] = poteng_mat[j][0];
-        force_vec[j] = force_cube[j][0];
-        for (int k=1; k < box->npar; k++) {
-            poteng_vec[j] += poteng_mat[j][k];
-            force_vec[j] += force_cube[j][k];
+    for (l=0; l < box->npar; l++) {
+        poteng_vec[l] = poteng_mat[l][0];
+        force_vec[l] = force_cube[l][0];
+        for (m=1; m < box->npar; m++) {
+            poteng_vec[l] += poteng_mat[l][m];
+            force_vec[l] += force_cube[l][m];
         }
     }
     return energy;
@@ -493,6 +489,8 @@ double Vashishta::comp_energy_tot(const std::vector<Particle> particles)
 
 void Vashishta::allocate_memory()
 {
+    unsigned int i, j;
+
     H_mat = new double*[ntype];
     eta_mat = new double*[ntype];
     Zi_mat = new double*[ntype];
@@ -508,7 +506,7 @@ void Vashishta::allocate_memory()
     B_mat = new double**[ntype];
     C_mat = new double**[ntype];
     costheta_mat = new double**[ntype];
-    for (unsigned int i=0; i<ntype; i++) {
+    for (i=0; i<ntype; i++) {
         H_mat[i] = new double[ntype];
         eta_mat[i] = new double[ntype];
         Zi_mat[i] = new double[ntype];
@@ -524,7 +522,7 @@ void Vashishta::allocate_memory()
         B_mat[i] = new double*[ntype];
         C_mat[i] = new double*[ntype];
         costheta_mat[i] = new double*[ntype];
-        for (unsigned int j=0; j<ntype; j++) {
+        for (j=0; j<ntype; j++) {
             B_mat[i][j] = new double[ntype];
             C_mat[i][j] = new double[ntype];
             costheta_mat[i][j] = new double[ntype];
@@ -539,8 +537,10 @@ void Vashishta::allocate_memory()
 
 void Vashishta::free_memory()
 {
-    for (unsigned int i = 0; i < ntype; i++) {
-        for (unsigned int j = 0; j < ntype; j++) {
+    unsigned int i, j;
+
+    for (i = 0; i < ntype; i++) {
+        for (j = 0; j < ntype; j++) {
             delete[] B_mat[i][j];
             delete[] C_mat[i][j];
             delete[] costheta_mat[i][j];

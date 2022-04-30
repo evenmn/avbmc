@@ -9,11 +9,11 @@ class TransMH : public Moves
 {
 public:
     TransMH(class System *, class Box *, double = 0.01, double = 0.01);
-    void perform_move();
-    double accept(double, double);
-    void reset();
-    void update_nsystemsize();
-    std::string repr();
+    void perform_move() override;
+    double accept(double, double) override;
+    void reset() override;
+    void update_nsystemsize() override;
+    std::string repr() override;
 
 private:
     unsigned int i;

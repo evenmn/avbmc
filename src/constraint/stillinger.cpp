@@ -29,19 +29,75 @@
 Stillinger::Stillinger(Box* box_in, double rc)
     : Constraint(box_in)
 {
+    unsigned int i, j;
+
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
+    v_c = 0.;
+    ntype = 0;
     label = "Stillinger of radius " + std::to_string(rc);
 
     // fill r_csq_mat with r_csq
     ntype = box->forcefield->ntype;
     r_csq_mat = new double*[ntype];
-    for (unsigned int i=0; i<ntype; i++) {
+    for (i=0; i<ntype; i++) {
         r_csq_mat[i] = new double[ntype];
-        for (unsigned int j=0; j<ntype; j++) {
+        for (j=0; j<ntype; j++) {
             r_csq_mat[i][j] = rc * rc;
         }
     }
     cutoff_id = box->distance_manager->add_cutoff(r_csq_mat);
+}
+
+
+/* ----------------------------------------------------------------------------
+   Copy constructor, needed to fullfil the rule of three, Marshall Cline (1991)
+------------------------------------------------------------------------------- */
+
+Stillinger::Stillinger(const Stillinger &other) 
+    : Constraint(other), neigh_lists(other.neigh_lists),
+      in_cluster(other.in_cluster), checked(other.checked)
+{
+    unsigned int i, j;
+
+    ntype = other.ntype;
+    v_c = other.v_c;
+    r_csq_mat = new double*[ntype];
+    for (i=0; i<ntype; i++) {
+        r_csq_mat[i] = new double[ntype];
+        for (j=0; j<ntype; j++) {
+            r_csq_mat[i][j] = other.r_csq_mat[i][j];
+        }
+    } 
+}
+
+
+/* ----------------------------------------------------------------------------
+   Swap function, used by the copy assignment operator
+------------------------------------------------------------------------------- */
+
+void Stillinger::swap(Stillinger &other)
+{
+    unsigned int ntype_tmp = ntype;
+    ntype = other.ntype;
+    other.ntype = ntype_tmp;
+    unsigned int cutoff_id_tmp = cutoff_id;
+    cutoff_id = other.cutoff_id;
+    other.cutoff_id = cutoff_id_tmp;
+    double v_c_tmp = v_c;
+    v_c = other.v_c;
+    other.v_c = v_c_tmp;
+    double **r_csq_mat_tmp = r_csq_mat;
+    r_csq_mat = other.r_csq_mat;
+    other.r_csq_mat = r_csq_mat_tmp;
+    std::vector<std::vector<int> > neigh_lists_tmp = neigh_lists;
+    neigh_lists = other.neigh_lists;
+    other.neigh_lists = neigh_lists_tmp;
+    std::valarray<char> in_cluster_tmp = in_cluster;
+    in_cluster = other.in_cluster;
+    other.in_cluster = in_cluster_tmp;
+    std::valarray<char> checked_tmp = checked;
+    checked = other.checked;
+    other.checked = checked_tmp;
 }
 
 
@@ -96,7 +152,7 @@ bool Stillinger::verify()
     
     check_neigh_recu(0, in_cluster, checked);
 
-    if (in_cluster.sum() == box->npar) {
+    if ((unsigned int) in_cluster.sum() == box->npar) {
         return true;
     }
     else {
@@ -132,6 +188,7 @@ double Stillinger::comp_volume()
 Stillinger::~Stillinger()
 {
     unsigned int i;
+
     for (i=0; i<ntype; i++) {
         delete[] r_csq_mat[i];
     }

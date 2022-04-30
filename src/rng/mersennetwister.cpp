@@ -62,10 +62,12 @@ double MersenneTwister::next_double()
 
 int MersenneTwister::choice(std::vector<double> probabilities)
 {
+    unsigned int i;
     double r, p;
+
     r = next_double();
     p = 0.;
-    for (unsigned int i=0; i<probabilities.size(); i++) {
+    for (i=0; i<probabilities.size(); i++) {
         p += probabilities[i];
         if (r<=p) return i;
     }

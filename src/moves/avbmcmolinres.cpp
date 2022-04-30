@@ -73,8 +73,8 @@ void AVBMCMolInRes::perform_move()
 {
     bool detected_target;
     unsigned int count, i, j;
-    std::vector<int> neigh_listi;
-    std::vector<std::vector<int> > neigh_list_inner;
+    std::vector<unsigned int> neigh_listi;
+    std::vector<std::vector<unsigned int> > neigh_list_inner;
 
     count = 0;
     reject_move = true;
@@ -83,7 +83,7 @@ void AVBMCMolInRes::perform_move()
         count ++;
         if (target_mol) {
             neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-            std::vector<int> target_molecule = detect_molecule(neigh_list_inner, particles, detected_target);
+            std::vector<unsigned int> target_molecule = detect_molecule(neigh_list_inner, particles, detected_target);
             i = target_molecule[0];
         }
         else {

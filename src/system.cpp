@@ -4,6 +4,7 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
+#include <memory>
 
 //#include <mpi.h>
 
@@ -13,9 +14,9 @@
 #include "dump.h"
 #include "thermo.h"
 #include "rng/rng.h"
+#include "rng/mersennetwister.h"
 #include "boundary/boundary.h"
 #include "forcefield/forcefield.h"
-#include "forcefield/lennardjones.h"
 #include "sampler/metropolis.h"
 #include "moves/moves.h"
 #include "particle.h"
@@ -33,15 +34,20 @@
           of each particle
 ------------------------------------------------------------------------------- */
 
-System::System(std::string working_dir_in)
+System::System(const std::string &working_dir_in) : working_dir(working_dir_in)
 {
-    working_dir = working_dir_in;
-    time = temp = chempot = 0.;
-
-    logo_printed = false;
-    nbox = nmove = step = 0;
+    nbox = nmove = step = rank = 0;
+    time = temp = chempot = poteng = 0.;
     nprocess = 1;
     ndim = 3;
+
+    print_logo();
+    logo_printed = true;
+
+    // set default rng and sampler
+    //rng = new MersenneTwister;
+    //rng = std::make_unique(MersenneTwister);
+    //sampler = new Metropolis(this);
 
     /*
     // initialize MPI
@@ -53,6 +59,28 @@ System::System(std::string working_dir_in)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     */
+}
+
+
+/* ----------------------------------------------------------------------------
+   Copy constructor
+------------------------------------------------------------------------------- */
+
+System::System(const System &other) 
+    : working_dir(other.working_dir), boxes(other.boxes), moves(other.moves),
+      moves_prob(other.moves_prob)
+{
+    time = other.time;
+    temp = other.temp;
+    //logo_printed = other.logo_printed;
+    chempot = other.chempot;
+    poteng = other.poteng;
+    nbox = other.nbox;
+    nmove = other.nmove;
+    step = other.step;
+    rank = other.rank;
+    //nprocess = other.nprocess;
+    ndim = other.ndim;
 }
 
 
@@ -81,13 +109,13 @@ void System::set_chempot(const double chempot_in)
    if running molecular dynamics simulations, as the software does not look up
    the masses in a table.
 ------------------------------------------------------------------------------- */
-
+/*
 void System::set_mass(const std::string label, const double mass)
 {
     mass_labels.push_back(label);
     masses.push_back(mass);
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Overwrite default sampler, Metropolis
@@ -149,7 +177,7 @@ int System::get_maxiter(const int nsteps)
     if (step == 0) {
         maxiter += 1;
     }
-    maxiter = step + nsteps/nprocess + nsteps % nprocess;
+    maxiter += step + nsteps/nprocess + nsteps % nprocess;
     return maxiter;
 }
 
@@ -271,6 +299,7 @@ void System::run_mc(const int nsteps, const int nmoves)
     for (Box* box : boxes) {
         box->nsystemsize.resize(box->npar + 1);
         box->nsystemsize[box->npar] ++;
+        std::cout << box->store_distance << std::endl;
         if (box->store_distance) {
             box->distance_manager->initialize();
         }
@@ -287,9 +316,9 @@ void System::run_mc(const int nsteps, const int nmoves)
     double sum_prob = std::accumulate(moves_prob.begin(), moves_prob.end(), 0.);
     assert ((sum_prob - 1.0) < 0.01);
 
+    /*
     if (rank == 0) {
         if (!logo_printed) { 
-            print_logo();
             print_info();
         }
         print_mc_info();
@@ -297,6 +326,7 @@ void System::run_mc(const int nsteps, const int nmoves)
         std::cout << "            Running Monte Carlo Simulation" << std::endl;
         std::cout << "=======================================================" << std::endl;
     }
+    */
 
     int maxiter = get_maxiter(nsteps);
 
@@ -304,13 +334,15 @@ void System::run_mc(const int nsteps, const int nmoves)
     //double start = MPI_Wtime();
     tqdm bar;
     while (step < maxiter) {
-        if (rank == 0){
-            bar.progress(step * nprocess, maxiter * nprocess);
-        }
+        //if (rank == 0){
+        bar.progress(step * nprocess, maxiter * nprocess);
+        //}
+        /*
         for (Box* box : boxes) {
             box->dump->print_frame(step);
             box->thermo->print_line(step);
         }
+        */
         sampler->sample(nmoves);
         step ++;
     }
@@ -353,5 +385,7 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
+    //delete rng;
+    //delete sampler;
     //MPI_Finalize();
 }

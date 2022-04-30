@@ -9,11 +9,11 @@ class AVBMC : public AVBMCIn, public AVBMCOut
 {
 public:
     AVBMC(class System *, class Box *, std::string, double = 0.95, double = 3.0);
-    void perform_move();
-    double accept(double, double);
-    void reset();
-    void update_nsystemsize();
-    std::string repr();
+    void perform_move() override;
+    double accept(double, double) override;
+    void reset() override;
+    void update_nsystemsize() override;
+    std::string repr() override;
 
 private:
     bool move_in;

@@ -9,8 +9,8 @@
 class Vashishta : public ForceField
 {
 public:
-    Vashishta(class Box *, std::string);
-    void read_param_file(std::string);
+    Vashishta(class Box *, const std::string &);
+    void read_param_file(const std::string &);
     void allocate_memory();
     void free_memory();
     void sort_params();
@@ -19,9 +19,9 @@ public:
     double comp_threebody_par(int, int, int, std::valarray<double>, std::valarray<double>, double, std::valarray<double> &, bool);
     double comp_threebody_par(int, int, int, double, double, std::valarray<double>, std::valarray<double>, std::valarray<double> &, bool);
     //double comp_energy_par(int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh0_eng0(int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh1_eng0(int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh1_eng1(int, std::valarray<double> &, bool);
+    double comp_energy_par_neigh0_eng0(unsigned int, std::valarray<double> &, bool) override;
+    double comp_energy_par_neigh1_eng0(unsigned int, std::valarray<double> &, bool) override;
+    double comp_energy_par_neigh1_eng1(unsigned int, std::valarray<double> &, bool) override;
 
     ~Vashishta();
 
@@ -36,5 +36,5 @@ private:
     double **H_mat, **eta_mat, **Zi_mat, **Zj_mat, **lambda1inv_mat, **D_mat, **lambda4inv_mat;
     double **W_mat, **rc_mat, ***B_mat, **gamma_mat, **r0_mat, **shift_mat, ***C_mat, ***costheta_mat;
 
-    std::vector<std::vector<int> > neigh_lists;
+    //std::vector<std::vector<int> > neigh_lists;
 };

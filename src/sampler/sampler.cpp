@@ -29,7 +29,8 @@ void Sampler::sample(int nmoves)
     typedef std::chrono::duration<double> fsec;
     auto t0 = Time::now();
     for (int i=0; i<nmoves; i++){
-        Moves* move = system->moves[rng->choice(system->moves_prob)];
+        int j = rng->choice(system->moves_prob);
+        Moves* move = system->moves[j];
         move->ndrawn ++;
         move->perform_move();
         if(move->accept(system->temp, system->chempot) > rng->next_double()) {

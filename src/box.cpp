@@ -34,18 +34,20 @@ Box::Box(System* system_in, const int memory_intensity)
 {
     system = system_in;
 
-    poteng = 0.;
+    time = poteng = 0.;
     initialized = false;
-    npar = ntype = nmove = step = nconstraint = 0;
+    npar = ntype = nmove = step = nconstraint = box_id = 0;
 
+    // set default values
+    boundary = new Open(this);
     //velocity = new Zero();
     distance_manager = new DistanceManager(this);
 
     // set default outputs
-    std::vector<std::string> outputs;
-    dump = new Dump(this, 0, "", outputs);
-    outputs = {"step", "atoms", "poteng"};
-    thermo = new Thermo(this, 0, "", outputs);
+    //std::vector<std::string> outputs;
+    //dump = new Dump(this, 0, "", outputs);
+    //outputs = {"step", "atoms", "poteng"};
+    //thermo = new Thermo(this, 0, "", outputs);
 
     // memory intensitivity
     if (memory_intensity==1) {
@@ -68,6 +70,131 @@ Box::Box(System* system_in, const int memory_intensity)
 
 
 /* ----------------------------------------------------------------------------
+   Copy constructor, needed to fulfill the rule of five needed for the class
+   to be exception-safe.
+------------------------------------------------------------------------------- */
+
+Box::Box(const Box &box) : nsystemsize(box.nsystemsize), npartype(box.npartype),
+                           particles(box.particles), constraints(box.constraints)
+{
+    //system = new System(box.system);
+    //dump = new Dump();
+    //thermo = new Thermo();
+    //boundary = new Boundary();
+    //forcefield = new Forcefield();
+    //integrator = new integrator();
+    //velocity = new velocity();
+    //distance_manager = new DistanceManager();
+
+    //*system = *box.system;
+    //*dump = *box.dump;
+    //*thermo = *box.thermo;
+    //*boundary = *box.boundary;
+    //*forcefield = *box.forcefield;
+    //*integrator = *box.integrator;
+    //*velocity = *box.velocity;
+    *distance_manager = *box.distance_manager;
+
+    initialized = box.initialized;
+    store_energy = box.store_energy;
+    store_distance = box.store_distance;
+    npar = box.npar;
+    step = box.step;
+    ntype = box.ntype;
+    nmove = box.nmove;
+    box_id = box.box_id;
+    nconstraint = box.nconstraint;
+    poteng = box.poteng;
+    time = box.time;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Swap the ownership of the internals
+------------------------------------------------------------------------------- */
+
+void Box::swap(Box &other)
+{
+    unsigned int npar_tmp, step_tmp, ntype_tmp, nmove_tmp, box_id_tmp, nconstraint_tmp;
+    bool initialized_tmp, store_energy_tmp, store_distance_tmp;
+    double time_tmp, poteng_tmp;
+    std::vector<unsigned int> nsystemsize_tmp, npartype_tmp;
+    std::vector<Particle> particles_tmp;
+    std::vector<Constraint *> constraints_tmp;
+
+    System *system_tmp = system;
+    system = other.system;
+    other.system = system_tmp;
+    Dump *dump_tmp = dump;
+    dump = other.dump;
+    other.dump = dump_tmp;
+    Thermo *thermo_tmp = thermo;
+    thermo = other.thermo;
+    other.thermo = thermo_tmp;
+    Boundary *boundary_tmp = boundary;
+    boundary = other.boundary;
+    other.boundary = boundary_tmp;
+    ForceField *forcefield_tmp = forcefield;
+    forcefield = other.forcefield;
+    other.forcefield = forcefield_tmp;
+    //integrator = box.integrator;
+    //velocity = box.velocity;
+    DistanceManager *distance_manager_tmp = distance_manager;
+    distance_manager = other.distance_manager;
+    other.distance_manager = distance_manager_tmp;
+
+    initialized_tmp = initialized;
+    initialized = other.initialized;
+    other.initialized = initialized_tmp;
+    store_energy_tmp = store_energy;
+    store_energy = other.store_energy;
+    other.store_energy = store_energy_tmp;
+    store_distance_tmp = store_distance;
+    store_distance = other.store_distance;
+    other.store_distance = store_distance_tmp;
+
+    npar_tmp = npar;
+    npar = other.npar;
+    other.npar = npar_tmp;
+    step_tmp = step;
+    step = other.step;
+    other.step = step_tmp;
+    ntype_tmp = ntype;
+    ntype = other.ntype;
+    other.ntype = ntype_tmp;
+    nmove_tmp = nmove;
+    nmove = other.nmove;
+    other.nmove = nmove_tmp;
+    box_id_tmp = box_id;
+    box_id = other.box_id;
+    other.box_id = box_id_tmp;
+    nconstraint_tmp = nconstraint;
+    nconstraint = other.nconstraint;
+    other.nconstraint = nconstraint_tmp;
+
+    poteng_tmp = poteng;
+    poteng = other.poteng;
+    other.poteng = poteng_tmp;
+    time_tmp = time;
+    time = other.time;
+    other.time = time_tmp;
+
+    nsystemsize_tmp = nsystemsize;
+    nsystemsize = other.nsystemsize;
+    other.nsystemsize = nsystemsize_tmp;
+    npartype_tmp = npartype;
+    npartype = other.npartype;
+    other.npartype = npartype_tmp;
+    particles_tmp = particles;
+    particles = other.particles;
+    other.particles = particles_tmp;
+    constraints_tmp = constraints;
+    constraints = other.constraints;
+    other.constraints = constraints_tmp;
+}
+
+
+/* ----------------------------------------------------------------------------
    Overwrite default forcefield object
 ------------------------------------------------------------------------------- */
 
@@ -84,7 +211,7 @@ void Box::set_forcefield(ForceField* forcefield_in)
    Set box boundaries
 ------------------------------------------------------------------------------- */
 
-void Box::set_boundary(class Boundary* boundary_in)
+void Box::set_boundary(Boundary* boundary_in)
 {
     boundary = boundary_in;
 }
@@ -102,7 +229,7 @@ void Box::add_particle(Particle particle)
         exit(0);
     }
     npar ++;
-    particle.type = forcefield->label2type.at(particle.label);
+    particle.type = forcefield->label2type[particle.label];
     npartype.resize(forcefield->ntype);
     npartype[particle.type] ++;
     system->ndim = particle.r.size();
@@ -138,7 +265,7 @@ void Box::add_particles(std::vector<Particle> particles_in)
    'particles_in'.
 ------------------------------------------------------------------------------- */
 
-void Box::add_particles(std::string label, std::vector<std::valarray<double> > positions_in)
+void Box::add_particles(const std::string &label, std::vector<std::valarray<double> > positions_in)
 {
     for (std::valarray<double> position : positions_in) {
         add_particle(label, position);
@@ -147,10 +274,23 @@ void Box::add_particles(std::string label, std::vector<std::valarray<double> > p
 
 
 /* ----------------------------------------------------------------------------
+   Initialize particles from an xyz-file, 'filename'
+------------------------------------------------------------------------------- */
+
+void Box::read_particles(const std::string &filename)
+{
+    std::vector<Particle> particles = read_xyz(filename);
+    for (Particle particle : particles) {
+        add_particle(particle);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
    Add box constraint
 ------------------------------------------------------------------------------- */
 
-void Box::add_constraint(class Constraint* constraint)
+void Box::add_constraint(Constraint* constraint)
 {
     if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
@@ -191,9 +331,9 @@ void Box::snapshot(std::string filename, const bool mark_file)
         filename = file_marking() + filename;
     }
     std::vector<std::string> outputs = {"xyz"};
-    Dump* tmp_dump = new Dump(this, 1, filename, outputs);
-    tmp_dump->print_frame(0);
-    delete tmp_dump;
+    Dump* dump_tmp = new Dump(this, 1, filename, outputs);
+    dump_tmp->print_frame(0);
+    delete dump_tmp;
 }
 
 /* ----------------------------------------------------------------------------
@@ -231,18 +371,20 @@ void Box::set_thermo(const int freq, std::string filename,
 
 double normsq(std::valarray<double> array)
 {
-    double sumsq = 0.;
+    double sumsq;
+
+    sumsq = 0.;
     for(double element : array){
         sumsq += element * element;
     }
     return sumsq;
 }
 
-std::vector<int> Box::build_neigh_list(const int i, const double rsq)
+std::vector<unsigned int> Box::build_neigh_list(const int i, const double rsq)
 {
     double rijsq;
     std::valarray<double> ri = particles[i].r;
-    std::vector<int> neigh_list;
+    std::vector<unsigned int> neigh_list;
     for(unsigned int j=0; j<i; j++){
         rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq){
@@ -259,14 +401,16 @@ std::vector<int> Box::build_neigh_list(const int i, const double rsq)
     return neigh_list;
 }
 
-std::vector<int> Box::build_neigh_list(const int i, double **rsq)
+std::vector<unsigned int> Box::build_neigh_list(const int i, double **rsq)
 {
-    unsigned int typei, typej, equaltypecount;
+    unsigned int typei, typej, j, equaltypecount;
     double rijsq;
     typei = particles[i].type;
     std::valarray<double> ri = particles[i].r;
-    std::vector<int> neigh_list;
-    for(unsigned int j=0; j<i; j++){
+    std::vector<unsigned int> neigh_list;
+
+    equaltypecount = 0;
+    for(j=0; j<i; j++){
         typej = particles[j].type;
         rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq[typei][typej]){
@@ -274,7 +418,7 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
             if (typej == typei) equaltypecount++;
         }
     }
-    for(unsigned int j=i+1; j<npar; j++){
+    for(j=i+1; j<npar; j++){
         typej = particles[j].type;
         rijsq = normsq(particles[j].r - ri);
         if(rijsq < rsq[typei][typej]){
@@ -294,11 +438,11 @@ std::vector<int> Box::build_neigh_list(const int i, double **rsq)
    file 'filename'
 ------------------------------------------------------------------------------- */
 
-void Box::write_nsystemsize(std::string filename)
+void Box::write_nsystemsize(const std::string &filename)
 {
     //int maxsize;
     //MPI_Barrier(MPI_COMM_WORLD);
-    int size = nsystemsize.size();
+    unsigned int size = nsystemsize.size();
     //MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
     //MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
     //nsystemsize.resize(maxsize);
@@ -320,5 +464,4 @@ Box::~Box()
 {
     delete dump;
     delete thermo;
-    delete distance_manager;
 }

@@ -10,5 +10,5 @@ class MaxDistance : public Constraint
 {
 public:
     MaxDistance(class Box *, std::string, std::string, double);
-    bool verify();
+    bool verify() override;
 };

@@ -87,47 +87,46 @@ auto move_idx = [] (Box* box) -> double {
    arguments.
 ------------------------------------------------------------------------------- */
 
-Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
-               const std::vector<std::string> outputs_in)
+Thermo::Thermo(Box* box_in, const int freq_in, const std::string &filename,
+               const std::vector<std::string> &outputs_in) : outputs(outputs_in)
 {
     // store box and outputs
     freq = freq_in;
     box = box_in;
-    outputs = outputs_in;
 
     // open file
     f.open(filename);
     print_header();
 
     // fill vector with output functions
-    for(std::string i : outputs_in){
-        if(i == "step"){
+    for (std::string i : outputs_in) {
+        if (i == "step") {
             output_functions.push_back(step);
         }
-        else if(i == "time"){
+        else if (i == "time") {
             output_functions.push_back(time_);
         }
-        else if(i == "atoms"){
+        else if (i == "atoms") {
             output_functions.push_back(atoms);
         }
-        else if(i == "types"){
+        else if (i == "types") {
             output_functions.push_back(types);
         }
-        else if(i == "poteng"){
+        else if (i == "poteng") {
             output_functions.push_back(poteng);
         }
         /*
-        else if(i == "kineng"){
+        else if (i == "kineng") {
             output_functions.push_back(kineng);
         }
-        else if(i == "acceptanceratio"){
+        else if (i == "acceptanceratio") {
             output_functions.push_back(acceptance_ratio);
         }
-        else if(i == "move"){
+        else if (i == "move") {
             output_functions.push_back(move_idx);
         }
         */
-        else{
+        else {
             std::cout << "No output style '" + i + "' exists! Aborting." << std::endl;
             exit(0);
         }
@@ -142,11 +141,9 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string filename,
 void Thermo::print_header()
 {
     f << "# ";
-    for(std::string i : outputs){
-        //std::cout << i << " ";
+    for (std::string i : outputs) {
         f << i << " ";
     }
-    //std::cout << std::endl;
     f << std::endl;
 }
 
@@ -155,16 +152,14 @@ void Thermo::print_header()
    Print thermo outputs of current step
 ------------------------------------------------------------------------------- */
 
-void Thermo::print_line(const int step)
+void Thermo::print_line (const int step)
 {
-    if(step % freq == 0){
+    if (step % freq == 0) {
         //std::cout << std::fixed; // << std::setprecision(6);
         f << std::scientific;
-        for(auto func : output_functions){
-            //std::cout << func(box) << "\t ";
+        for (auto func : output_functions) {
             f << func(box) << "\t ";
         }
-        //std::cout << std::endl;
         f << std::endl;
     }
 }

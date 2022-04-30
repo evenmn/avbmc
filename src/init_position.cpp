@@ -7,7 +7,7 @@
 #include "particle.h"
 
 
-/* -----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Creating a face-centered cube of n^dim unit cells with
    4 particles in each unit cell. The number of particles
    then becomes (dim+1) * n ^ dim. Each unit cell has a
@@ -20,7 +20,7 @@
        length of box
    dim : int
        number of dimensions
---------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
 {
@@ -68,7 +68,8 @@ std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
     return positions;
 }
 
-std::vector<class Particle *> from_xyz(std::string filename)
+
+std::vector<class Particle *> from_xyz(const std::string &filename)
 {
     std::vector<class Particle *> particles;  // = read_xyz(filename);
     return particles;

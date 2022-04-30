@@ -6,8 +6,8 @@
 
 #include "io.h"
 #include "dump.h"
-#include "../box.h"
-#include "../particle.h"
+#include "box.h"
+#include "particle.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -16,7 +16,7 @@
 
 auto x = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(unsigned int i = 0; i<box->npar; i++){
+    for (unsigned int i = 0; i<box->npar; i++) {
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[0];
     }
@@ -30,7 +30,7 @@ auto x = [] (Box* box) -> double ** {
 
 auto y = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(unsigned int i = 0; i<box->npar; i++){
+    for (unsigned int i = 0; i<box->npar; i++) {
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[1];
     }
@@ -43,7 +43,7 @@ auto y = [] (Box* box) -> double ** {
 
 auto z = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(unsigned int i = 0; i<box->npar; i++){
+    for (unsigned int i = 0; i<box->npar; i++) {
         data[i] = new double[1];
         data[i][0] = box->particles[i].r[2];
     }
@@ -57,7 +57,7 @@ auto z = [] (Box* box) -> double ** {
 
 auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(unsigned int i = 0; i<box->npar; i++){
+    for (unsigned int i = 0; i<box->npar; i++) {
         data[i] = new double[2];
         data[i][0] = box->particles[i].r[0];
         data[i][1] = box->particles[i].r[1];
@@ -72,7 +72,7 @@ auto xy = [] (Box* box) -> double ** {
 
 auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
-    for(unsigned int i = 0; i<box->npar; i++){
+    for (unsigned int i = 0; i<box->npar; i++) {
         data[i] = new double[3];
         data[i][0] = box->particles[i].r[0];
         data[i][1] = box->particles[i].r[1];
@@ -129,14 +129,14 @@ auto axayaz = [] (class Box* box) -> mat {
    'outputs_in'.
 ------------------------------------------------------------------------------- */
 
-Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
+Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
            const std::vector<std::string> outputs_in)
 {
     // store box and outputs
     freq = freq_in;
     box = box_in;
 
-    if(freq != 0){
+    if (freq != 0) {
         // sort outputs
         outputs = outputs_in;  //sort(outputs_in.begin(), outputs_in.end());
 
@@ -144,7 +144,7 @@ Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
         info_line = "";
         nvar = 0;
         nvars.clear();
-        for(std::string i : outputs){
+        for (std::string i : outputs) {
             info_line += i + " ";
             /*
             if(i == "ax"){
@@ -178,32 +178,32 @@ Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
                 output_functions.push_back(vxvyvz);
             }
             */
-            if(i == "x"){
+            if (i == "x") {
                 nvar ++;
                 nvars.push_back(1);
                 output_functions.push_back(x);
             }
-            else if(i == "y"){
+            else if (i == "y") {
                 nvar ++;
                 nvars.push_back(1);
                 output_functions.push_back(y);
             }
-            else if(i == "z"){
+            else if (i == "z") {
                 nvar ++;
                 nvars.push_back(1);
                 output_functions.push_back(z);
             }
-            else if(i == "xy"){
+            else if (i == "xy") {
                 nvar += 2;
                 nvars.push_back(2);
                 output_functions.push_back(xy);
             }
-            else if(i == "xyz"){
+            else if (i == "xyz") {
                 nvar += 3;
                 nvars.push_back(3);
                 output_functions.push_back(xyz);
             }
-            else{
+            else {
                 std::cout << "No output style '" + i + "' exists!" << std::endl;
                 exit(0);
             }
@@ -219,34 +219,37 @@ Dump::Dump(Box* box_in, const int freq_in, const std::string filename,
    Dump atom quantities at the current step
 ------------------------------------------------------------------------------- */
 
-void Dump::print_frame(const int step)
+void Dump::print_frame(const unsigned int step)
 {
-    if(freq != 0){
-        if(step % freq == 0){
-            // create array for all data to dump
-            double** dump_data = new double*[box->npar];
-            for(unsigned int i = 0; i<box->npar; i++){
+    unsigned int i, j, k, cum_nvar;
+    double **dump_data, **tmp_data;
+
+    if (freq != 0) {
+        if (step % freq == 0) {
+            // allocate array for all data to dump
+            dump_data = new double*[box->npar];
+            for(i=0; i<box->npar; i++){
                 dump_data[i] = new double[nvar];
             }
 
             // fill up array 
-            int o = 0;
-            int cum_nvar = 0;
+            k = cum_nvar = 0;
             for(auto func : output_functions){
-                double **tmp_data = func(box);
-                for(unsigned int i=0; i<box->npar; i++){
-                    for(int j=0; j<nvars[o]; j++){
+                tmp_data = func(box);
+                for(i=0; i<box->npar; i++){
+                    for(j=0; j<nvars[k]; j++){
                         dump_data[i][cum_nvar + j] = tmp_data[i][j];
                     }
                     delete[] tmp_data[i];
                 }
                 delete [] tmp_data;
-                cum_nvar += nvars[o];
-                o ++;
+                cum_nvar += nvars[k];
+                k++;
             }
 
             // get labels
             std::vector<std::string> labels;
+            // std::transform is faster
             for(Particle particle : box->particles)
                 labels.push_back(particle.label);
 
@@ -254,7 +257,7 @@ void Dump::print_frame(const int step)
             write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
 
             // free memory
-            for(unsigned int i = 0; i<box->npar; i++){
+            for(i=0; i<box->npar; i++){
                 delete[] dump_data[i];
             }
             delete [] dump_data;
@@ -264,5 +267,10 @@ void Dump::print_frame(const int step)
 
 
 /* ----------------------------------------------------------------------------
+   Dump destructor, closing dump file.
 ------------------------------------------------------------------------------- */
-Dump::~Dump() { f.close(); }
+
+Dump::~Dump()
+{
+    f.close();
+}

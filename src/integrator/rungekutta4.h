@@ -8,7 +8,7 @@ class RungeKutta4 : public Integrator
 {
 public:
     RungeKutta4(class Box *, double = 0.01);
-    double next_step();
+    double next_step() override;
 
 private:
     double dt2;

@@ -4,12 +4,14 @@
 #include <vector>
 #include <valarray>
 #include <map>
+#include <memory>
 
 
 class System
 {
 public:
-    System(std::string  = "."); 
+    System(const std::string & = "."); 
+    System(const System &);
 
     // methods
     void set_sampler(class Sampler*);
@@ -36,17 +38,17 @@ public:
     // variables
     class Sampler* sampler = nullptr;
     class RandomNumberGenerator* rng = nullptr;
+    //std::unique_ptr<class RandomNumberGenerator> rng = nullptr;
 
     bool logo_printed;
-    int nbox, ndim, nmove, nprocess, step, rank;
+    unsigned int nbox, ndim, nmove, nprocess, step, rank;
     double temp, chempot, poteng, time;
     std::string working_dir;
 
-    std::map<std::string, int> label2type;
     std::vector<class Box *> boxes;
-    std::vector<std::string> unique_labels;
-    std::vector<std::string> mass_labels;
-    std::vector<double> masses;
+    //std::vector<std::string> unique_labels;
+    //std::vector<std::string> mass_labels;
+    //std::vector<double> masses;
     std::vector<class Moves *> moves;
     std::vector<double> moves_prob;
 };

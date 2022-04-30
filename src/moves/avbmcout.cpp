@@ -28,22 +28,23 @@
    AVBMCOut constructor
 ------------------------------------------------------------------------------- */
 
-AVBMCOut::AVBMCOut(System* system_in, Box* box_in, std::string label_in,
-                   const double r_above_in)
-    : Moves(system_in)
+AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const std::string &label_in,
+                   const double r_above_in) 
+    : Moves(system_in), particle_label(label_in)
 {
     box = box_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
-    particle_label = label_in;
+    n_in = 0;
+    //particle_label = label_in;
+    reject_move = true;
     label = "AVBMCOut";
 }
 
 
 /* ----------------------------------------------------------------------------
-   Remove a random particle from the bonded region of
-   another particle.
+   Remove a random particle from the bonded region of another particle.
 ------------------------------------------------------------------------------- */
 
 void AVBMCOut::perform_move()
@@ -61,7 +62,7 @@ void AVBMCOut::perform_move()
             counti ++;
         }
         if (!reject_move) {
-            std::vector<int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+            std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
             n_in = neigh_listi.size();
 
             if (n_in > 0) {
