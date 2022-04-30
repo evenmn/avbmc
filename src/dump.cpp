@@ -136,7 +136,10 @@ Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
     freq = freq_in;
     box = box_in;
 
-    if (freq != 0) {
+    if (freq > 0) {
+        // open file
+        f.open(filename);
+
         // sort outputs
         outputs = outputs_in;  //sort(outputs_in.begin(), outputs_in.end());
 
@@ -208,9 +211,6 @@ Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
                 exit(0);
             }
         }
-
-        // open file and write
-        f.open(filename);
     }
 }
 
@@ -221,10 +221,10 @@ Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
 
 void Dump::print_frame(const unsigned int step)
 {
-    unsigned int i, j, k, cum_nvar;
-    double **dump_data, **tmp_data;
+    if (freq > 0) {
+        unsigned int i, j, k, cum_nvar;
+        double **dump_data, **tmp_data;
 
-    if (freq != 0) {
         if (step % freq == 0) {
             // allocate array for all data to dump
             dump_data = new double*[box->npar];
@@ -250,14 +250,15 @@ void Dump::print_frame(const unsigned int step)
             // get labels
             std::vector<std::string> labels;
             // std::transform is faster
-            for(Particle particle : box->particles)
+            for (Particle particle : box->particles) {
                 labels.push_back(particle.label);
+            }
 
             // write to file
             write_xyz(f, dump_data, box->npar, nvar, labels, info_line);
 
             // free memory
-            for(i=0; i<box->npar; i++){
+            for (i=0; i<box->npar; i++) {
                 delete[] dump_data[i];
             }
             delete [] dump_data;
@@ -272,5 +273,7 @@ void Dump::print_frame(const unsigned int step)
 
 Dump::~Dump()
 {
-    f.close();
+    if (f.is_open()) {
+        f.close();
+    }
 }

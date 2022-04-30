@@ -94,41 +94,43 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string &filename,
     freq = freq_in;
     box = box_in;
 
-    // open file
-    f.open(filename);
-    print_header();
+    if (freq > 0) {
+        // open file
+        f.open(filename);
+        print_header();
 
-    // fill vector with output functions
-    for (std::string i : outputs_in) {
-        if (i == "step") {
-            output_functions.push_back(step);
-        }
-        else if (i == "time") {
-            output_functions.push_back(time_);
-        }
-        else if (i == "atoms") {
-            output_functions.push_back(atoms);
-        }
-        else if (i == "types") {
-            output_functions.push_back(types);
-        }
-        else if (i == "poteng") {
-            output_functions.push_back(poteng);
-        }
-        /*
-        else if (i == "kineng") {
-            output_functions.push_back(kineng);
-        }
-        else if (i == "acceptanceratio") {
-            output_functions.push_back(acceptance_ratio);
-        }
-        else if (i == "move") {
-            output_functions.push_back(move_idx);
-        }
-        */
-        else {
-            std::cout << "No output style '" + i + "' exists! Aborting." << std::endl;
-            exit(0);
+        // fill vector with output functions
+        for (std::string i : outputs_in) {
+            if (i == "step") {
+                output_functions.push_back(step);
+            }
+            else if (i == "time") {
+                output_functions.push_back(time_);
+            }
+            else if (i == "atoms") {
+                output_functions.push_back(atoms);
+            }
+            else if (i == "types") {
+                output_functions.push_back(types);
+            }
+            else if (i == "poteng") {
+                output_functions.push_back(poteng);
+            }
+            /*
+            else if (i == "kineng") {
+                output_functions.push_back(kineng);
+            }
+            else if (i == "acceptanceratio") {
+                output_functions.push_back(acceptance_ratio);
+            }
+            else if (i == "move") {
+                output_functions.push_back(move_idx);
+            }
+            */
+            else {
+                std::cout << "No output style '" + i + "' exists! Aborting." << std::endl;
+                exit(0);
+            }
         }
     }
 }
@@ -154,7 +156,7 @@ void Thermo::print_header()
 
 void Thermo::print_line (const int step)
 {
-    if (step % freq == 0) {
+    if (freq > 0 && step % freq == 0) {
         //std::cout << std::fixed; // << std::setprecision(6);
         f << std::scientific;
         for (auto func : output_functions) {

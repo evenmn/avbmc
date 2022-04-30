@@ -347,12 +347,10 @@ void System::run_mc(const int nsteps, const int nmoves)
         //if (rank == 0){
         bar.progress(step * nprocess, maxiter * nprocess);
         //}
-        /*
         for (Box* box : boxes) {
             box->dump->print_frame(step);
             box->thermo->print_line(step);
         }
-        */
         sampler->sample(nmoves);
         step ++;
     }
