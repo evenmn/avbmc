@@ -283,7 +283,6 @@ void LennardJones::allocate_memory()
 {
     unsigned int i;
 
-    free_memory();  // in case memory has been allocated before
     sigma_mat = new double*[ntype];
     epsilon_mat = new double*[ntype];
     rc_sqrd_mat = new double*[ntype];
