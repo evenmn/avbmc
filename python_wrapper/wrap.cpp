@@ -98,7 +98,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_rng", &System::set_rng)
         .def("set_temp", &System::set_temp)
         .def("set_chempot", &System::set_chempot)
-        .def("add_move", &System::add_move)
+        .def("add_move", &System::add_move, "Add move to the list of moves",
+            py::arg("system"), py::arg("prob") = 1.0)
         .def("add_box", &System::add_box)
         //.def("run_md", &System::run_md)
         .def("run_mc", &System::run_mc)
@@ -205,4 +206,10 @@ PYBIND11_MODULE(avbmc, m) {
     // Dump
     py::class_<Dump>(m, "Dump")
         .def(py::init<Box *, int, std::string, std::vector<std::string> >());
+}
+
+int main()
+{
+    std::cout << "hey" << std::endl;
+    return 0;
 }
