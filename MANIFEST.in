@@ -1,0 +1,20 @@
+# include C++ source files
+#include src/*.cpp
+#include src/**/*.cpp
+recursive-include src *.cpp
+
+# include C++ header files
+#include src/*.h
+#include src/**/*.h
+recursive-include src *.h
+recursive-include include *.h
+
+# include wrapper script
+include python_wrapper/wrap.cpp
+
+# include makefiles
+include makefile
+include python_wrapper/makefile
+
+# include C++ library (temporary)
+#include python_wrapper/avbmc_core.cpython-38-x86_64-linux-gnu.so
