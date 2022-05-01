@@ -4,6 +4,7 @@
 #include <valarray>
 #include <cassert>
 #include <chrono>
+#include <functional>
 
 //#include <mpi.h>
 
@@ -15,8 +16,14 @@
 #include "rng/rng.h"
 #include "rng/mersennetwister.h"
 #include "boundary/boundary.h"
+#include "boundary/open.h"
+#include "boundary/periodic.h"
 #include "forcefield/forcefield.h"
+#include "forcefield/idealgas.h"
+#include "forcefield/lennardjones.h"
+#include "forcefield/vashishta.h"
 #include "sampler/metropolis.h"
+#include "sampler/umbrella.h"
 #include "moves/moves.h"
 #include "particle.h"
 #include "distance_manager.h"
@@ -33,7 +40,8 @@
           of each particle
 ------------------------------------------------------------------------------- */
 
-System::System(const std::string &working_dir_in) : working_dir(working_dir_in)
+System::System(const std::string &working_dir_in, bool initialize_in) 
+    : working_dir(working_dir_in)
 {
     nbox = nmove = step = rank = 0;
     time = temp = chempot = poteng = 0.;
@@ -47,7 +55,12 @@ System::System(const std::string &working_dir_in) : working_dir(working_dir_in)
     rng = new MersenneTwister;
     sampler = new Metropolis(this);
 
-    
+    // initialize box 
+    if (initialize_in) {
+        Box *box = new Box(this);
+        add_box(box);
+        box->box_allocated_in_system = true;
+    }
 
     /*
     // initialize MPI
@@ -119,11 +132,12 @@ void System::set_mass(const std::string label, const double mass)
 }
 */
 
+
 /* ----------------------------------------------------------------------------
    Overwrite default sampler, Metropolis
 ------------------------------------------------------------------------------- */
 
-void System::set_sampler(class Sampler* sampler_in)
+void System::set_sampler(class Sampler *sampler_in)
 {
     if (!sampler_allocated_externally) {
         delete sampler;
@@ -132,6 +146,26 @@ void System::set_sampler(class Sampler* sampler_in)
     sampler_allocated_externally = true;
 }
 
+
+void System::set_sampler(const std::string &sampler_in, std::function<double(int)> f)
+{
+    if (!sampler_allocated_externally) {
+        delete sampler;
+    }
+    if (sampler_in == "metropolis") {
+        sampler = new Metropolis(this);
+        sampler_allocated_externally = false;
+    }
+    else if (sampler_in == "umbrella") {
+        sampler = new Umbrella(this, f);
+        sampler_allocated_externally = false;
+    }
+    else {
+        std::cout << "Sampler '" << sampler_in << "' is not implemented!"
+                  << "Aborting." << std::endl;
+        exit(0);
+    }
+}
 
 /* ----------------------------------------------------------------------------
    Overwrite default random number generator, Mersenne Twister
@@ -144,6 +178,320 @@ void System::set_rng(class RandomNumberGenerator* rng_in)
     }
     rng = rng_in;
     rng_allocated_externally = true;
+}
+
+
+void System::set_rng(const std::string &rng_in)
+{
+    if (!rng_allocated_externally) {
+        delete rng;
+    }
+    if (rng_in == "mersennetwister") {
+        rng = new MersenneTwister;
+        rng_allocated_externally = false;
+    }
+    else if (rng_in == "mt19937") {
+        rng = new MersenneTwister;
+        rng_allocated_externally = false;
+    }
+    else {
+        std::cout << "Random number generator '" << rng_in << "' is not implemented!"
+                  << "Aborting." << std::endl;
+        exit(0);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Set forcefield. This method is forward to the box and can only be done if a
+   box was detected.
+------------------------------------------------------------------------------- */
+
+void System::set_forcefield(class ForceField* forcefield_in, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set forcefield! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                if (box->forcefield_allocated_in_system) {
+                    delete box->forcefield;
+                }
+                box->set_forcefield(forcefield_in);
+                box->forcefield_allocated_in_system = false;
+            }
+        }
+        else {
+            if (boxes[box_id]->forcefield_allocated_in_system) {
+                delete boxes[box_id]->forcefield;
+            }
+            boxes[box_id]->set_forcefield(forcefield_in);
+            boxes[box_id]->forcefield_allocated_in_system = false;
+        }
+    }
+}
+
+void System::set_forcefield(const std::string &forcefield_in,
+    const std::vector<std::string> &labels, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set forcefield! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (forcefield_in == "idealgas") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    if (box->forcefield_allocated_in_system) {
+                        delete box->forcefield;
+                    }
+                    box->forcefield = new IdealGas(box, labels);
+                    box->forcefield_allocated_in_system = true;
+                }
+            }
+            else {
+                if (boxes[box_id]->forcefield_allocated_in_system) {
+                    delete boxes[box_id]->forcefield;
+                }
+                boxes[box_id]->forcefield = new IdealGas(boxes[box_id], labels);
+                boxes[box_id]->forcefield_allocated_in_system = true;
+            }
+        }
+        else {
+            std::cout << "Force-field '" << forcefield_in << "' is not implemented or"
+                      << "does not have the given signature! Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+
+void System::set_forcefield(const std::string &forcefield_in,
+    const std::string &paramfile, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set forcefield! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (forcefield_in == "lennardjones") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    if (box->forcefield_allocated_in_system) {
+                        delete box->forcefield;
+                    }
+                    box->forcefield = new LennardJones(box, paramfile);
+                    box->forcefield_allocated_in_system = true;
+                }
+            }
+            else {
+                if (boxes[box_id]->forcefield_allocated_in_system) {
+                    delete boxes[box_id]->forcefield;
+                }
+                boxes[box_id]->forcefield = new LennardJones(boxes[box_id], paramfile);
+                boxes[box_id]->forcefield_allocated_in_system = true;
+            }
+        }
+        else if (forcefield_in == "vashishta") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    if (box->forcefield_allocated_in_system) {
+                        delete box->forcefield;
+                    }
+                    box->forcefield = new Vashishta(box, paramfile);
+                    box->forcefield_allocated_in_system = true;
+                }
+            }
+            else {
+                if (boxes[box_id]->forcefield_allocated_in_system) {
+                    delete boxes[box_id]->forcefield;
+                }
+                boxes[box_id]->forcefield = new Vashishta(boxes[box_id], paramfile);
+                boxes[box_id]->forcefield_allocated_in_system = true;
+            }
+        }
+        else {
+            std::cout << "Force-field '" << forcefield_in << "' is not implemented or"
+                      << "does not have the given signature! Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+   
+
+/* ----------------------------------------------------------------------------
+   Set boundary. This method is forward to the box and can only be done if a
+   box was detected.
+------------------------------------------------------------------------------- */
+
+void System::set_boundary(class Boundary *boundary_in, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set boundary" << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->set_boundary(boundary_in);
+                box->boundary_allocated_in_system = false;
+            }
+        }
+        else {
+            boxes[box_id]->set_boundary(boundary_in);
+            boxes[box_id]->boundary_allocated_in_system = false;
+        }
+    }
+}
+
+
+void System::set_boundary(const std::string &boundary_in,
+    std::valarray<double> length, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set boundary" << std::endl;
+        exit(0);
+    }
+    else {
+        if (boundary_in == "open") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    if (!box->boundary_allocated_externally) {
+                        delete box->boundary;
+                        box->boundary_allocated_externally = true;
+                    }
+                    if (box->boundary_allocated_in_system) {
+                        delete box->boundary;
+                    }
+                    box->boundary = new Open(box);
+                    box->boundary_allocated_in_system = true;
+                }
+            }
+            else {
+                if (!boxes[box_id]->boundary_allocated_externally) {
+                    delete boxes[box_id]->boundary;
+                    boxes[box_id]->boundary_allocated_externally = true;
+                }
+                if (boxes[box_id]->boundary_allocated_in_system) {
+                    delete boxes[box_id]->boundary;
+                }
+                boxes[box_id]->boundary = new Open(boxes[box_id]);
+                boxes[box_id]->boundary_allocated_in_system = true;
+            }
+        }
+        else if (boundary_in == "periodic") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    if (!box->boundary_allocated_externally) {
+                        delete box->boundary;
+                        box->boundary_allocated_externally = true;
+                    }
+                    if (box->boundary_allocated_in_system) {
+                        delete box->boundary;
+                    }
+                    box->boundary = new Periodic(box, length);
+                    box->boundary_allocated_in_system = true;
+                }
+            }
+            else {
+                if (!boxes[box_id]->boundary_allocated_externally) {
+                    delete boxes[box_id]->boundary;
+                    boxes[box_id]->boundary_allocated_externally = true;
+                }
+                if (boxes[box_id]->boundary_allocated_in_system) {
+                    delete boxes[box_id]->boundary;
+                }
+                boxes[box_id]->boundary = new Periodic(boxes[box_id], length);
+                boxes[box_id]->boundary_allocated_in_system = true;
+            }
+        }
+        else {
+            std::cout << "Boundary '" << boundary_in << "' is not implemented!"
+                      << "Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Add constraint. This method is forward to the box and can only be done if a
+   box was detected.
+------------------------------------------------------------------------------- */
+
+void System::add_constraint(class Constraint* constraint_in, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add constraint" << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            if (nbox > 1) {
+                std::cout << "Warning: More than one box was detected. Setting"
+                          << "constraint for all boxes" << std::endl;
+            }
+            for (Box *box : boxes) {
+                box->add_constraint(constraint_in);
+            }
+        }
+        else {
+            boxes[box_id]->add_constraint(constraint_in);
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Take a snapshot of a given box.
+------------------------------------------------------------------------------- */
+
+void System::snapshot(const std::string &filename, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot take snapshot! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        boxes[box_id]->snapshot(filename);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Set dump. This method is forward to the box and can only be done if
+   a box was detected.
+------------------------------------------------------------------------------- */
+
+void System::set_dump(int freq, const std::string &filename,
+    const std::vector<std::string> &outputs, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set dump! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        boxes[box_id]->set_dump(freq, filename, outputs);
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Set thermo. This method is forward to the box and can only be done if a box
+   was detected.
+------------------------------------------------------------------------------- */
+
+void System::set_thermo(int freq, const std::string &filename,
+    const std::vector<std::string> &outputs, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot set thermo! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        boxes[box_id]->set_thermo(freq, filename, outputs);
+    }
 }
 
 
@@ -168,6 +516,14 @@ void System::add_move(Moves* move, double prob)
 /* ----------------------------------------------------------------------------
    Add box 'box_in' to system
 ------------------------------------------------------------------------------- */
+
+void System::add_box()
+{
+    Box *box = new Box(this);
+    add_box(box);
+    box->box_allocated_in_system = true;
+}
+
 
 void System::add_box(Box* box_in)
 {
@@ -399,6 +755,18 @@ System::~System()
     }
     if (!sampler_allocated_externally) {
         delete sampler;
+    }
+
+    for (Box *box : boxes) {
+        if (box->forcefield_allocated_in_system) {
+            delete box->forcefield;
+        }
+        if (box->boundary_allocated_in_system) {
+            delete box->boundary;
+        }
+        if (box->box_allocated_in_system) {
+            delete box;
+        }
     }
     //MPI_Finalize();
 }

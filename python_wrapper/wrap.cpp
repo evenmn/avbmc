@@ -93,16 +93,34 @@ PYBIND11_MODULE(avbmc, m) {
 
     // System
     py::class_<System>(m, "System")
-        .def(py::init<std::string>(), py::arg("working_dir_in") = "")
-        .def("set_sampler", &System::set_sampler)
-        .def("set_rng", &System::set_rng)
+        .def(py::init<std::string, bool>(), py::arg("working_dir") = "", py::arg("initialize") = true)
+        .def("set_sampler", py::overload_cast<Sampler *>(&System::set_sampler))
+        .def("set_sampler", py::overload_cast<const std::string &, std::function<double(int)> >(&System::set_sampler))
+        .def("set_rng", py::overload_cast<RandomNumberGenerator *>(&System::set_rng))
+        .def("set_rng", py::overload_cast<const std::string &>(&System::set_rng))
         .def("set_temp", &System::set_temp)
         .def("set_chempot", &System::set_chempot)
         .def("add_move", &System::add_move, "Add move to the list of moves",
             py::arg("system"), py::arg("prob") = 1.0)
-        .def("add_box", &System::add_box)
-        //.def("run_md", &System::run_md)
-        .def("run_mc", &System::run_mc)
+        .def("add_box", py::overload_cast<>(&System::add_box))
+        .def("add_box", py::overload_cast<Box *>(&System::add_box))
+        .def("set_forcefield", py::overload_cast<ForceField *, int>(&System::set_forcefield),
+            py::arg("forcefield"), py::arg("box_id") = -1)
+        .def("set_forcefield", py::overload_cast<const std::string &, const std::vector<std::string> &, int>(&System::set_forcefield),
+            py::arg("forcefield"), py::arg("elements"), py::arg("box_id") = -1)
+        .def("set_forcefield", py::overload_cast<const std::string &, const std::string &, int>(&System::set_forcefield),
+            py::arg("forcefield"), py::arg("paramfile"), py::arg("box_id") = -1)
+        .def("set_boundary", py::overload_cast<Boundary *, int>(&System::set_boundary),
+            py::arg("boundary"), py::arg("box_id") = -1)
+        .def("set_boundary", py::overload_cast<const std::string &, std::valarray<double>, int>(&System::set_boundary),
+            py::arg("boundary"), py::arg("length") = {}, py::arg("box_id") = -1)
+        .def("add_constraint", &System::add_constraint, py::arg("constraint"), py::arg("box_id") = -1)
+        .def("snapshot", &System::snapshot, py::arg("filename"), py::arg("box_id") = 0)
+        .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = {}, py::arg("box_id") = 0)
+        .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = {}, py::arg("box_id") = 0)
+
+        //.def("run_md", &System::run_md, py::arg("steps"))
+        .def("run_mc", &System::run_mc, py::arg("cycles"), py::arg("steps") = 1)
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
         .def_readonly("temp", &System::temp)

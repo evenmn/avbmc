@@ -51,6 +51,7 @@ public:
 
     bool initialized, store_energy, store_distance, boundary_allocated_externally;
     bool dump_allocated_externally, thermo_allocated_externally;
+    bool boundary_allocated_in_system, forcefield_allocated_in_system, box_allocated_in_system;
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 

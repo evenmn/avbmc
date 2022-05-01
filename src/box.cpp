@@ -36,7 +36,8 @@ Box::Box(System* system_in) //, int memory_intensity)
 
     time = poteng = 0.;
     initialized = boundary_allocated_externally = dump_allocated_externally =
-        thermo_allocated_externally = false;
+        thermo_allocated_externally = box_allocated_in_system = false;
+    boundary_allocated_in_system = forcefield_allocated_in_system = false;
     npar = ntype = nmove = step = nconstraint = box_id = 0;
 
     // set default values
