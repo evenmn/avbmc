@@ -1,7 +1,7 @@
 ![build docs](https://github.com/henriasv/molecular-builder/workflows/build%20docs/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # AVBMC
-Python library for non-bonded Monte Carlo simulations. Open (uVT) and closed systems (NVT) are supported thought various move types, including translational moves and insertation/deletion moves (AVBMC). Additionally, a groups of particles can be inserted/removed, allowing non-bonded molecule to be inserted/removed. The library is entirely written in C++ for performance reasons, and ported to Python using [pybind11](https://pybind11.readthedocs.io/en/stable/index.html).
+Python library for non-bonded Monte Carlo simulations. Open (uVT) and closed systems (NVT) are supported thought various move types, including translational moves and insertation/deletion moves (AVBMC). Additionally, a groups of particles can be inserted/removed, allowing non-bonded molecule to be inserted/removed. The library is entirely written in C++ for performance reasons, and binded to Python using [pybind11](https://pybind11.readthedocs.io/en/stable/index.html).
 
 ## Prerequisites
 The code depends on several features that were introduced in C++11. GCC 4.8.1 or any later version needed. Python 3.5 or later is required.
@@ -17,14 +17,15 @@ It might takes some time, as the entire library is built.
 ``` python
 import avbmc as mc
 
-avbmc.set_temp(300)
-avbmc.set_chempot(10)
-avbmc.set_potential("lennardjones", "params.lj")
+system = mc.System()
 
-avbmc.add_particle("Ar", (0, 0, 0))
-avbmc.add_move("trans", dx=0.1)
+system.set_temp(1.4)
+system.set_potential("lennardjones", "params.lj")
 
-avbmc.run(100)
+system.add_particle("Ar", [0, 0, 0])
+system.add_move("trans", dx=0.1)
+
+system.run_mc(100)
 ```
 
 ## File formats
