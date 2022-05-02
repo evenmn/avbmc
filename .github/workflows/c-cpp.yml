@@ -18,6 +18,12 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: pip install -e
     #- name: Setup MPI
     #  uses: mpi4py/setup-mpi@v1
     - name: Build with default main.cpp
@@ -26,3 +32,11 @@ jobs:
       run: make run
     #- name: Run on four cores
     #  run: mpirun -n 4 ./main.out
+    - name: Run examples
+      run: |
+      ./examples/lennardjones/basic.py
+      ./examples/lennardjones/objects_only.py
+      ./examples/vashishta/basic.py
+      ./examples/vashishta/objects_only.py
+      ./examples/vashishta/uvt.py
+
