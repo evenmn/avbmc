@@ -42,10 +42,8 @@
 #include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
 #include "system.h"
-//#include "moves/avbmcmolin.h"
-#include "moves/avbmcmolinres.h"
-//#include "moves/avbmcmolout.h"
-#include "moves/avbmcmoloutres.h"
+#include "moves/avbmcmolin.h"
+#include "moves/avbmcmolout.h"
 #include "constraint/minneigh.h"
 #include "constraint/maxneigh.h"
 #include "constraint/mindistance.h"
@@ -56,7 +54,7 @@
 int main()
 {
     // ======  initialize system  ======
-    System system("simulation");
+    System system("simulation", false);
     system.set_temp(320.);
     system.set_chempot(10.);
 
@@ -71,7 +69,7 @@ int main()
 
     // ===== initialize forcefield =====
     //Vashishta forcefield(&box, "H2O.nordhagen.vashishta");
-    // IdealGas forcefield(&box, {"H", "O"});
+    //IdealGas forcefield(&box, {"H", "O"});
     LennardJones forcefield(&box, "params.lj");
     box.set_forcefield(&forcefield);
 
@@ -115,7 +113,7 @@ int main()
     // run Monte Carlo simulation
     //box.snapshot("initial.xyz");
     system.run_mc(1e4, 1);
-    box.snapshot("final.xyz");
+    //box.snapshot("final.xyz");
     //system.run_mc(1e5, 1);
 
     // dump number of status with a certain system size to file
