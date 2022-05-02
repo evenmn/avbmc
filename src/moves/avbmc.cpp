@@ -9,8 +9,12 @@
 ------------------------------------------------------------------------------- */
 
 #include <iostream>
+#include <string>
 
 #include "avbmc.h"
+#include "avbmcin.h"
+#include "avbmcout.h"
+
 #include "../box.h"
 #include "../system.h"
 #include "../rng/rng.h"
@@ -20,14 +24,16 @@
    AVBMC constructor
 ------------------------------------------------------------------------------- */
 
-AVBMC::AVBMC(System* system_in, Box* box_in, const std::string label_in,
-             const double r_below_in, const double r_above_in)
-    : Moves(system_in), AVBMCIn(system_in, box_in, label_in, r_below_in, r_above_in),
-      AVBMCOut(system_in, box_in, label_in, r_above_in)
+AVBMC::AVBMC(System* system_in, Box* box_in, const std::string &label_in,
+             const double r_below_in, const double r_above_in, bool energy_bias_in)
+    : Moves(system_in),
+      AVBMCIn(system_in, box_in, label_in, r_below_in, r_above_in, energy_bias_in),
+      AVBMCOut(system_in, box_in, label_in, r_above_in, energy_bias_in)
 {
     box = box_in;
     r_below = r_below_in;
     r_above = r_above_in;
+    energy_bias = energy_bias_in;
     particle_label = label_in;
     label = "AVBMC";
 }

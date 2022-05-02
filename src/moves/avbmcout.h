@@ -8,7 +8,7 @@
 class AVBMCOut : virtual public Moves
 {
 public:
-    AVBMCOut(class System *, class Box *, const std::string &, double = 3.0);
+    AVBMCOut(class System *, class Box *, const std::string &, double = 3.0, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
@@ -16,7 +16,7 @@ public:
     std::string repr() override;
 
 private:
-    bool reject_move;
+    bool reject_move, energy_bias;
     unsigned int n_in;
     std::string particle_label;
     double r_above, r_abovesq, v_in;

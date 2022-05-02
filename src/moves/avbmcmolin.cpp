@@ -11,7 +11,7 @@
 #include <valarray>
 #include <vector>
 
-#include "avbmcmolinres.h"
+#include "avbmcmolin.h"
 #include "../box.h"
 #include "../system.h"
 #include "../particle.h"
@@ -29,23 +29,22 @@
    'r_below_in' and outer radius 'r_above_in'.
 ------------------------------------------------------------------------------- */
 
-AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
-                       std::vector<Particle> particles_in,
-                       const double r_inner_in,
+AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in, std::vector<Particle> molecule_in,
                        const double r_below_in, const double r_above_in,
+                       const double r_inner_in,
                        const bool energy_bias_in, const bool target_mol_in)
     : Moves(system_in)
 {
     box = box_in;
+    r_inner = r_inner_in;
     r_below = r_below_in;
     r_above = r_above_in;
-    r_inner = r_inner_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
 
     energy_bias = energy_bias_in;
     target_mol = target_mol_in;
-    particles = particles_in;
+    particles = molecule_in;
     natom = particles.size();
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
@@ -69,7 +68,7 @@ AVBMCMolInRes::AVBMCMolInRes(System* system_in, Box* box_in,
    Insert molecule into the bonded region of an equivalent molecule
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolInRes::perform_move()
+void AVBMCMolIn::perform_move()
 {
     bool detected_target;
     unsigned int count, i, j;
@@ -139,7 +138,7 @@ void AVBMCMolInRes::perform_move()
    Get acceptance probability of move
 ------------------------------------------------------------------------------- */
 
-double AVBMCMolInRes::accept(double temp, double chempot)
+double AVBMCMolIn::accept(double temp, double chempot)
 {
     bool constr_satis = true;
     for (Constraint* constraint : box->constraints) {
@@ -160,7 +159,7 @@ double AVBMCMolInRes::accept(double temp, double chempot)
    Set back to old state before move
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolInRes::reset()
+void AVBMCMolIn::reset()
 {
     if (!reject_move) {
         box->distance_manager->reset();
@@ -177,7 +176,7 @@ void AVBMCMolInRes::reset()
    Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolInRes::update_nsystemsize()
+void AVBMCMolIn::update_nsystemsize()
 {
     if (box->npar + 1 > box->nsystemsize.size()) {
         box->nsystemsize.resize(box->npar + 1);
@@ -190,7 +189,7 @@ void AVBMCMolInRes::update_nsystemsize()
    Represent move in a clean way
 ------------------------------------------------------------------------------- */
 
-std::string AVBMCMolInRes::repr()
+std::string AVBMCMolIn::repr()
 {
     std::string move_info;
     move_info += "AVBMC molecule insertion move\n";

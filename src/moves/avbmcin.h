@@ -8,7 +8,7 @@
 class AVBMCIn : virtual public Moves
 {
 public:
-    AVBMCIn(class System *, class Box *, std::string, double = 0.9, double = 1.5);
+    AVBMCIn(class System *, class Box *, const std::string &, double = 0.9, double = 1.5, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
@@ -16,6 +16,7 @@ public:
     std::string repr() override;
 
 private:
+    bool energy_bias;
     unsigned int n_in, particle_type;
     double r_below, r_above, r_belowsq, r_abovesq, v_in;
     std::string particle_label;

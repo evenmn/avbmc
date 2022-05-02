@@ -28,16 +28,16 @@
    AVBMCOut constructor
 ------------------------------------------------------------------------------- */
 
-AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const std::string &label_in,
-                   const double r_above_in) 
-    : Moves(system_in), particle_label(label_in)
+AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const std::string &particle_in,
+                   const double r_above_in, bool energy_bias_in) 
+    : Moves(system_in), particle_label(particle_in)
 {
     box = box_in;
+    energy_bias = energy_bias_in;
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     n_in = 0;
-    //particle_label = label_in;
     reject_move = true;
     label = "AVBMCOut";
 }

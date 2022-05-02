@@ -2,7 +2,7 @@
 #include <cmath>
 #include <vector>
 
-#include "avbmcmoloutres.h"
+#include "avbmcmolout.h"
 #include "../box.h"
 #include "../system.h"
 #include "../particle.h"
@@ -25,7 +25,7 @@
    defining the target molecule as the entire molecule or main atom.
 ------------------------------------------------------------------------------- */
 
-AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
+AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
          std::vector<Particle> molecule_in, const double r_above_in,
          const double r_inner_in, const bool energy_bias_in,
          const bool target_mol_in)
@@ -61,7 +61,7 @@ AVBMCMolOutRes::AVBMCMolOutRes(System* system_in, Box* box_in,
    Remove a random molecule from the bonded region of another similar molecule.
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolOutRes::perform_move()
+void AVBMCMolOut::perform_move()
 {
     bool detected_out, detected_target;
     unsigned int count, i, j, n_in;
@@ -147,7 +147,7 @@ void AVBMCMolOutRes::perform_move()
    'temp' and chemical potential 'chempot'.
 ------------------------------------------------------------------------------- */
 
-double AVBMCMolOutRes::accept(double temp, double chempot)
+double AVBMCMolOut::accept(double temp, double chempot)
 {
     bool constr_satis = true;
     for (Constraint* constraint : box->constraints) {
@@ -169,7 +169,7 @@ double AVBMCMolOutRes::accept(double temp, double chempot)
    Set back to old state if move is rejected
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolOutRes::reset()
+void AVBMCMolOut::reset()
 {
     if (!reject_move) {
         box->distance_manager->reset();
@@ -187,7 +187,7 @@ void AVBMCMolOutRes::reset()
    move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolOutRes::update_nsystemsize()
+void AVBMCMolOut::update_nsystemsize()
 {
     if (box->npar + 1 > box->nsystemsize.size()) {
         box->nsystemsize.resize(box->npar + 1);
@@ -200,7 +200,7 @@ void AVBMCMolOutRes::update_nsystemsize()
    Represent move in a clean way
 ------------------------------------------------------------------------------- */
 
-std::string AVBMCMolOutRes::repr()
+std::string AVBMCMolOut::repr()
 {
     std::string move_info;
     move_info += "AVBMC molecule deletion move\n";
