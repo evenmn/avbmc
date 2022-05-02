@@ -15,6 +15,7 @@ RungeKutta4::RungeKutta4(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
 {
     dt2 = 0.5 * dt;
+    onesixth = 1./6.;
 }
 
 
@@ -60,8 +61,8 @@ double RungeKutta4::next_step()
         K4v = particle.f * dt / particle.mass;
         
         // move
-        particle.r = r_old + (K1x + 2 * (K2x + K3x) + K4x) / 6;
-        particle.v = v_old + (K1v + 2 * (K2v + K3v) + K4v) / 6;
+        particle.r = r_old + (K1x + 2 * (K2x + K3x) + K4x) * onesixth;
+        particle.v = v_old + (K1v + 2 * (K2v + K3v) + K4v) * onesixth;
         energy += box->forcefield->comp_energy_par_force1(i, particle.f);
         i++;
     }

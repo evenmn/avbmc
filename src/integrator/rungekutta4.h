@@ -11,7 +11,7 @@ public:
     double next_step() override;
 
 private:
-    double dt2;
+    double dt2, onesixth;
     std::valarray<double> r_old, v_old;
     std::valarray<double> K1x, K1v, K2x, K2v, K3x, K3v, K4x, K4v;
 };
