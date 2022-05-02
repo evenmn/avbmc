@@ -21,7 +21,7 @@ jobs:
     #- name: Setup MPI
     #  uses: mpi4py/setup-mpi@v1
     - name: Build with default main.cpp
-      run: make dev
+      run: make debug
     - name: Run on one core
       run: make run
     #- name: Run on four cores
