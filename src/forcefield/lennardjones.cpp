@@ -162,18 +162,21 @@ double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, forceij, comp_force);
+        force += forceij;
     }
     for (j=i+1; j<npar; j++) {
         typej = box->particles[j].type;
         delij = box->particles[j].r - box->particles[i].r;
         energy += comp_twobody_par(typei, typej, delij, forceij, comp_force);
+        force += forceij;
     }
     return energy;
 }
 
 
 /* ----------------------------------------------------------------------------
-   Compute energy contribution from a particle 'i'
+   Compute energy contribution from a particle 'i', using pre-calculated
+   distance and neighbor lists. Not utilizing the 'comp_twobody_par' function.
 ------------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
@@ -186,12 +189,8 @@ double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
 
     typei = box->particles[i].type;
     force.resize(box->system->ndim, 0.);
-    //std::vector<std::vector<int> > neigh_list;
-
-    //neigh_list = box->distance_manager->neigh_lists[neigh_id];
 
     energy = 0.;
-    //for (int j : neigh_list[i]) {
     for (unsigned int j : box->distance_manager->neigh_lists[neigh_id][i]) {
         typej = box->particles[j].type;
         rijsq = box->distance_manager->distance_mat[i][j];
@@ -210,7 +209,8 @@ double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
 
 
 /* ----------------------------------------------------------------------------
-   Compute energy contribution from a particle 'i'
+   Compute energy contribution from a particle 'i', using pre-calculated
+   distance and neighbor lists. Storing energy and force for next step.
 ------------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
@@ -222,15 +222,10 @@ double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
     std::valarray<double> delij, forceij;
 
     set();
-
     typei = box->particles[i].type;
     force.resize(box->system->ndim, 0.);
-    //std::vector<std::vector<int> > neigh_list;
-
-    //neigh_list = box->distance_manager->neigh_lists[neigh_id];
 
     energy = 0.;
-    //for (unsigned int j : neigh_list[i]) {
     for (unsigned int j : box->distance_manager->neigh_lists[neigh_id][i]) {
         typej = box->particles[j].type;
         rijsq = box->distance_manager->distance_mat[i][j];
@@ -254,26 +249,6 @@ double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
     return energy;
 }
 
-
-/* ----------------------------------------------------------------------------
-   Forwarding the computations of the energy of a particle 'i' to other 
-   functions
-------------------------------------------------------------------------------- */
-/*
-double LennardJones::comp_energy_par(const int i, std::valarray<double> &force,
-                                const bool comp_force)
-{
-    double energy;
-
-    if (box->store_distance) {
-        comp_energy_par_neigh(i, force, comp_force);
-    }
-    else {
-        comp_energy_par_noneigh(i, force, comp_force);
-    }
-    return energy;
-}
-*/
 
 /* ----------------------------------------------------------------------------
    Allocate memory for matrices
