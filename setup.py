@@ -3,7 +3,6 @@ from glob import glob
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
-#import python_wrapper
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,7 +23,9 @@ ext_modules = [
     Extension(
     'avbmc',
         source_files,
-        include_dirs=[os.path.join(this_dir, 'include'), 'src/', 'src/boundary', 'src/constraint', 'src/integrator', 'src/moves', 'src/sampler', 'src/rng', 'src/forcefield'],
+        include_dirs=[os.path.join(this_dir, 'include'),
+                      os.path.join(this_dir, 'src'),
+                ], #'src/', 'src/boundary', 'src/constraint', 'src/integrator', 'src/moves', 'src/sampler', 'src/rng', 'src/forcefield'],
     language='c++',
     extra_compile_args = ['-std=c++14'],
     ),
@@ -32,8 +33,7 @@ ext_modules = [
 
 
 setup(name='avbmc',
-      #version=python_wrapper.__version__,
-      version="0.0.1",
+      version="0.0.2",
       description='Python library for atomistic Monte Carlo simulations',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -41,7 +41,6 @@ setup(name='avbmc',
       author='Even Marius Nordhagen',
       author_email='evenmn@mn.uio.no',
       license='MIT',
-      #packages=['python_wrapper'],
       include_package_data=True,
       zip_safe=False,
       packages=find_packages(),
@@ -51,7 +50,7 @@ setup(name='avbmc',
         "Operating System :: OS Independent",
         "License :: OSI Approved :: Apache Software License",
       ],
-      python_requires='>=3.8',
-      install_requires=["pybind11"],
+      python_requires='>=3.5',
+      #install_requires=["pybind11"],
       ext_modules=ext_modules,
 )
