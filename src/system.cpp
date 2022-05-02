@@ -22,9 +22,18 @@
 #include "forcefield/idealgas.h"
 #include "forcefield/lennardjones.h"
 #include "forcefield/vashishta.h"
+#include "sampler/sampler.h"
 #include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
 #include "moves/moves.h"
+#include "moves/trans.h"
+#include "moves/transmh.h"
+#include "moves/avbmc.h"
+#include "moves/avbmcin.h"
+#include "moves/avbmcout.h"
+#include "moves/avbmcmol.h"
+#include "moves/avbmcmolin.h"
+#include "moves/avbmcmolout.h"
 #include "particle.h"
 #include "distance_manager.h"
 
@@ -167,6 +176,7 @@ void System::set_sampler(const std::string &sampler_in, std::function<double(int
     }
 }
 
+
 /* ----------------------------------------------------------------------------
    Overwrite default random number generator, Mersenne Twister
 ------------------------------------------------------------------------------- */
@@ -249,6 +259,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                     }
                     box->forcefield = new IdealGas(box, labels);
                     box->forcefield_allocated_in_system = true;
+                    box->initialized = true;
                 }
             }
             else {
@@ -257,6 +268,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                 }
                 boxes[box_id]->forcefield = new IdealGas(boxes[box_id], labels);
                 boxes[box_id]->forcefield_allocated_in_system = true;
+                boxes[box_id]->initialized = true;
             }
         }
         else {
@@ -283,6 +295,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                     }
                     box->forcefield = new LennardJones(box, paramfile);
                     box->forcefield_allocated_in_system = true;
+                    box->initialized = true;
                 }
             }
             else {
@@ -291,6 +304,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                 }
                 boxes[box_id]->forcefield = new LennardJones(boxes[box_id], paramfile);
                 boxes[box_id]->forcefield_allocated_in_system = true;
+                boxes[box_id]->initialized = true;
             }
         }
         else if (forcefield_in == "vashishta") {
@@ -301,6 +315,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                     }
                     box->forcefield = new Vashishta(box, paramfile);
                     box->forcefield_allocated_in_system = true;
+                    box->initialized = true;
                 }
             }
             else {
@@ -309,6 +324,7 @@ void System::set_forcefield(const std::string &forcefield_in,
                 }
                 boxes[box_id]->forcefield = new Vashishta(boxes[box_id], paramfile);
                 boxes[box_id]->forcefield_allocated_in_system = true;
+                boxes[box_id]->initialized = true;
             }
         }
         else {
@@ -420,7 +436,7 @@ void System::set_boundary(const std::string &boundary_in,
    box was detected.
 ------------------------------------------------------------------------------- */
 
-void System::add_constraint(class Constraint* constraint_in, int box_id)
+void System::add_constraint(Constraint* constraint_in, int box_id)
 {
     if (nbox < 1) {
         std::cout << "No box found, cannot add constraint" << std::endl;
@@ -510,6 +526,170 @@ void System::add_move(Moves* move, double prob)
     nmove ++;
     moves.push_back(move);
     moves_prob.push_back(prob);
+    moves_allocated_in_system.push_back(false);
+}
+
+
+void System::add_move(const std::string &move_in, double prob, double dx, double Ddt, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add move! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (move_in == "trans") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new Trans(this, box, dx);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new Trans(this, boxes[box_id], dx);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "transmh") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new TransMH(this, box, dx, Ddt);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new TransMH(this, boxes[box_id], dx, Ddt);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else {
+            std::cout << "Move '" << move_in << "' is not implemented!"
+                      << "Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+
+
+void System::add_move(const std::string &move_in, double prob, 
+    const std::string &particle_in, double r_below, double r_above, bool energy_bias, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add move! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (move_in == "avbmc") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMC(this, box, particle_in, r_below, r_above, energy_bias);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMC(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcin") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMCIn(this, box, particle_in, r_below, r_above, energy_bias);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMCIn(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcout") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMCOut(this, box, particle_in, r_above, energy_bias);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMCOut(this, boxes[box_id], particle_in, r_above, energy_bias);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else {
+            std::cout << "Move '" << move_in << "' is not implemented!"
+                      << "Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+
+
+void System::add_move(const std::string &move_in, double prob,
+    std::vector<Particle> molecule_in, double r_below,
+    double r_above, double r_inner, bool energy_bias, bool target_mol, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add move! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (move_in == "avbmcmol") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMCMol(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMCMol(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcmolin") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMCMolIn(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMCMolIn(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcmolout") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Moves *move = new AVBMCMolOut(this, box, molecule_in, r_above, r_inner, energy_bias, target_mol);
+                    add_move(move, prob);
+                    moves_allocated_in_system[nmove-1] = true;
+                }
+            }
+            else {
+                Moves *move = new AVBMCMolOut(this, boxes[box_id], molecule_in, r_above, r_inner, energy_bias, target_mol);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else {
+            std::cout << "Move '" << move_in << "' is not implemented!"
+                      << "Aborting." << std::endl;
+            exit(0);
+        }
+    }
 }
 
 
@@ -530,6 +710,111 @@ void System::add_box(Box* box_in)
     box_in->box_id = nbox;
     boxes.push_back(box_in);
     nbox ++;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Add particles to the system. 
+------------------------------------------------------------------------------- */
+
+    void add_particle(class Particle, int = 0);
+    void add_particle(const std::string &, std::valarray<double>, int = 0);
+    void add_particles(std::vector<class Particle>, int = 0);
+    void add_particles(const std::string &, std::vector<std::valarray<double> >, int = 0);
+    void read_particles(const std::string &, int = 0);
+
+void System::add_particle(Particle particle_in, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add particles! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->add_particle(particle_in);
+            }
+        }
+        else {
+            boxes[box_id]->add_particle(particle_in);
+        }
+    }
+}
+
+
+void System::add_particle(const std::string &label_in, std::valarray<double> pos, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add particles! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->add_particle(label_in, pos);
+            }
+        }
+        else {
+            boxes[box_id]->add_particle(label_in, pos);
+        }
+    }
+}
+
+
+void System::add_particles(std::vector<Particle> particles_in, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add particles! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->add_particles(particles_in);
+            }
+        }
+        else {
+            boxes[box_id]->add_particles(particles_in);
+        }
+    }
+}
+
+
+void System::add_particles(const std::string &label_in, std::vector<std::valarray<double> > pos, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add particles! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->add_particles(label_in, pos);
+            }
+        }
+        else {
+            boxes[box_id]->add_particles(label_in, pos);
+        }
+    }
+}
+
+
+void System::read_particles(const std::string &filename, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add particles! Aborting." << std::endl;
+        exit(0);
+    }
+    else {
+        if (box_id < 0) {
+            for (Box *box : boxes) {
+                box->read_particles(filename);
+            }
+        }
+        else {
+            boxes[box_id]->read_particles(filename);
+        }
+    }
 }
 
 
@@ -750,13 +1035,14 @@ void System::run_mc(const int nsteps, const int nmoves)
 
 System::~System()
 {
+    unsigned int i;
+
     if (!rng_allocated_externally) {
         delete rng;
     }
     if (!sampler_allocated_externally) {
         delete sampler;
     }
-
     for (Box *box : boxes) {
         if (box->forcefield_allocated_in_system) {
             delete box->forcefield;
@@ -766,6 +1052,11 @@ System::~System()
         }
         if (box->box_allocated_in_system) {
             delete box;
+        }
+    }
+    for (i=0; i<nmove; i++) {
+        if (moves_allocated_in_system[i]) {
+            delete moves[i];
         }
     }
     //MPI_Finalize();

@@ -248,7 +248,7 @@ void Box::add_particle(Particle particle)
    Add a single particle given a label 'label' and initial position 'r'
 ------------------------------------------------------------------------------- */
 
-void Box::add_particle(const std::string label, const std::valarray<double> r)
+void Box::add_particle(const std::string &label, const std::valarray<double> r)
 {
     add_particle(Particle(label, r));
 }

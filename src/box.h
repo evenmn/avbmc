@@ -11,7 +11,7 @@ class Box
 public:
     Box(class System *); //, int = 2); 
     Box(const Box &);  // copy constructor
-    Box& operator=(const Box &other) // overloading equal operator
+    Box& operator=(const Box &other) // overloading assignment operator
     {
         Box tmp(other); // calling copy constructor
         swap(tmp);
@@ -24,7 +24,7 @@ public:
     void set_boundary(class Boundary *);
     //void set_integrator(class Integrator *);
     void add_particle(Particle);
-    void add_particle(std::string, std::valarray<double>);
+    void add_particle(const std::string &, std::valarray<double>);
     void add_particles(std::vector<Particle>);
     void add_particles(const std::string &, std::vector<std::valarray<double> >);
     void read_particles(const std::string &);

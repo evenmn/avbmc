@@ -28,13 +28,21 @@ public:
     void set_boundary(class Boundary *, int = -1);
     void set_boundary(const std::string &, std::valarray<double> = {}, int = -1);
     void add_constraint(class Constraint *, int = -1);
-    void snapshot(const std::string &, int = 0);
     void set_dump(int, const std::string &, const std::vector<std::string> &, int = 0);
     void set_thermo(int, const std::string &, const std::vector<std::string> &, int = 0);
+    void snapshot(const std::string &, int = 0);
         
     void add_move(class Moves *, double);
+    void add_move(const std::string &, double = 1., double = 0.1, double = 0.1, int = -1); // for trans and transmh
+    void add_move(const std::string &, double, const std::string &, double = 0.95, double = 3.0, bool = false, int = -1); // for avbmc, avbmcin, avbmcout
+    void add_move(const std::string &, double, std::vector<class Particle>, double = 1.3, double = 0.95, double = 3.0, bool = false, bool = false, int = -1); // for avbmcmol, avbmcmolin, avbmcmolout
     void add_box(class Box *);
     void add_box();
+    void add_particle(class Particle, int = 0);
+    void add_particle(const std::string &, std::valarray<double>, int = 0);
+    void add_particles(std::vector<class Particle>, int = 0);
+    void add_particles(const std::string &, std::vector<std::valarray<double> >, int = 0);
+    void read_particles(const std::string &, int = 0);
 
     void check_masses();
     int get_maxiter(int);
@@ -63,4 +71,5 @@ public:
     //std::vector<double> masses;
     std::vector<class Moves *> moves;
     std::vector<double> moves_prob;
+    std::vector<bool> moves_allocated_in_system;
 };
