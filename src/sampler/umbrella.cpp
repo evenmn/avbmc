@@ -6,28 +6,26 @@
 #include "../system.h"
 
 
-/* --------------------------------------------------------
-   Umbrella sampling initialization. This class takes
-   only one weight function 'f_in', and is therefore
-   basic compared to more advanced Umbrella sampling 
+/* ----------------------------------------------------------------------------
+   Umbrella sampling initialization. This class takes only one weight function
+   'f_in', and is therefore basic compared to more advanced Umbrella sampling 
    approaches.
------------------------------------------------------------ */
+------------------------------------------------------------------------------- */
 
 Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in, const int maxpar_in)
-    : Sampler(system_in) 
+    : Sampler(system_in), f(f_in)
 {
-    f = f_in;
     maxpar = maxpar_in;
     tabulated = tabulate(f_in, maxpar_in);
     label = "Umbrella";
 }
 
 
-/* ----------------------------------------------------------
-   Tabulate the weight function 'f_in'. Since the weight 
-   function takes integer inputs, it is discrete and can be 
-   tabulated. 'maxpar_in' is the maximum int to tabulate
-------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Tabulate the weight function 'f_in'. Since the weight function takes integer
+   inputs, it is discrete and can be tabulated. 'maxpar_in' is the maximum int
+   to tabulate.
+------------------------------------------------------------------------------- */
 
 std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in, const int maxpar_in)
 {
@@ -39,9 +37,9 @@ std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in, 
 }
 
 
-/* ----------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Return value of weight function
-------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 double Umbrella::w(const int npar)
 {

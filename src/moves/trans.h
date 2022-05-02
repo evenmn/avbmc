@@ -9,11 +9,11 @@ class Trans : public Moves
 {
 public:
     Trans(class System *, class Box *, double = 0.01);
-    void perform_move();
-    double accept(double, double);
-    void reset();
-    void update_nsystemsize();
-    std::string repr();
+    void perform_move() override;
+    double accept(double, double) override;
+    void reset() override;
+    void update_nsystemsize() override;
+    std::string repr() override;
 
 private:
     int i;

@@ -15,7 +15,7 @@
    This is the default constructor when a parameter file 'params' is given.
 ------------------------------------------------------------------------------- */
 
-LennardJones::LennardJones(Box* box_in, const std::string params)
+LennardJones::LennardJones(Box* box_in, const std::string &params)
     : ForceField(box_in)
 {
     label = "Lennard-Jones";
@@ -33,7 +33,7 @@ LennardJones::LennardJones(Box* box_in, const std::string params)
        <label1> <label2> <sigma> <epsilon> <rc>
 ------------------------------------------------------------------------------- */
 
-void LennardJones::read_param_file(const std::string params)
+void LennardJones::read_param_file(const std::string &params)
 {
     nline = 0;
     std::ifstream infile(params);
@@ -83,10 +83,11 @@ void LennardJones::sort_params()
     double rcsq, s6, s12;
     unsigned int type1, type2, i;
     std::vector<int> types1_vec, types2_vec;
+
+    // can use std::transform
     for(std::string label : label1_vec){
         types1_vec.push_back(label2type.at(label));
     }
-    
     for(std::string label : label2_vec){
         types2_vec.push_back(label2type.at(label));
     }
@@ -145,12 +146,11 @@ double LennardJones::comp_twobody_par(const int typei, const int typej,
    lists.
 ------------------------------------------------------------------------------- */
 
-double LennardJones::comp_energy_par_neigh0_eng0(const int i,
-                                     std::valarray<double> &force, const bool comp_force)
+double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
-    // declare variables
-    int npar, typei, typej, j;
-    double energy, energyij;
+    unsigned int npar, typei, typej, j;
+    double energy;
     std::valarray<double> delij, forceij;
 
     npar = box->particles.size();
@@ -176,23 +176,23 @@ double LennardJones::comp_energy_par_neigh0_eng0(const int i,
    Compute energy contribution from a particle 'i'
 ------------------------------------------------------------------------------- */
 
-double LennardJones::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> &force,
-                                     const bool comp_force)
+double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int npar, typei, typej;
+    unsigned int typei, typej;
     double rijsq, rijinvsq, s6, s12, energy;
     std::valarray<double> delij;
 
-    npar = box->particles.size();
     typei = box->particles[i].type;
     force.resize(box->system->ndim, 0.);
-    std::vector<std::vector<int> > neigh_list;
+    //std::vector<std::vector<int> > neigh_list;
 
-    neigh_list = box->distance_manager->neigh_lists[neigh_id];
+    //neigh_list = box->distance_manager->neigh_lists[neigh_id];
 
     energy = 0.;
-    for (int j : neigh_list[i]) {
+    //for (int j : neigh_list[i]) {
+    for (unsigned int j : box->distance_manager->neigh_lists[neigh_id][i]) {
         typej = box->particles[j].type;
         rijsq = box->distance_manager->distance_mat[i][j];
         rijinvsq = 1. / rijsq;
@@ -213,25 +213,25 @@ double LennardJones::comp_energy_par_neigh1_eng0(const int i, std::valarray<doub
    Compute energy contribution from a particle 'i'
 ------------------------------------------------------------------------------- */
 
-double LennardJones::comp_energy_par_neigh1_eng1(const int i, std::valarray<double> &force,
-                                     const bool comp_force)
+double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
+    std::valarray<double> &force, const bool comp_force)
 {
     // declare variables
-    int npar, typei, typej;
+    unsigned int typei, typej;
     double rijsq, rijinvsq, s6, s12, energy, energyij;
     std::valarray<double> delij, forceij;
 
     set();
 
-    npar = box->particles.size();
     typei = box->particles[i].type;
     force.resize(box->system->ndim, 0.);
-    std::vector<std::vector<int> > neigh_list;
+    //std::vector<std::vector<int> > neigh_list;
 
-    neigh_list = box->distance_manager->neigh_lists[neigh_id];
+    //neigh_list = box->distance_manager->neigh_lists[neigh_id];
 
     energy = 0.;
-    for (int j : neigh_list[i]) {
+    //for (unsigned int j : neigh_list[i]) {
+    for (unsigned int j : box->distance_manager->neigh_lists[neigh_id][i]) {
         typej = box->particles[j].type;
         rijsq = box->distance_manager->distance_mat[i][j];
         rijinvsq = 1. / rijsq;
@@ -281,11 +281,13 @@ double LennardJones::comp_energy_par(const int i, std::valarray<double> &force,
 
 void LennardJones::allocate_memory()
 {
+    unsigned int i;
+
     sigma_mat = new double*[ntype];
     epsilon_mat = new double*[ntype];
     rc_sqrd_mat = new double*[ntype];
     shift_mat = new double*[ntype];
-    for (unsigned int i=0; i<ntype; i++) {
+    for (i=0; i<ntype; i++) {
         sigma_mat[i] = new double[ntype];
         epsilon_mat[i] = new double[ntype];
         rc_sqrd_mat[i] = new double[ntype];
@@ -300,7 +302,9 @@ void LennardJones::allocate_memory()
 
 void LennardJones::free_memory()
 {
-    for (unsigned int i = 0; i < ntype; i++) {
+    unsigned int i;
+
+    for (i = 0; i < ntype; i++) {
         delete[] sigma_mat[i];
         delete[] epsilon_mat[i];
         delete[] rc_sqrd_mat[i];

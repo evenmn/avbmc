@@ -7,20 +7,21 @@
 #include "../forcefield/forcefield.h"
 
 
-/* ------------------------
+/* ----------------------------------------------------------------------------
    Fourth order Runge-Kutta integration scheme
------------- */
+------------------------------------------------------------------------------- */
 
 RungeKutta4::RungeKutta4(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
 {
     dt2 = 0.5 * dt;
+    onesixth = 1./6.;
 }
 
 
-/* -----------------------
+/* ----------------------------------------------------------------------------
    Move particles to next step
--------------------- */
+------------------------------------------------------------------------------- */
 
 double RungeKutta4::next_step()
 {
@@ -36,32 +37,32 @@ double RungeKutta4::next_step()
 
         // calculate K1
         K1x = particle.v * dt2;
-        K1v = particle.f * dt2 / box->mass[i];
+        K1v = particle.f * dt2 / particle.mass;
 
         // calculate K2
         particle.r = r_old + K1x;
         particle.v = v_old + K1v;
         box->forcefield->comp_energy_par_force1(i, particle.f);
         K2x = particle.v * dt2;
-        K2v = particle.f * dt2 / box->mass[i];
+        K2v = particle.f * dt2 / particle.mass;
 
         // calculate K3
         particle.r = r_old + K2x;
         particle.v = v_old + K2v;
         box->forcefield->comp_energy_par_force1(i, particle.f);
         K3x = particle.v * dt;
-        K3v = particle.f * dt / box->mass[i];
+        K3v = particle.f * dt / particle.mass;
 
         // calculate K4
         particle.r = r_old + K3x;
         particle.v = v_old + K3v;
         box->forcefield->comp_energy_par_force1(i, particle.f);
         K4x = particle.v * dt;
-        K4v = particle.f * dt / box->mass[i];
+        K4v = particle.f * dt / particle.mass;
         
         // move
-        particle.r = r_old + (K1x + 2 * (K2x + K3x) + K4x) / 6;
-        particle.v = v_old + (K1v + 2 * (K2v + K3v) + K4v) / 6;
+        particle.r = r_old + (K1x + 2 * (K2x + K3x) + K4x) * onesixth;
+        particle.v = v_old + (K1v + 2 * (K2v + K3v) + K4v) * onesixth;
         energy += box->forcefield->comp_energy_par_force1(i, particle.f);
         i++;
     }

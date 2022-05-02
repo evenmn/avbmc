@@ -10,7 +10,7 @@
    This is the default constructor when a parameter file 'params' is given.
 ------------------------------------------------------------------------------- */
 
-IdealGas::IdealGas(Box* box_in, std::vector<std::string> elements_in)
+IdealGas::IdealGas(Box* box_in, const std::vector<std::string> &elements_in)
     : ForceField(box_in)
 {
     label = "Ideal gas";
@@ -25,8 +25,8 @@ IdealGas::IdealGas(Box* box_in, std::vector<std::string> elements_in)
    lists.
 ------------------------------------------------------------------------------- */
 
-double IdealGas::comp_energy_par_neigh0_eng0(const int i, std::valarray<double> &force,
-                                             const bool comp_force)
+double IdealGas::comp_energy_par_neigh0_eng0(const unsigned int /*i*/,
+    std::valarray<double> &force, const bool /*comp_force*/)
 {
     force.resize(box->system->ndim, 0.);
     return 0.;
@@ -37,8 +37,8 @@ double IdealGas::comp_energy_par_neigh0_eng0(const int i, std::valarray<double> 
    Compute energy contribution from a particle 'i'
 ------------------------------------------------------------------------------- */
 
-double IdealGas::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> &force,
-                                     const bool comp_force)
+double IdealGas::comp_energy_par_neigh1_eng0(const unsigned int /*i*/,
+    std::valarray<double> &force, const bool /*comp_force*/)
 {
     force.resize(box->system->ndim, 0.);
     return 0.;
@@ -49,8 +49,8 @@ double IdealGas::comp_energy_par_neigh1_eng0(const int i, std::valarray<double> 
    Compute energy contribution from a particle 'i'
 ------------------------------------------------------------------------------- */
 
-double IdealGas::comp_energy_par_neigh1_eng1(const int i, std::valarray<double> &force,
-                                     const bool comp_force)
+double IdealGas::comp_energy_par_neigh1_eng1(const unsigned int /*i*/,
+    std::valarray<double> &force, const bool /*comp_force*/)
 {
     force.resize(box->system->ndim, 0.);
     return 0.;

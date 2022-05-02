@@ -18,7 +18,7 @@ public:
     void update_remove(unsigned int);
     void update_insert(unsigned int);
     
-    std::vector<std::vector<std::vector<int> > > neigh_lists;
+    std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
     std::vector<std::vector<std::valarray<double> > > distance_cube;
     std::vector<double **> cutoff_mats;
@@ -35,7 +35,7 @@ private:
   std::vector<double> cutoffs;
   std::vector<unsigned int> types1, types2, modes;
 
-  std::vector<std::vector<std::vector<int>>> neigh_lists_old;
+  std::vector<std::vector<std::vector<unsigned int>>> neigh_lists_old;
   std::vector<std::vector<double>> distance_mat_old;
   std::vector<std::vector<std::valarray<double>>> distance_cube_old;
 

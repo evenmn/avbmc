@@ -9,11 +9,11 @@
 #include "particle.h"
 
 
-/* ----------------------------------------------------
-   Split string 's' by whitespace
-------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Split string 's' by whitespace.
+------------------------------------------------------------------------------- */
 
-std::vector<std::string> split(const std::string s)
+std::vector<std::string> split(const std::string &s)
 {
     std::stringstream ss(s);
     std::istream_iterator<std::string> begin(ss);
@@ -23,40 +23,40 @@ std::vector<std::string> split(const std::string s)
 }
 
 
-/* -----------------------------------------------------
-   Read xyz-file 'filename' consisting of one time 
-   frame into vector of particle objects 
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Read xyz-file 'filename' consisting of one time frame into vector of
+   particle objects.
+------------------------------------------------------------------------------- */
 
-std::vector<Particle> read_xyz(const std::string filename)
+std::vector<Particle> read_xyz(const std::string &filename)
 {
-    int npar = 0;
-    int ndim = 0;
+    unsigned int i, ndim, line_num;  //npar;
+    std::string line;
     std::vector<Particle> particles;
     std::ifstream f(filename);
-    if(f.is_open()){
-        std::string line;
-        int line_num = 0;
-        while(std::getline(f, line))
+
+    ndim = line_num = 0;  //npar = 0;
+    if (f.is_open()) {
+        while (std::getline(f, line))
         {
-            if(line_num == 0){
+            if (line_num == 0) {
                 // line containing number of particles
-                npar = std::stoi(line);
+                //npar = std::stoi(line);
             }
-            else if(line_num == 1){
+            else if (line_num == 1) {
                 // ignore info line
                 line_num ++;
                 continue;
             }
-            else{ 
+            else { 
                 // coordinate line
                 std::vector<std::string> splitted = split(line);
-                if(line_num == 2){
+                if (line_num == 2) {
                     // count number of dimensions
                     ndim = splitted.size() - 1;
                 }
                 std::valarray<double> tmp_r(ndim);
-                for(int i=0; i<ndim; i++){
+                for (i=0; i<ndim; i++) {
                     tmp_r[i] = std::stod(splitted[i+1]);
                 }
                 Particle particle(splitted[0], tmp_r);
@@ -65,7 +65,7 @@ std::vector<Particle> read_xyz(const std::string filename)
             line_num ++;
         }
     }
-    else{
+    else {
         std::cout << "Could not open file '" + filename + "'! Aborting." << std::endl;
         exit(0);
     }
@@ -73,9 +73,9 @@ std::vector<Particle> read_xyz(const std::string filename)
 }
 
 
-/* -----------------------------------------------------------------
-  Write particle properties (i.e. positions) to xyz-file. This is
-  mainly used by the dump class.
+/* ----------------------------------------------------------------------------
+  Write particle properties (i.e. positions) to xyz-file. This is mainly used 
+  by the dump class.
 
   Arguments:
       f : out file stream to write to
@@ -85,16 +85,19 @@ std::vector<Particle> read_xyz(const std::string filename)
       labels : vector containing labels of all involved particles
       info : information to put in info line, empty by default
 
--------------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
-void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol, 
-               const std::vector<std::string> labels, const std::string info = "")
+void write_xyz(std::ofstream &f, double **data, const unsigned int nrow,
+               const unsigned int ncol, const std::vector<std::string> &labels,
+               const std::string &info = "")
 {
+    unsigned int i, j;
+
     f << nrow << std::endl;
     f << info << std::endl;;
-    for(int i=0; i<nrow; i++){
+    for(i=0; i<nrow; i++){
         f << labels[i];
-        for(int j=0; j<ncol; j++){
+        for(j=0; j<ncol; j++){
             f << " " << data[i][j];
         }
         f << std::endl;
@@ -102,12 +105,12 @@ void write_xyz(std::ofstream &f, double **data, const int nrow, const int ncol,
 }
 
 
-/* -------------------------------------------------------------------
-   Write vector 'vec' to file 'filename' with instances separated
-   by 'delim'.
----------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Write vector 'vec' to file 'filename' with instances separated by 'delim'.
+------------------------------------------------------------------------------- */
 
-void write_vector(std::vector<int> vec, std::string filename, std::string delim)
+void write_vector(std::vector<int> vec, const std::string &filename,
+                  const std::string &delim)
 {
     std::ofstream f(filename);
     for (int element : vec)
@@ -118,7 +121,8 @@ void write_vector(std::vector<int> vec, std::string filename, std::string delim)
 }
 
 
-void write_vector(std::vector<double> vec, std::string filename, std::string delim)
+void write_vector(std::vector<double> vec, const std::string &filename,
+                  const std::string &delim)
 {
     std::ofstream f(filename);
     for (double element : vec)
@@ -129,10 +133,26 @@ void write_vector(std::vector<double> vec, std::string filename, std::string del
 }
 
 
-void write_array(int* arr, int length, std::string filename, std::string delim)
+void write_array(int* arr, int length, const std::string &filename,
+                 const std::string &delim)
 {
+    int i;
     std::ofstream f(filename);
-    for (int i=0; i < length; i++)
+    for (i=0; i < length; i++)
+    {
+        f << arr[i] << delim;
+    }
+    f.close();
+}
+
+
+void write_array(unsigned int* arr, unsigned int length, const std::string &filename,
+                 const std::string &delim)
+{
+    unsigned int i;
+
+    std::ofstream f(filename);
+    for (i=0; i < length; i++)
     {
         f << arr[i] << delim;
     }

@@ -6,7 +6,7 @@ class VelocityVerlet : public Integrator
 {
 public:
     VelocityVerlet(class Box *, double = 0.01);
-    double next_step();
+    double next_step() override;
 
 private:
     double dt2;

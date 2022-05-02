@@ -25,21 +25,21 @@ public:
 protected:
     std::vector<class Particle> rotate_molecule(std::vector<class Particle>);
     double norm(std::valarray<double>);
-    std::vector<int> build_neigh_list(std::vector<class Particle>, int, double);
-    void check_neigh_recu(int, std::vector<class Particle>, unsigned int, std::vector<int>&,
+    std::vector<unsigned int> build_neigh_list(std::vector<class Particle>, unsigned int, double);
+    void check_neigh_recu(int, std::vector<class Particle>, unsigned int, std::vector<unsigned int> &,
                           std::vector<class Particle>, double);
-    void check_neigh_recu(int, std::vector<class Particle>, unsigned int, std::vector<int>&,
-                          std::vector<std::vector<int> >);
+    void check_neigh_recu(int, std::vector<class Particle>, unsigned int, std::vector<unsigned int> &,
+                          std::vector<std::vector<unsigned int> >);
     void check_neigh_recu(int, std::vector<class Particle>, std::vector<class Particle>, unsigned int,
-                          std::vector<int>&, std::vector<std::vector<int> >);
-    std::vector<int> detect_molecule(std::vector<class Particle>,
-                                     std::vector<class Particle>, bool&, double);
-    std::vector<int> detect_molecule(std::vector<std::vector<int> >,
+                          std::vector<unsigned int> &, std::vector<std::vector<unsigned int> >);
+    std::vector<unsigned int> detect_molecule(std::vector<class Particle>,
+                                     std::vector<class Particle>, bool &, double);
+    std::vector<unsigned int> detect_molecule(std::vector<std::vector<unsigned int> >,
                                      std::vector<class Particle>,
-                                     bool&);
-    std::vector<int> detect_molecule(std::vector<std::vector<int> >, std::vector<class Particle>,
+                                     bool &);
+    std::vector<unsigned int> detect_molecule(std::vector<std::vector<unsigned int> >, const std::vector<class Particle> &,
                                      std::vector<class Particle>,
-                                     bool&);
+                                     bool &);
 
     const double pi = 3.14159265358979323846;
     double du;

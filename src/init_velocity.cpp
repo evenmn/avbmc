@@ -1,5 +1,5 @@
 #include "init_velocity.h"
-#include "../rng/rng.h"
+#include "rng/rng.h"
 
 
 Velocity::Velocity() {}

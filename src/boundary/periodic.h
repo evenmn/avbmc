@@ -9,8 +9,8 @@ class Periodic : public Boundary
 {
 public:
     Periodic(class Box *, std::valarray<double>);
-    void correct_position(unsigned int);
-    void correct_distance(std::valarray<double> &);   // needed for periodic boundaries
+    void correct_position(unsigned int) override;
+    void correct_distance(std::valarray<double> &) override;
 
 private:
     unsigned int ndim;

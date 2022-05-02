@@ -18,14 +18,14 @@ class Zero : public Velocity
 {
 public:
     Zero();
-    mat get_velocity(const int npar, const int ndim);
+    mat get_velocity(const int npar, const int ndim) override;
 };
 
 class Gauss : public Velocity
 {
 public:
     Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const double var_in);
-    mat get_velocity(const int npar, const int ndim);
+    mat get_velocity(const int npar, const int ndim) override;
 private:
     double mean, var;
     class RandomNumberGenerator* rng = nullptr;

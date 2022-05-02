@@ -9,8 +9,8 @@
 class Dump
 {
 public:
-    Dump(class Box *, int, std::string, std::vector<std::string>);
-    void print_frame(int);
+    Dump(class Box *, unsigned int, const std::string &, std::vector<std::string>);
+    void print_frame(unsigned int);
     ~Dump();
 
 private:
@@ -20,7 +20,7 @@ private:
     std::vector<std::string> outputs;
     std::vector<int> nvars;
 
-    int freq, nvar;
+    unsigned int freq, nvar;
     std::ofstream f;
     std::string info_line;
 };

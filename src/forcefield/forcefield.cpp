@@ -36,7 +36,7 @@ ForceField::ForceField(Box* box_in)
    Compute energy contribution from a particle 'i', when force is not needed.
 ------------------------------------------------------------------------------- */
 
-double ForceField::comp_energy_par_force0(const int i)
+double ForceField::comp_energy_par_force0(const unsigned int i)
 {
     std::valarray<double> force;
     return (this->*(this->comp_energy_par))(i, force, false);
@@ -47,7 +47,8 @@ double ForceField::comp_energy_par_force0(const int i)
    Compute energy contribution from a particle 'i', when force is needed.
 ------------------------------------------------------------------------------- */
 
-double ForceField::comp_energy_par_force1(const int i, std::valarray<double> &force)
+double ForceField::comp_energy_par_force1(const unsigned int i,
+                                          std::valarray<double> &force)
 {
     return (this->*(this->comp_energy_par))(i, force, true);
 }
@@ -59,7 +60,7 @@ double ForceField::comp_energy_par_force1(const int i, std::valarray<double> &fo
 
 void ForceField::initialize()
 {
-    unsigned int npar, i, j;
+    unsigned int npar, i;
 
     // initialize matrices
     npar = box->npar;
@@ -115,8 +116,11 @@ void ForceField::reset()
 
 double ForceField::norm(std::valarray<double> array)
 {
-    double normsq = 0.;
-    for (unsigned int i=0; i < array.size(); i++)
+    unsigned int i;
+    double normsq;
+    
+    normsq = 0.;
+    for (i=0; i < array.size(); i++)
     {
         normsq += array[i] * array[i];
     }
@@ -130,7 +134,8 @@ double ForceField::norm(std::valarray<double> array)
 
 void ForceField::create_label_mapping()
 {
-    // find unique labels
+    unsigned int i;
+
     unique_labels = label1_vec;
     std::sort( unique_labels.begin(), unique_labels.end() );
     unique_labels.erase( std::unique( unique_labels.begin(),
@@ -138,7 +143,7 @@ void ForceField::create_label_mapping()
     ntype = unique_labels.size();
 
     // map labels to types
-    for (int i=0; i < ntype; i++){
+    for (i=0; i < ntype; i++){
         label2type[unique_labels[i]] = i;
     }
 }

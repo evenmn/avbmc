@@ -17,6 +17,8 @@ Moves::Moves(System* system_in)
 {
     system = system_in;
     rng = system->rng;
+    ndrawn = naccept = 0;
+    cum_time = du = 0.;
 }
 
 
@@ -83,6 +85,7 @@ double Moves::norm(std::valarray<double> array)
 {
     double normsq;
     unsigned int i;
+
     normsq = 0.;
     for (i=0; i < array.size(); i++)
     {
@@ -97,15 +100,15 @@ double Moves::norm(std::valarray<double> array)
    'rsq'
 ------------------------------------------------------------------------------- */
 
-std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles,
-                                         const int i, const double rsq)
+std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particles,
+                                         const unsigned int i, const double rsq)
 {
     double rijsq;
     unsigned int npar, j;
     
     npar = particles.size();
     std::valarray<double> ri = particles[i].r;
-    std::vector<int> neigh_list;
+    std::vector<unsigned int> neigh_list;
     for (j=0; j<i; j++) {
         rijsq = std::pow(particles[j].r - ri, 2).sum();
         //std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
@@ -129,7 +132,7 @@ std::vector<int> Moves::build_neigh_list(std::vector<Particle> particles,
 ------------------------------------------------------------------------------- */
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<int> &elm_idx,
+                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
                             std::vector<Particle> particles, double rc) {
     //std::cout << "1elm_idx.size() " << elm_idx.size() << std::endl;
     if (elm_idx.size() < molecule.size()) {  
@@ -140,7 +143,7 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
             elm_idx.push_back(i);
             elm_count ++;
             //std::cout << "2particles.size() " << particles.size() << std::endl;
-            std::vector<int> neigh_list = build_neigh_list(particles, i, rc*rc);
+            std::vector<unsigned int> neigh_list = build_neigh_list(particles, i, rc*rc);
             //std::cout << "3neigh_list.size(): " << neigh_list.size() << std::endl;
             for (int neigh : neigh_list) {
                 check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
@@ -156,12 +159,12 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
    Returning a list of atom ids if molecule is detected
 ------------------------------------------------------------------------------- */
 
-std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
+std::vector<unsigned int> Moves::detect_molecule(std::vector<Particle> particles,
                                         std::vector<Particle> molecule,
                                         bool &detected, double rc)
 {
     unsigned int i, count;
-    std::vector<int> elm_idx;
+    std::vector<unsigned int> elm_idx;
 
     /*
     std::cout << "--- molecule types: ";
@@ -201,13 +204,13 @@ std::vector<int> Moves::detect_molecule(std::vector<Particle> particles,
 ------------------------------------------------------------------------------- */
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<int> &elm_idx,
-                            std::vector<std::vector<int> > neigh_list) {
+                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
+                            std::vector<std::vector<unsigned int> > neigh_list) {
     if (elm_idx.size() < molecule.size()) {  
         //if (particles[i].label == molecule[elm_count].label) {
         elm_idx.push_back(i);
         elm_count ++;
-        for (int neigh : neigh_list[i]) {
+        for (unsigned int neigh : neigh_list[i]) {
             check_neigh_recu(neigh, molecule, elm_count, elm_idx, neigh_list);
         }
     }
@@ -220,12 +223,12 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
    Returning a list of atom ids if molecule is detected
 ------------------------------------------------------------------------------- */
 
-std::vector<int> Moves::detect_molecule(std::vector<std::vector<int> > neigh_list,
+std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigned int> > neigh_list,
                                         std::vector<Particle> molecule,
                                         bool &detected)
 {
     unsigned int i, count;
-    std::vector<int> elm_idx;
+    std::vector<unsigned int> elm_idx;
     
     count = 0;
     while (count < neigh_list.size() && !detected)
@@ -252,8 +255,8 @@ std::vector<int> Moves::detect_molecule(std::vector<std::vector<int> > neigh_lis
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
                             std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<int> &elm_idx,
-                            std::vector<std::vector<int> > neigh_list) {
+                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
+                            std::vector<std::vector<unsigned int> > neigh_list) {
     if (elm_idx.size() < molecule.size()) {  
         //std::cout << "1molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
         if (particles[i].type == molecule[elm_count].type) {
@@ -261,7 +264,7 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
             elm_idx.push_back(i);
             elm_count ++;
             //std::cout << "neigh_list.size(): " << neigh_list[i].size() << std::endl;
-            for (int neigh : neigh_list[i]) {
+            for (unsigned int neigh : neigh_list[i]) {
                 check_neigh_recu(neigh, particles, molecule, elm_count, elm_idx, neigh_list);
             }
         }
@@ -275,13 +278,13 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
    Returning a list of atom ids if molecule is detected
 ------------------------------------------------------------------------------- */
 
-std::vector<int> Moves::detect_molecule(std::vector<std::vector<int> > neigh_list,
-                                        std::vector<Particle> particles, 
+std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigned int> > neigh_list,
+                                        const std::vector<Particle> &particles, 
                                         std::vector<Particle> molecule,
                                         bool &detected)
 {
     unsigned int i, count;
-    std::vector<int> elm_idx;
+    std::vector<unsigned int> elm_idx;
     
     count = 0;
     while (count < neigh_list.size() && !detected)
