@@ -1,8 +1,6 @@
 #include <iostream>
-#include <valarray>
 
 #include "../box.h"
-#include "../particle.h"
 #include "open.h"
 
 
