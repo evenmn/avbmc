@@ -29,6 +29,12 @@
 #include "../src/moves/moves.h"
 #include "../src/moves/trans.h"
 #include "../src/moves/transmh.h"
+#include "../src/moves/avbmc.h"
+#include "../src/moves/avbmcin.h"
+#include "../src/moves/avbmcout.h"
+#include "../src/moves/avbmcmol.h"
+#include "../src/moves/avbmcmolin.h"
+#include "../src/moves/avbmcmolout.h"
 
 #include "../src/boundary/boundary.h"
 #include "../src/boundary/open.h"
@@ -51,18 +57,6 @@
 namespace py = pybind11;
 using namespace pybind11::literals;
 
-/* ================== Below functions should be moved to a interface file =========== */
-
-/* ----------------------------------------------------------------------------
-   Function that wraps *args to std::vector for thermo output
-------------------------------------------------------------------------------- */
-/*
-void set_thermo(Box *box, double freq, std::string filename, bool mark_file,
-                py::args args)
-{
-    box->set_thermo(freq, filename, outputs, mark_file);
-}
-*/
 
 /* ----------------------------------------------------------------------------
    Python wrapper
@@ -100,8 +94,19 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_rng", py::overload_cast<const std::string &>(&System::set_rng))
         .def("set_temp", &System::set_temp)
         .def("set_chempot", &System::set_chempot)
-        .def("add_move", &System::add_move, "Add move to the list of moves",
+        .def("add_move", py::overload_cast<Moves *, double>(&System::add_move), "Add move to the list of moves",
             py::arg("system"), py::arg("prob") = 1.0)
+        .def("add_move", py::overload_cast<const std::string &, double, double, double, int>(&System::add_move),
+            "Add move to the list of moves",
+            py::arg("move"), py::arg("prob") = 1.0, py::arg("dx") = 0.1, py::arg("Ddt") = 0.1, py::arg("box_id") = -1)
+        .def("add_move", py::overload_cast<const std::string &, double, const std::string &, double, double, bool, int>(&System::add_move),
+            "Add move to the list of moves",
+            py::arg("move"), py::arg("prob") = 1.0, py::arg("particle"), py::arg("r_below") = 0.95,
+            py::arg("r_above") = 3.0, py::arg("energy_bias") = false, py::arg("box_id") = -1)
+        .def("add_move", py::overload_cast<const std::string &, double, std::vector<Particle>, double, double, double, bool, bool, int>(&System::add_move),
+            "Add move to the list of moves",
+            py::arg("move"), py::arg("prob") = 1.0, py::arg("molecule"), py::arg("r_below") = 0.95,
+            py::arg("r_above") = 3.0, py::arg("r_inner") = 1.3, py::arg("energy_bias") = false, py::arg("target_mol") = false, py::arg("box_id") = -1)
         .def("add_box", py::overload_cast<>(&System::add_box))
         .def("add_box", py::overload_cast<Box *>(&System::add_box))
         .def("set_forcefield", py::overload_cast<ForceField *, int>(&System::set_forcefield),
@@ -118,6 +123,14 @@ PYBIND11_MODULE(avbmc, m) {
         .def("snapshot", &System::snapshot, py::arg("filename"), py::arg("box_id") = 0)
         .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = {}, py::arg("box_id") = 0)
         .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = {}, py::arg("box_id") = 0)
+        .def("add_particle", py::overload_cast<Particle, int>(&System::add_particle), "Add a particle by object", py::arg("particle"), py::arg("box_id") = 0)
+        .def("add_particle", py::overload_cast<const std::string &, std::valarray<double>, int >(&System::add_particle),
+            "Add a particle by element and position", py::arg("element"), py::arg("position"), py::arg("box_id") = 0)
+        .def("add_particles", py::overload_cast<std::vector<Particle>, int>(&System::add_particles), "Add particles by a list of objects",
+            py::arg("particles"), py::arg("box_id") = 0)
+        .def("add_particles", py::overload_cast<const std::string &, std::vector<std::valarray<double> >, int>(&System::add_particles),
+            "Add particles of the same type", py::arg("element"), py::arg("positions"), py::arg("box_id") = 0)
+        .def("read_particles", &System::read_particles, "Read particles from xyz-file", py::arg("filename"), py::arg("box_id") = 0)
 
         //.def("run_md", &System::run_md, py::arg("steps"))
         .def("run_mc", &System::run_mc, py::arg("cycles"), py::arg("steps") = 1)
@@ -134,7 +147,7 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_boundary", &Box::set_boundary)
         //.def("set_integrator", &Box::set_integrator)
         .def("add_particle", py::overload_cast<Particle>(&Box::add_particle))
-        .def("add_particle", py::overload_cast<std::string, std::valarray<double> >(&Box::add_particle))
+        .def("add_particle", py::overload_cast<const std::string &, std::valarray<double> >(&Box::add_particle))
         .def("add_particles", py::overload_cast<std::vector<Particle> >(&Box::add_particles))
         .def("add_particles", py::overload_cast<const std::string &, std::vector<std::valarray<double> > >(&Box::add_particles))
         .def("read_particles", &Box::read_particles)
