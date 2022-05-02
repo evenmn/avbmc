@@ -10,6 +10,9 @@ parser:
 debug:
 	mpicxx -std=c++14 -Wall -Wextra -ggdb3 src/main.cpp src/system.cpp src/dump.cpp src/box.cpp src/particle.cpp src/io.cpp src/init_position.cpp src/thermo.cpp src/distance_manager.cpp src/boundary/*.cpp src/moves/*.cpp src/sampler/*.cpp src/forcefield/*.cpp src/rng/*.cpp src/constraint/*.cpp -I src/ -I src/boundary -I src/sampler -I src/moves -I src/forcefield -I src/rng -I src/thermo -I src/constraint -I include -o main.out -O3
 
+cppcheck:
+	cppcheck --enable=all src -isrc/parser.cpp
+
 run:
 	./main.out
 
