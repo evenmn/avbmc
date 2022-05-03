@@ -34,7 +34,7 @@ Gauss::Gauss(RandomNumberGenerator* rng_in, double mean_in, double var_in)
 std::vector<std::valarray<double> > Gauss::get_velocity(unsigned int npar, unsigned int ndim)
 {
     unsigned int i, j;
-    std::vector<std::valrray<double> >  velocities;
+    std::vector<std::valarray<double> >  velocities;
     for (i=0; i<npar; i++) {
         std::valarray<double> velocity(0., ndim);
         velocities.push_back(velocity);
