@@ -1,17 +1,29 @@
+#include <iostream>
+#include <valarray>
+
 #include "init_velocity.h"
 #include "rng/rng.h"
 
 
-Velocity::Velocity() {}
+/* ----------------------------------------------------------------------------
+   Zero velocity constructor.
+------------------------------------------------------------------------------- */
 
 Zero::Zero() : Velocity() {}
 
-mat Zero::get_velocity(const int npar, const int ndim)
+std::vector<std::valarray<double> > Zero::get_velocity(unsigned int npar, unsigned int ndim)
 {
-    return zeros(npar, ndim);
+    unsigned int i;
+
+    std::vector<std::valarray<double> > velocities;
+    for (i=0; i<npar; i++) {
+        std::valarray<double> velocity(0., ndim);
+        velocities.push_back(velocity);
+    }
+    return velocities;
 }
 
-Gauss::Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const double var_in) 
+Gauss::Gauss(RandomNumberGenerator* rng_in, double mean_in, double var_in) 
     : Velocity()
 {
     rng = rng_in;
@@ -19,26 +31,19 @@ Gauss::Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const do
     var = var_in;
 }
 
-mat Gauss::get_velocity(const int npar, const int ndim)
+std::vector<std::valarray<double> > Gauss::get_velocity(unsigned int npar, unsigned int ndim)
 {
-    mat velocity(npar, ndim);
-    for(int i=0; i<npar; i++){
-        for(int j=0; j<ndim; j++){
-            velocity(i, j) = rng->next_gaussian(mean, var);
+    unsigned int i, j;
+    std::vector<std::valrray<double> >  velocities;
+    for (i=0; i<npar; i++) {
+        std::valarray<double> velocity(0., ndim);
+        velocities.push_back(velocity);
+        for (j=0; j<ndim; j++) {
+            velocities[i][j] = rng->next_gaussian(mean, var);
         }
     }
-    return velocity;
+    return velocities;
 }
 
-Temp::Temp(class RandomNumberGenerator* rng_in, const double temp_in)
+Temp::Temp(RandomNumberGenerator* rng_in, double temp_in)
     : Gauss(rng_in, 0., sqrt(temp_in)) {}
-
-/*
-mat Temp::get_velocity(const int npar, const int ndim)
-{
-    double mean = 0.;
-    double var = sqrt(temp);
-    Gauss gauss(box, mean, var);
-    return gauss.get_velocity(npar, ndim);
-}
-*/
