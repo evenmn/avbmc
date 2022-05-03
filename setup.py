@@ -25,7 +25,7 @@ ext_modules = [
         source_files,
         include_dirs=[os.path.join(this_dir, 'include'),
                       os.path.join(this_dir, 'src'),
-                ]
+                ],
     language='c++',
     extra_compile_args = ['-std=c++14'],
     ),
