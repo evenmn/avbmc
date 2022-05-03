@@ -118,13 +118,13 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_boundary", py::overload_cast<Boundary *, int>(&System::set_boundary),
             py::arg("boundary"), py::arg("box_id") = -1)
         .def("set_boundary", py::overload_cast<const std::string &, std::valarray<double>, int>(&System::set_boundary),
-            py::arg("boundary"), py::arg("length") = {}, py::arg("box_id") = -1)
+            py::arg("boundary"), py::arg("length") = py::none(), py::arg("box_id") = -1)
         .def("add_constraint", py::overload_cast<Constraint *, int>(&System::add_constraint), py::arg("constraint"), py::arg("box_id") = 0)
         .def("add_constraint", py::overload_cast<const std::string &, const std::string &, const std::string &, double, int, int>(&System::add_constraint),
             py::arg("constraint"), py::arg("element1"), py::arg("element2"), py::arg("distance"), py::arg("nneigh") = 1, py::arg("box_id") = 0)
         .def("snapshot", &System::snapshot, py::arg("filename"), py::arg("box_id") = 0)
-        .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = {}, py::arg("box_id") = 0)
-        .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = {}, py::arg("box_id") = 0)
+        .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = py::none(), py::arg("box_id") = 0)
+        .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = py::none(), py::arg("box_id") = 0)
         .def("add_particle", py::overload_cast<Particle, int>(&System::add_particle), "Add a particle by object", py::arg("particle"), py::arg("box_id") = 0)
         .def("add_particle", py::overload_cast<const std::string &, std::valarray<double>, int >(&System::add_particle),
             "Add a particle by element and position", py::arg("element"), py::arg("position"), py::arg("box_id") = 0)
