@@ -306,6 +306,7 @@ void Box::add_constraint(Constraint* constraint)
     }
     nconstraint ++;
     constraints.push_back(constraint);
+    constraint_allocated_in_system.push_back(false);
 }
 
 

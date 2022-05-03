@@ -28,6 +28,7 @@ public:
     void set_boundary(class Boundary *, int = -1);
     void set_boundary(const std::string &, std::valarray<double> = {}, int = -1);
     void add_constraint(class Constraint *, int = -1);
+    void add_constraint(const std::string &, const std::string &, const std::string &, double, int = 0, int = 0);
     void set_dump(int, const std::string &, const std::vector<std::string> &, int = 0);
     void set_thermo(int, const std::string &, const std::vector<std::string> &, int = 0);
     void snapshot(const std::string &, int = 0);

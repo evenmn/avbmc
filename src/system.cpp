@@ -36,6 +36,11 @@
 #include "moves/avbmcmolout.h"
 #include "particle.h"
 #include "distance_manager.h"
+#include "constraint/constraint.h"
+#include "constraint/maxdistance.h"
+#include "constraint/mindistance.h"
+#include "constraint/maxneigh.h"
+#include "constraint/minneigh.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -459,6 +464,93 @@ void System::add_constraint(Constraint* constraint_in, int box_id)
 }
 
 
+void System::add_constraint(const std::string &constraint_in,
+    const std::string &element1, const std::string &element2, double distance,
+    int nneigh, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found, cannot add constraint" << std::endl;
+        exit(0);
+    }
+    else if (box_id < 0 && nbox > 1) {
+        std::cout << "Warning: More than one box was detected. Setting"
+                  << "constraint for all boxes" << std::endl;
+    }
+    else {
+        if (constraint_in == "maxdistance") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Constraint *constraint = new MaxDistance(box, element1, element2, distance);
+                    box->add_constraint(constraint);
+                    box->constraint_allocated_in_system[box->nconstraint-1] = true;
+                }
+            }
+            else {
+                Constraint *constraint = new MaxDistance(boxes[box_id], element1, element2, distance);
+                boxes[box_id]->add_constraint(constraint);
+                boxes[box_id]->constraint_allocated_in_system[boxes[box_id]->nconstraint-1] = true;
+            }
+        }
+        else if (constraint_in == "mindistance") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Constraint *constraint = new MinDistance(box, element1, element2, distance);
+                    box->add_constraint(constraint);
+                    box->constraint_allocated_in_system[box->nconstraint-1] = true;
+                }
+            }
+            else {
+                Constraint *constraint = new MinDistance(boxes[box_id], element1, element2, distance);
+                boxes[box_id]->add_constraint(constraint);
+                boxes[box_id]->constraint_allocated_in_system[boxes[box_id]->nconstraint-1] = true;
+            }
+        }
+        else if (constraint_in == "maxneigh") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Constraint *constraint = new MaxNeigh(box, element1, element2, distance, nneigh);
+                    box->add_constraint(constraint);
+                    box->constraint_allocated_in_system[box->nconstraint-1] = true;
+                }
+            }
+            else {
+                Constraint *constraint = new MaxNeigh(boxes[box_id], element1, element2, distance, nneigh);
+                boxes[box_id]->add_constraint(constraint);
+                boxes[box_id]->constraint_allocated_in_system[boxes[box_id]->nconstraint-1] = true;
+            }
+        }
+        else if (constraint_in == "minneigh") {
+            if (box_id < 0) {
+                for (Box *box : boxes) {
+                    Constraint *constraint = new MinNeigh(box, element1, element2, distance, nneigh);
+                    box->add_constraint(constraint);
+                    box->constraint_allocated_in_system[box->nconstraint-1] = true;
+                }
+            }
+            else {
+                Constraint *constraint = new MinNeigh(boxes[box_id], element1, element2, distance, nneigh);
+                boxes[box_id]->add_constraint(constraint);
+                boxes[box_id]->constraint_allocated_in_system[boxes[box_id]->nconstraint-1] = true;
+            }
+        }
+        else if (constraint_in == "stillinger") {
+            std::cout << "Stillinger constraint cannot be initialized this way! \n"
+                      << "Use object method: stillinger = avbmc.Stillinger(box) \n"
+                      << "stillinger.set_criterion(element1, element2, distance) " << std::endl;
+            exit(0);
+        }
+        else {
+            std::cout << "Constraint '" << constraint_in << "' is not implemented!"
+                      << "Aborting." << std::endl;
+            exit(0);
+        }
+    }
+}
+
+    
+
+
+
 /* ----------------------------------------------------------------------------
    Take a snapshot of a given box.
 ------------------------------------------------------------------------------- */
@@ -716,12 +808,6 @@ void System::add_box(Box* box_in)
 /* ----------------------------------------------------------------------------
    Add particles to the system. 
 ------------------------------------------------------------------------------- */
-
-    void add_particle(class Particle, int = 0);
-    void add_particle(const std::string &, std::valarray<double>, int = 0);
-    void add_particles(std::vector<class Particle>, int = 0);
-    void add_particles(const std::string &, std::vector<std::valarray<double> >, int = 0);
-    void read_particles(const std::string &, int = 0);
 
 void System::add_particle(Particle particle_in, int box_id)
 {
@@ -1052,6 +1138,11 @@ System::~System()
         }
         if (box->box_allocated_in_system) {
             delete box;
+        }
+        for (i=0; i<box->nconstraint; i++) {
+            if (box->constraint_allocated_in_system[i]) {
+                delete box->constraints[i];
+            }
         }
     }
     for (i=0; i<nmove; i++) {

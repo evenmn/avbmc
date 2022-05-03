@@ -119,7 +119,9 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("boundary"), py::arg("box_id") = -1)
         .def("set_boundary", py::overload_cast<const std::string &, std::valarray<double>, int>(&System::set_boundary),
             py::arg("boundary"), py::arg("length") = {}, py::arg("box_id") = -1)
-        .def("add_constraint", &System::add_constraint, py::arg("constraint"), py::arg("box_id") = -1)
+        .def("add_constraint", py::overload_cast<Constraint *, int>(&System::add_constraint), py::arg("constraint"), py::arg("box_id") = 0)
+        .def("add_constraint", py::overload_cast<const std::string &, const std::string &, const std::string &, double, int, int>(&System::add_constraint),
+            py::arg("constraint"), py::arg("element1"), py::arg("element2"), py::arg("distance"), py::arg("nneigh") = 1, py::arg("box_id") = 0)
         .def("snapshot", &System::snapshot, py::arg("filename"), py::arg("box_id") = 0)
         .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = {}, py::arg("box_id") = 0)
         .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = {}, py::arg("box_id") = 0)
@@ -138,7 +140,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("ndim", &System::ndim)
         .def_readonly("temp", &System::temp)
         .def_readonly("chempot", &System::chempot)
-        .def_readonly("working_dir", &System::working_dir);
+        .def_readonly("working_dir", &System::working_dir)
+        .def_readonly("boxes", &System::boxes);
 
     // Box
     py::class_<Box>(m, "Box")
@@ -207,7 +210,7 @@ PYBIND11_MODULE(avbmc, m) {
     py::class_<Constraint>(m, "Constraint")
         .def_readwrite("label", &Constraint::label);
     py::class_<Stillinger, Constraint>(m, "Stillinger")
-        .def(py::init<Box *, double>())
+        .def(py::init<Box *, double>(), py::arg("box"), py::arg("distance") = 1.0)
         .def("set_criterion", &Stillinger::set_criterion);
     py::class_<MinNeigh, Constraint>(m, "MinNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>());

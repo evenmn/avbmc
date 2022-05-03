@@ -58,4 +58,5 @@ public:
     std::vector<unsigned int> nsystemsize, npartype;  // npartype is used by stillinger
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
+    std::vector<bool> constraint_allocated_in_system;
 };
