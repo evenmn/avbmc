@@ -34,9 +34,9 @@ jobs:
     #  run: mpirun -n 4 ./main.out
     - name: Run examples
       run: |
-      python examples/lennardjones/basic.py
-      python examples/lennardjones/objects_only.py
-      python examples/vashishta/basic.py
-      python examples/vashishta/objects_only.py
-      python examples/vashishta/uvt.py
+        python examples/lennardjones/basic.py
+        python examples/lennardjones/objects_only.py
+        python examples/vashishta/basic.py
+        python examples/vashishta/objects_only.py
+        python examples/vashishta/uvt.py
 
