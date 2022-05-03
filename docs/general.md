@@ -130,6 +130,9 @@ system.set_dump(100, "mc0.xyz", ["xyz"], box_id=0)
 ```
 The XYZ-file can be analysed using [Ovito](https://www.ovito.org/), [VMD](https://www.ks.uiuc.edu/Research/vmd/), [ASE](https://wiki.fysik.dtu.dk/ase/) or other software. NB: A low `freq` may slow down the run significantly. 
 
+### Writing number of particles histogram
+TO BE WRITTEN
+
 ## Adding constraints
 TO BE WRITTEN
 
