@@ -61,7 +61,7 @@ Code lines should not exceed 80 characters.
    initial particle position, 'position_in', as arguments.
 ------------------------------------------------------------------------------- */
 
-Particle::Particle(std::string label_in, std::valarray<double> position_in)
+Particle::Particle(const std::string &label_in, std::valarray<double> position_in)
 {
     label = label_in;
     position = position_in;
