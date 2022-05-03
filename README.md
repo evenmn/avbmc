@@ -20,7 +20,7 @@ import avbmc as mc
 system = mc.System()
 
 system.set_temp(1.4)
-system.set_potential("lennardjones", "params.lj")
+system.set_forcefield("lennardjones", "params.lj")
 
 system.add_particle("Ar", [0, 0, 0])
 system.add_move("trans", dx=0.1)
