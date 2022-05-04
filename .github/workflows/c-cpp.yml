@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         #mpi: [ 'mpich', 'openmpi' ]
-        os: [ubuntu-latest, macOS-latest, macOS-11, windows-latest]
+        os: [ubuntu-latest, macOS-latest, macOS-11]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout
