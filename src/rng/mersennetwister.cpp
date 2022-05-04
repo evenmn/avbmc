@@ -7,21 +7,34 @@
 #include "mersennetwister.h"
 
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Mersenne Twister constructor
------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
-MersenneTwister::MersenneTwister()
+MersenneTwister::MersenneTwister(int seed_)
     : RandomNumberGenerator(), generator(seed())
 {
     label = "Mersenne-Twister";
+    if (seed_ > 0) {
+        generator.seed (seed_);
+    }
 }
 
 
-/* ---------------------------------------------------------
-   Returns a double drawn from a Gaussian distribution with 
-   mean 'mean' and variance 'variance'
------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Set seed
+------------------------------------------------------------------------------- */
+
+void MersenneTwister::set_seed(unsigned int seed)
+{
+    generator.seed (seed);
+}
+
+
+/* ----------------------------------------------------------------------------
+   Returns a double drawn from a Gaussian distribution with mean 'mean' and
+   variance 'variance'
+------------------------------------------------------------------------------- */
 
 double MersenneTwister::next_gaussian(double mean, double variance)
 {
@@ -30,9 +43,9 @@ double MersenneTwister::next_gaussian(double mean, double variance)
 }
 
 
-/* ---------------------------------------------------------
+/* ----------------------------------------------------------------------------
    Returns an interger between 0 and (including) 'upper_limit'
------------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 int MersenneTwister::next_int(int upper_limit)
 {
@@ -41,10 +54,9 @@ int MersenneTwister::next_int(int upper_limit)
 }
 
 
-/* ---------------------------------------------------------
-   Returns a double between 0 and 1 drawn from a uniform 
-   distribution
------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Returns a double between 0 and 1 drawn from a uniform distribution
+------------------------------------------------------------------------------- */
 
 double MersenneTwister::next_double()
 {
@@ -53,12 +65,11 @@ double MersenneTwister::next_double()
 }
 
 
-/* ---------------------------------------------------------
-   Inspired by numpy.random.choice, but simplified as we always
-   want to draw only one sample. The samples are also always 
-   range(len(probabilities), so we don't need to take them as
-   an argument
------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Inspired by numpy.random.choice, but simplified as we always want to draw
+   only one sample. The samples are also always range(len(probabilities), so we
+   don't need to take them as an argument.
+------------------------------------------------------------------------------- */
 
 int MersenneTwister::choice(std::vector<double> probabilities)
 {

@@ -134,6 +134,16 @@ void System::set_chempot(const double chempot_in)
 
 
 /* ----------------------------------------------------------------------------
+   Set seed to be used by RNG
+------------------------------------------------------------------------------- */
+
+void System::set_seed(unsigned int seed_)
+{
+    rng->set_seed(seed_);
+}
+
+
+/* ----------------------------------------------------------------------------
    Set mass of chemical symbol. Masses of all chemical symbols have to be given
    if running molecular dynamics simulations, as the software does not look up
    the masses in a table.

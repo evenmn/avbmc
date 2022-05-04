@@ -14,6 +14,7 @@
 #include "../src/particle.h"
 #include "../src/thermo.h"
 #include "../src/dump.h"
+#include "../src/init_position.h"
 
 #include "../src/rng/rng.h"
 #include "../src/rng/mersennetwister.h"
@@ -74,6 +75,7 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Initialize position
     m.def("read_xyz", &read_xyz);
+    m.def("fcc", &fcc, "Initialize in face-centered cube", py::arg("n"), py::arg("d"), py::arg("ndim") = 3);
 
     // Random Number Generator
     py::class_<RandomNumberGenerator>(m, "RNG")
@@ -98,6 +100,7 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_rng", py::overload_cast<RandomNumberGenerator *>(&System::set_rng))
         .def("set_rng", py::overload_cast<const std::string &>(&System::set_rng))
         .def("set_temp", &System::set_temp)
+        .def("set_seed", &System::set_seed)
         .def("set_chempot", &System::set_chempot)
         .def("add_move", py::overload_cast<Moves *, double>(&System::add_move), "Add move to the list of moves",
             py::arg("system"), py::arg("prob") = 1.0)

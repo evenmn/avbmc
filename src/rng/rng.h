@@ -8,6 +8,7 @@ class RandomNumberGenerator
 {
 public:
     RandomNumberGenerator() {};
+    virtual void set_seed(unsigned int) = 0;
     virtual int next_int(int) = 0;
     virtual double next_double() = 0;
     virtual double next_gaussian(double = 0.0, double = 1.0) = 0;

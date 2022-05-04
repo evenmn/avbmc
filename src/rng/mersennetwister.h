@@ -8,7 +8,8 @@
 class MersenneTwister : public RandomNumberGenerator
 {
 public:
-    MersenneTwister();
+    MersenneTwister(int = -1);
+    void set_seed(unsigned int) override;
     int next_int(int) override;
     double next_double() override;
     double next_gaussian(double, double) override;

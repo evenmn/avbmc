@@ -17,6 +17,7 @@ public:
     void set_temp(double);
     void set_chempot(double);
     void set_mass(std::string, double);
+    void set_seed(unsigned int);
 
     void set_sampler(class Sampler *);
     void set_sampler(const std::string &, std::function<double(int)>);
