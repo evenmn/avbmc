@@ -29,7 +29,6 @@
    AVBMCIn constructor
 ------------------------------------------------------------------------------- */
 
-
 AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
                  const double r_below_in, const double r_above_in, bool energy_bias_in)
     : Moves(system_in)
@@ -110,12 +109,9 @@ void AVBMCIn::reset()
    Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMCIn::update_nsystemsize()
+void AVBMCIn::update_size_histogram()
 {
-    if (box->npar + 1 > box->nsystemsize.size()) {
-        box->nsystemsize.resize(box->npar + 1);
-    }
-    box->nsystemsize[box->npar] ++;
+    box->update_size_histogram();
 }
 
 

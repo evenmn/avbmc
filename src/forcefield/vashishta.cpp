@@ -11,9 +11,9 @@
 #include "../particle.h"
 #include "../distance_manager.h"
 
-
 /* ----------------------------------------------------------------------------
-   Vashishta constructor, which takes a parameter file 'params'.
+   Vashishta constructor, which takes a parameter file 'params' as an
+   argument.
 ------------------------------------------------------------------------------- */
 
 Vashishta::Vashishta(Box* box_in, const std::string &params)
@@ -91,10 +91,9 @@ void Vashishta::read_param_file(const std::string &params)
     }
 }
 
-
 /* ----------------------------------------------------------------------------
    Parameters have to be sorted with respect to the particle types, and are
-   stored in three-dimensional arrays
+   stored in two- and three-dimensional arrays.
 ------------------------------------------------------------------------------- */
 
 void Vashishta::sort_params()
@@ -185,27 +184,30 @@ void Vashishta::sort_params()
    'typei' and 'typej', respectively, separated by a distance 'rij'.
 ------------------------------------------------------------------------------- */
 
-double Vashishta::comp_twobody_par(const int typei, const int typej, const double rij,
-                                   std::valarray<double> &/*forceij*/, const bool /*comp_force*/)
-{
-    double rijinv, rijinv2, rijinv4, rijinv6, energyij;
+double Vashishta::comp_twobody_par(const int typei, const int typej,
+                                   const double rij,
+                                   std::valarray<double> & /*forceij*/,
+                                   const bool /*comp_force*/) {
+  double rijinv, rijinv2, rijinv4, rijinv6, energyij;
 
-    energyij = 0.;
-    if (rij < rc_mat[typei][typej]) {
-        rijinv = 1.0 / rij;
-        rijinv2 = rijinv * rijinv;
-        rijinv4 = rijinv2 * rijinv2;
-        rijinv6 = rijinv4 * rijinv2;
-        energyij = H_mat[typei][typej] * std::pow(rijinv, eta_mat[typei][typej]);
-        energyij += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv * std::exp(-rij * lambda1inv_mat[typei][typej]);
-        energyij -= D_mat[typei][typej] * rijinv4 * std::exp(-rij * lambda4inv_mat[typei][typej]);
-        energyij -= W_mat[typei][typej] * rijinv6;
-        energyij -= shift_mat[typei][typej];
-        //if (comp_force) {
-            // do something
-        //}
-    }
-    return energyij;
+  energyij = 0.;
+  if (rij < rc_mat[typei][typej]) {
+    rijinv = 1.0 / rij;
+    rijinv2 = rijinv * rijinv;
+    rijinv4 = rijinv2 * rijinv2;
+    rijinv6 = rijinv4 * rijinv2;
+    energyij = H_mat[typei][typej] * std::pow(rijinv, eta_mat[typei][typej]);
+    energyij += Zi_mat[typei][typej] * Zj_mat[typei][typej] * rijinv *
+                std::exp(-rij * lambda1inv_mat[typei][typej]);
+    energyij -= D_mat[typei][typej] * rijinv4 *
+                std::exp(-rij * lambda4inv_mat[typei][typej]);
+    energyij -= W_mat[typei][typej] * rijinv6;
+    energyij -= shift_mat[typei][typej];
+    // if (comp_force) {
+    // do something
+    //}
+  }
+  return energyij;
 }
 
 
@@ -213,25 +215,29 @@ double Vashishta::comp_twobody_par(const int typei, const int typej, const doubl
    Compute three-body interaction energy between three particles i, j and k of
    types 'typei', 'typej' and 'typek', respectively. 'delij' is the distance
    vector from i to j, while 'delik' is the distance vector from i to k. 'rij'
-   is the actual distance between particle i and j.
+   is the actual distance between particle i and j. Used when rik is computed
+   in advance.
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
-        const int typek, const double rij, double rik, std::valarray<double> delij,
-        std::valarray<double> delik, std::valarray<double> &/*force*/, const bool /*comp_force*/)
-{
-    double expij, expik, costhetaijk, delcos, delcossq, energyijk;
+                                     const int typek, const double rij,
+                                     double rik, std::valarray<double> delij,
+                                     std::valarray<double> delik,
+                                     std::valarray<double> & /*force*/,
+                                     const bool /*comp_force*/) {
+  double expij, expik, costhetaijk, delcos, delcossq, energyijk;
 
-    costhetaijk = (delij * delik).sum() / (rij * rik);
-    expij = gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]);
-    expik = gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]);
-    delcos = costheta_mat[typei][typej][typek] - costhetaijk;
-    delcossq = delcos * delcos;
-    energyijk = B_mat[typei][typej][typek] * delcossq / 
-        (1 + C_mat[typei][typej][typek] * delcossq) * std::exp(expij + expik);
-    //if (comp_force) {
-    //}
-    return energyijk;
+  costhetaijk = (delij * delik).sum() / (rij * rik);
+  expij = gamma_mat[typei][typej] / (rij - r0_mat[typei][typej]);
+  expik = gamma_mat[typei][typek] / (rik - r0_mat[typei][typek]);
+  delcos = costheta_mat[typei][typej][typek] - costhetaijk;
+  delcossq = delcos * delcos;
+  energyijk = B_mat[typei][typej][typek] * delcossq /
+              (1 + C_mat[typei][typej][typek] * delcossq) *
+              std::exp(expij + expik);
+  // if (comp_force) {
+  //}
+  return energyijk;
 }
 
 
@@ -239,7 +245,8 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    Compute three-body interaction energy between three particles i, j and k of
    types 'typei', 'typej' and 'typek', respectively. 'delij' is the distance
    vector from i to j, while 'delik' is the distance vector from i to k. 'rij'
-   is the actual distance between particle i and j.
+   is the actual distance between particle i and j. Used when rik is not
+   computed in advance.
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
@@ -283,34 +290,38 @@ double Vashishta::comp_energy_par_neigh0_eng0(const unsigned int i,
     npar = box->particles.size();
     energy = 0.;
 
-    for(j=0; j<i; j++){
-        // two-body
-        typej = box->particles[j].type;
-        delij = box->particles[j].r - box->particles[i].r;
-        rij = std::sqrt(norm(delij));
-        energy += comp_twobody_par(typei, typej, rij, force, comp_force);
-        for(k=0; k<npar; k++){
-            if (k==i || k == j) continue;
-            // three-body
-            typek = box->particles[k].type;
-            delik = box->particles[k].r - box->particles[i].r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij, force, comp_force);
-        }
+    for (j = 0; j < i; j++) {
+      // two-body
+      typej = box->particles[j].type;
+      delij = box->particles[j].r - box->particles[i].r;
+      rij = std::sqrt(norm(delij));
+      energy += comp_twobody_par(typei, typej, rij, force, comp_force);
+      for (k = 0; k < npar; k++) {
+        if (k == i || k == j)
+          continue;
+        // three-body
+        typek = box->particles[k].type;
+        delik = box->particles[k].r - box->particles[i].r;
+        energy += comp_threebody_par(typei, typej, typek, delij, delik, rij,
+                                     force, comp_force);
+      }
     }
 
-    for(j=i+1; j<npar; j++){
-        // two-body
-        typej = box->particles[j].type;
-        delij = box->particles[j].r - box->particles[i].r;
-        rij = std::sqrt(norm(delij));
-        energy += comp_twobody_par(typei, typej, rij, force, comp_force);
-        for(k=0; k<npar; k++){
-            if (k==i || k == j) continue;
-            // three-body
-            typek = box->particles[k].type;
-            delik = box->particles[k].r - box->particles[i].r;
-            energy += comp_threebody_par(typei, typej, typek, delij, delik, rij, force, comp_force);
-        }
+    for (j = i + 1; j < npar; j++) {
+      // two-body
+      typej = box->particles[j].type;
+      delij = box->particles[j].r - box->particles[i].r;
+      rij = std::sqrt(norm(delij));
+      energy += comp_twobody_par(typei, typej, rij, force, comp_force);
+      for (k = 0; k < npar; k++) {
+        if (k == i || k == j)
+          continue;
+        // three-body
+        typek = box->particles[k].type;
+        delik = box->particles[k].r - box->particles[i].r;
+        energy += comp_threebody_par(typei, typej, typek, delij, delik, rij,
+                                     force, comp_force);
+      }
     }
     return energy;
 }
@@ -329,12 +340,8 @@ double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
     double rij, rik, energy;
     unsigned int typei, typej, typek;
     std::valarray<double> delij, delik;
-    //std::vector<std::vector<unsigned int> > neigh_list_rc, neigh_list_r0;
 
     typei = box->particles[i].type; 
-    //neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
-    //neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
-
     energy = 0.;
     for (unsigned int j : box->distance_manager->neigh_lists[neigh_id_rc][i]) {
         // two-body
@@ -349,7 +356,8 @@ double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
             if (rik < r0_mat[typei][typek]) {
                 delij = box->distance_manager->distance_cube[i][j];
                 delik = box->distance_manager->distance_cube[i][k];
-                energy += comp_threebody_par(typei, typej, typek, rij, rik, delij, delik, force, comp_force);
+                energy += comp_threebody_par(typei, typej, typek, rij, rik,
+                                             delij, delik, force, comp_force);
             }
         }
     }
@@ -359,9 +367,9 @@ double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
 
 /* ----------------------------------------------------------------------------
    Compute energy contribution of a particle 'i', given a box containing
-   particles. This function relies on neighbor lists and precalculated 
+   particles. This function relies on neighbor lists and precalculated
    distances and relative coordinates, and will be used if memory is not an
-   issue.
+   issue. This is the most memory intense method.
 ------------------------------------------------------------------------------- */
 
 double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
@@ -370,13 +378,9 @@ double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
     double rij, rik, energy, energyij;
     unsigned int typei, typej, typek, l, m;
     std::valarray<double> delij, delik, forceij;
-    //std::vector<std::vector<unsigned int> > neigh_list_rc, neigh_list_r0;
 
     set();
-
     typei = box->particles[i].type; 
-    //neigh_list_rc = box->distance_manager->neigh_lists[neigh_id_rc];
-    //neigh_list_r0 = box->distance_manager->neigh_lists[neigh_id_r0];
 
     energy = 0.;
     for (unsigned int j : box->distance_manager->neigh_lists[neigh_id_rc][i]) {
@@ -384,7 +388,6 @@ double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
         typej = box->particles[j].type;
         rij = std::sqrt(box->distance_manager->distance_mat[i][j]);
         energyij = comp_twobody_par(typei, typej, rij, forceij, comp_force);
-
         for (unsigned int k : box->distance_manager->neigh_lists[neigh_id_r0][j]) {
             // three-body
             typek = box->particles[k].type;
@@ -397,12 +400,10 @@ double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
         }
         energy += energyij;
         force += forceij;
-        if (box->store_energy) {
-            poteng_mat[i][j] = energyij;
-            poteng_mat[j][i] = energyij;
-            force_cube[i][j] = forceij;
-            force_cube[j][i] = -forceij;
-        }
+        poteng_mat[i][j] = energyij;
+        poteng_mat[j][i] = energyij;
+        force_cube[i][j] = forceij;
+        force_cube[j][i] = -forceij;
     }
     for (l=0; l < box->npar; l++) {
         poteng_vec[l] = poteng_mat[l][0];
@@ -415,24 +416,6 @@ double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
     return energy;
 }
 
-
-/* ----------------------------------------------------------------------------
-   Forwarding computation of the energy of particle 'i' to other functions
-------------------------------------------------------------------------------- */
-/*
-double Vashishta::comp_energy_par(const int i, std::valarray<double> &force,
-                                  const bool comp_force)
-{
-    double energy;
-    if (box->store_distance) {
-        energy = comp_energy_par_neigh(i, force, comp_force);
-    }
-    else {
-        energy = comp_energy_par_noneigh(i, force, comp_force);
-    }
-    return energy;
-}
-*/
 
 /* ----------------------------------------------------------------------------
    Compute total energy of a system consisting of a set of particles stored
@@ -580,8 +563,7 @@ void Vashishta::free_memory()
 
 
 /* ----------------------------------------------------------------------------
-   Vashishta destructor, memory of all parameter arrays
-   is released.
+   Vashishta destructor, memory of all parameter arrays is released.
 ------------------------------------------------------------------------------- */
 
 Vashishta::~Vashishta()

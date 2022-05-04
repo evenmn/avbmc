@@ -1,31 +1,29 @@
 #pragma once
 #include <iostream>
-#include <vector>
 #include <string>
-#include <armadillo>
+#include <vector>
+#include <valarray>
 
-using namespace std;
-using namespace arma;
 
 class Velocity
 {
 public:
-    Velocity();
-    virtual mat get_velocity(const int npar, const int ndim) = 0;
+    Velocity() {};
+    virtual std::vector<std::valarray<double> > get_velocity(unsigned int, unsigned int) = 0;
 };
 
 class Zero : public Velocity
 {
 public:
     Zero();
-    mat get_velocity(const int npar, const int ndim) override;
+    std::vector<std::valarray<double> > get_velocity(unsigned int, unsigned int = 3) override;
 };
 
 class Gauss : public Velocity
 {
 public:
-    Gauss(class RandomNumberGenerator* rng_in, const double mean_in, const double var_in);
-    mat get_velocity(const int npar, const int ndim) override;
+    Gauss(class RandomNumberGenerator* rng_in, double mean_in, double var_in);
+    std::vector<std::valarray<double> > get_velocity(unsigned int, unsigned int = 3) override;
 private:
     double mean, var;
     class RandomNumberGenerator* rng = nullptr;
@@ -34,5 +32,5 @@ private:
 class Temp : public Gauss
 {
 public:
-    Temp(class RandomNumberGenerator* rng_in, const double temp_in);
+    Temp(class RandomNumberGenerator* rng_in, double temp_in);
 };

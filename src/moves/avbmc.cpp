@@ -91,18 +91,20 @@ void AVBMC::reset()
 
 
 /* ----------------------------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
+   Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMC::update_nsystemsize()
+void AVBMC::update_size_histogram()
 {
+    box->update_size_histogram();
+    /*
     if (move_in) {
-        AVBMCIn::update_nsystemsize();
+        AVBMCIn::update_size_histogram();
     }
     else {
-        AVBMCOut::update_nsystemsize();
+        AVBMCOut::update_size_histogram();
     }
+    */
 }
 
 

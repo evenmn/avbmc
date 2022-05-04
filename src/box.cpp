@@ -77,7 +77,7 @@ Box::Box(System* system_in) //, int memory_intensity)
    to be exception-safe.
 ------------------------------------------------------------------------------- */
 
-Box::Box(const Box &box) : nsystemsize(box.nsystemsize), npartype(box.npartype),
+Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npartype),
                            particles(box.particles), constraints(box.constraints)
 {
     //system = new System(box.system);
@@ -121,7 +121,7 @@ void Box::swap(Box &other)
     unsigned int npar_tmp, step_tmp, ntype_tmp, nmove_tmp, box_id_tmp, nconstraint_tmp;
     bool initialized_tmp, store_energy_tmp, store_distance_tmp;
     double time_tmp, poteng_tmp;
-    std::vector<unsigned int> nsystemsize_tmp, npartype_tmp;
+    std::vector<unsigned int> size_histogram_tmp, npartype_tmp;
     std::vector<Particle> particles_tmp;
     std::vector<Constraint *> constraints_tmp;
 
@@ -182,9 +182,9 @@ void Box::swap(Box &other)
     time = other.time;
     other.time = time_tmp;
 
-    nsystemsize_tmp = nsystemsize;
-    nsystemsize = other.nsystemsize;
-    other.nsystemsize = nsystemsize_tmp;
+    size_histogram_tmp = size_histogram;
+    size_histogram = other.size_histogram;
+    other.size_histogram = size_histogram_tmp;
     npartype_tmp = npartype;
     npartype = other.npartype;
     other.npartype = npartype_tmp;
@@ -306,6 +306,7 @@ void Box::add_constraint(Constraint* constraint)
     }
     nconstraint ++;
     constraints.push_back(constraint);
+    constraint_allocated_in_system.push_back(false);
 }
 
 
@@ -453,11 +454,13 @@ std::vector<unsigned int> Box::build_neigh_list(const int i, double **rsq)
    file 'filename'
 ------------------------------------------------------------------------------- */
 
-void Box::write_nsystemsize(const std::string &filename)
+void Box::write_size_histogram(const std::string &filename)
 {
+    unsigned int nsize;
+
+    nsize = size_histogram.size();
     //int maxsize;
     //MPI_Barrier(MPI_COMM_WORLD);
-    unsigned int size = nsystemsize.size();
     //MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
     //MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
     //nsystemsize.resize(maxsize);
@@ -468,7 +471,20 @@ void Box::write_nsystemsize(const std::string &filename)
     //    write_array(nsystemsizetot, maxsize, filename, "\n");
     //}
     //delete[] nsystemsizetot;
-    write_array(nsystemsize.data(), size, filename, "\n");
+    write_array(size_histogram.data(), nsize, filename, "\n");
+}
+
+
+/* ----------------------------------------------------------------------------
+   Update number of time this system size has occured if move was accepted
+------------------------------------------------------------------------------- */
+
+void Box::update_size_histogram()
+{
+    if (npar + 1 > size_histogram.size()) {
+        size_histogram.resize(npar + 1);
+    }
+    size_histogram[npar] ++;
 }
 
 

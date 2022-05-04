@@ -36,7 +36,9 @@ Code lines should not exceed 80 characters.
 ## An example
 ``` c++
 /* ----------------------------------------------------------------------------
-   Licence information ...
+   This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+   For license information, see LICENSE file in the top directory, 
+   https://github.com/evenmn/avbmc/LICENSE.
 
    Author(s): Even M. Nordhagen
    Email(s): evenmn@mn.uio.no
@@ -61,7 +63,7 @@ Code lines should not exceed 80 characters.
    initial particle position, 'position_in', as arguments.
 ------------------------------------------------------------------------------- */
 
-Particle::Particle(std::string label_in, std::valarray<double> position_in)
+Particle::Particle(const std::string &label_in, std::valarray<double> position_in)
 {
     label = label_in;
     position = position_in;

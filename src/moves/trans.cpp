@@ -36,6 +36,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in)
 
 void Trans::perform_move()
 {
+    unsigned int j;
     double u0, u1;
 
     i = rng->next_int(box->npar); // particle to move
@@ -47,11 +48,14 @@ void Trans::perform_move()
     }
 
     // move particle i
-    std::valarray<double> dr(system->ndim);
-    for(double &d : dr)
-        d = 2 * (rng->next_double() - 0.5);
     pos_old = box->particles[i].r;
-    box->particles[i].r += dx * dr;
+    for (j=0; j<system->ndim; j++) {
+        box->particles[i].r[j] += dx * 2 * (rng->next_double() - 0.5);
+    }
+    //std::valarray<double> dr(system->ndim);
+    //for(double &d : dr)
+    //    d = 2 * (rng->next_double() - 0.5);
+    //box->particles[i].r += dx * dr;
     box->distance_manager->set();
     box->distance_manager->update_trans(i);
 
@@ -94,12 +98,9 @@ void Trans::reset()
    Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void Trans::update_nsystemsize()
+void Trans::update_size_histogram()
 {
-    if (box->npar + 1 > box->nsystemsize.size()) {
-        box->nsystemsize.resize(box->npar + 1);
-    }
-    box->nsystemsize[box->npar] ++;
+    box->update_size_histogram();
 }
 
 

@@ -12,7 +12,7 @@ public:
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
-    void update_nsystemsize() override;
+    void update_size_histogram() override;
     std::string repr() override;
 
 private:

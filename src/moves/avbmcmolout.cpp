@@ -183,16 +183,12 @@ void AVBMCMolOut::reset()
 
 
 /* ----------------------------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
+   Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMCMolOut::update_nsystemsize()
+void AVBMCMolOut::update_size_histogram()
 {
-    if (box->npar + 1 > box->nsystemsize.size()) {
-        box->nsystemsize.resize(box->npar + 1);
-    }
-    box->nsystemsize[box->npar] ++;
+    box->update_size_histogram();
 }
 
 

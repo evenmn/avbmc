@@ -28,6 +28,7 @@ public:
     void set_boundary(class Boundary *, int = -1);
     void set_boundary(const std::string &, std::valarray<double> = {}, int = -1);
     void add_constraint(class Constraint *, int = -1);
+    void add_constraint(const std::string &, const std::string &, const std::string &, double, int = 0, int = 0);
     void set_dump(int, const std::string &, const std::vector<std::string> &, int = 0);
     void set_thermo(int, const std::string &, const std::vector<std::string> &, int = 0);
     void snapshot(const std::string &, int = 0);
@@ -43,6 +44,8 @@ public:
     void add_particles(std::vector<class Particle>, int = 0);
     void add_particles(const std::string &, std::vector<std::valarray<double> >, int = 0);
     void read_particles(const std::string &, int = 0);
+    void write_size_histogram(const std::string &, int = 0);
+    std::vector<unsigned int> get_size_histogram(int = 0);
 
     void check_masses();
     int get_maxiter(int);
