@@ -77,7 +77,12 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Random Number Generator
     py::class_<RandomNumberGenerator>(m, "RNG")
-        .def_readonly("label", &RandomNumberGenerator::label);
+        .def_readonly("label", &RandomNumberGenerator::label)
+        .def("__repr__",
+            [](const RandomNumberGenerator &rng) {
+                return rng.label;
+            }
+        );
     py::class_<MersenneTwister, RandomNumberGenerator>(m, "MersenneTwister")
         .def(py::init<>())
         .def("next_int", &MersenneTwister::next_int)
@@ -118,11 +123,13 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_boundary", py::overload_cast<Boundary *, int>(&System::set_boundary),
             py::arg("boundary"), py::arg("box_id") = -1)
         .def("set_boundary", py::overload_cast<const std::string &, std::valarray<double>, int>(&System::set_boundary),
-            py::arg("boundary"), py::arg("length") = {}, py::arg("box_id") = -1)
-        .def("add_constraint", &System::add_constraint, py::arg("constraint"), py::arg("box_id") = -1)
+            py::arg("boundary"), py::arg("length") = py::none(), py::arg("box_id") = -1)
+        .def("add_constraint", py::overload_cast<Constraint *, int>(&System::add_constraint), py::arg("constraint"), py::arg("box_id") = 0)
+        .def("add_constraint", py::overload_cast<const std::string &, const std::string &, const std::string &, double, int, int>(&System::add_constraint),
+            py::arg("constraint"), py::arg("element1"), py::arg("element2"), py::arg("distance"), py::arg("nneigh") = 1, py::arg("box_id") = 0)
         .def("snapshot", &System::snapshot, py::arg("filename"), py::arg("box_id") = 0)
-        .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = {}, py::arg("box_id") = 0)
-        .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = {}, py::arg("box_id") = 0)
+        .def("set_dump", &System::set_dump, py::arg("freq") = 1, py::arg("filename") = "mc.xyz", py::arg("outputs") = py::none(), py::arg("box_id") = 0)
+        .def("set_thermo", &System::set_thermo, py::arg("freq") = 1, py::arg("filename") = "mc.log", py::arg("outputs") = py::none(), py::arg("box_id") = 0)
         .def("add_particle", py::overload_cast<Particle, int>(&System::add_particle), "Add a particle by object", py::arg("particle"), py::arg("box_id") = 0)
         .def("add_particle", py::overload_cast<const std::string &, std::valarray<double>, int >(&System::add_particle),
             "Add a particle by element and position", py::arg("element"), py::arg("position"), py::arg("box_id") = 0)
@@ -131,6 +138,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def("add_particles", py::overload_cast<const std::string &, std::vector<std::valarray<double> >, int>(&System::add_particles),
             "Add particles of the same type", py::arg("element"), py::arg("positions"), py::arg("box_id") = 0)
         .def("read_particles", &System::read_particles, "Read particles from xyz-file", py::arg("filename"), py::arg("box_id") = 0)
+        .def("get_size_histogram", &System::get_size_histogram, "Get size histogram", py::arg("box_id") = 0)
+        .def("write_size_histogram", &System::write_size_histogram, "Write size histogram", py::arg("filename"), py::arg("box_id") = 0)
 
         //.def("run_md", &System::run_md, py::arg("steps"))
         .def("run_mc", &System::run_mc, py::arg("cycles"), py::arg("steps") = 1)
@@ -138,7 +147,9 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("ndim", &System::ndim)
         .def_readonly("temp", &System::temp)
         .def_readonly("chempot", &System::chempot)
-        .def_readonly("working_dir", &System::working_dir);
+        .def_readonly("working_dir", &System::working_dir)
+        .def_readonly("boxes", &System::boxes)
+        .def_readonly("moves", &System::moves);
 
     // Box
     py::class_<Box>(m, "Box")
@@ -163,7 +174,12 @@ PYBIND11_MODULE(avbmc, m) {
     // Sampler
     py::class_<Sampler>(m, "Sampler")
         .def("sample", &Sampler::sample)
-        .def_readonly("label", &Sampler::label);
+        .def_readonly("label", &Sampler::label)
+        .def("__repr__",
+            [](const Sampler &sampler) {
+                return sampler.label;
+            }
+        );
     py::class_<Metropolis, Sampler>(m, "Metropolis")
         .def(py::init<System *>());
     py::class_<Umbrella, Sampler>(m, "Umbrella")
@@ -174,7 +190,12 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("label", &Moves::label)
         .def_readonly("ndrawn", &Moves::ndrawn)
         .def_readonly("naccept", &Moves::naccept)
-        .def_readonly("cum_time", &Moves::cum_time);
+        .def_readonly("cum_time", &Moves::cum_time)
+        .def("__repr__",
+            [](const Moves &move) {
+                return move.label;
+            }
+        );
     py::class_<Trans, Moves>(m, "Trans")
         .def(py::init<System *, Box *, double>());
     py::class_<TransMH, Moves>(m, "TransMH")
@@ -187,7 +208,12 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("ntype", &ForceField::ntype)
         .def_readonly("temp_scale", &ForceField::temp_scale)
         .def_readonly("label", &ForceField::label)
-        .def_readonly("paramfile", &ForceField::paramfile);
+        .def_readonly("paramfile", &ForceField::paramfile)
+        .def("__repr__",
+            [](const ForceField &forcefield) {
+                return forcefield.label;
+            }
+        );
     py::class_<LennardJones, ForceField>(m, "LennardJones")
         .def(py::init<Box *, std::string>());
     py::class_<Vashishta, ForceField>(m, "Vashishta")
@@ -197,7 +223,12 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Boundary
     py::class_<Boundary>(m, "Boundary")
-        .def_readwrite("label", &Boundary::label);
+        .def_readwrite("label", &Boundary::label)
+        .def("__repr__",
+            [](const Boundary &boundary) {
+                return boundary.label;
+            }
+        );
     py::class_<Open, Boundary>(m, "Open")
         .def(py::init<Box *>());
     py::class_<Periodic, Boundary>(m, "Periodic")
@@ -205,9 +236,14 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Constraint
     py::class_<Constraint>(m, "Constraint")
-        .def_readwrite("label", &Constraint::label);
+        .def_readwrite("label", &Constraint::label)
+        .def("__repr__",
+            [](const Constraint &constraint) {
+                return constraint.label;
+            }
+        );
     py::class_<Stillinger, Constraint>(m, "Stillinger")
-        .def(py::init<Box *, double>())
+        .def(py::init<Box *, double>(), py::arg("box"), py::arg("distance") = 1.0)
         .def("set_criterion", &Stillinger::set_criterion);
     py::class_<MinNeigh, Constraint>(m, "MinNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>());
