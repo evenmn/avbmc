@@ -133,6 +133,7 @@ PYBIND11_MODULE(avbmc, m) {
         .def("add_particles", py::overload_cast<const std::string &, std::vector<std::valarray<double> >, int>(&System::add_particles),
             "Add particles of the same type", py::arg("element"), py::arg("positions"), py::arg("box_id") = 0)
         .def("read_particles", &System::read_particles, "Read particles from xyz-file", py::arg("filename"), py::arg("box_id") = 0)
+        .def("write_size_histogram", &System::write_size_histogram, "Write size histogram", py::arg("filename"), py::arg("box_id") = 0)
 
         //.def("run_md", &System::run_md, py::arg("steps"))
         .def("run_mc", &System::run_mc, py::arg("cycles"), py::arg("steps") = 1)

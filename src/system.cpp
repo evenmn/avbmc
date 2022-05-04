@@ -905,6 +905,16 @@ void System::read_particles(const std::string &filename, int box_id)
 
 
 /* ----------------------------------------------------------------------------
+   Write histogram of system sizes out to file
+------------------------------------------------------------------------------- */
+
+void System::write_size_histogram(const std::string &filename, int box_id)
+{
+    boxes[box_id]->write_nsystemsize(filename);
+}
+
+
+/* ----------------------------------------------------------------------------
    Returns the last iteration
 ------------------------------------------------------------------------------- */
 

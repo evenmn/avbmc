@@ -15,3 +15,4 @@ system.set_dump(100, "mc.xyz", ["x", "y", "z"])
 system.set_thermo(100, "mc.log", ["step", "atoms", "poteng"])
 
 system.run_mc(10000)
+system.write_size_histogram("size_histogram.txt", box_id=0)
