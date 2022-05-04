@@ -14,7 +14,7 @@ public:
     virtual void perform_move() = 0;
     virtual double accept(double, double) = 0;
     virtual void reset() = 0;
-    virtual void update_nsystemsize() = 0;
+    virtual void update_size_histogram() = 0;
     virtual std::string repr() = 0;
     virtual ~Moves() = default;
 

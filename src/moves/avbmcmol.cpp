@@ -89,14 +89,17 @@ void AVBMCMol::reset()
    Update number of time this system size has occured if move was accepted
 ------------------------------------------------------------------------------- */
 
-void AVBMCMol::update_nsystemsize()
+void AVBMCMol::update_size_histogram()
 {
+    box->update_size_histogram();
+    /*
     if (move_in) {
-        AVBMCMolIn::update_nsystemsize();
+        AVBMCMolIn::update_size_histogram();
     }
     else {
-        AVBMCMolOut::update_nsystemsize();
+        AVBMCMolOut::update_size_histogram();
     }
+    */
 }
 
 

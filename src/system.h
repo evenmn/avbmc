@@ -45,6 +45,7 @@ public:
     void add_particles(const std::string &, std::vector<std::valarray<double> >, int = 0);
     void read_particles(const std::string &, int = 0);
     void write_size_histogram(const std::string &, int = 0);
+    std::vector<unsigned int> get_size_histogram(int = 0);
 
     void check_masses();
     int get_maxiter(int);

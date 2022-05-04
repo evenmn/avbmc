@@ -39,7 +39,7 @@ void Sampler::sample(int nmoves)
         else {
             move->reset();
         }
-        move->update_nsystemsize();
+        move->update_size_histogram();
         auto t1 = Time::now();
         fsec fs = t1 - t0;
         move->cum_time += fs.count();

@@ -36,7 +36,8 @@ public:
     void set_thermo(int, std::string, std::vector<std::string>); //, bool = true);
     std::vector<unsigned int> build_neigh_list(int, double);
     std::vector<unsigned int> build_neigh_list(int, double**);
-    void write_nsystemsize(const std::string &);
+    void update_size_histogram();
+    void write_size_histogram(const std::string &);
     ~Box();
 
     // variables
@@ -55,7 +56,7 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<unsigned int> nsystemsize, npartype;  // npartype is used by stillinger
+    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by stillinger
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
     std::vector<bool> constraint_allocated_in_system;

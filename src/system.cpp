@@ -910,9 +910,14 @@ void System::read_particles(const std::string &filename, int box_id)
 
 void System::write_size_histogram(const std::string &filename, int box_id)
 {
-    boxes[box_id]->write_nsystemsize(filename);
+    boxes[box_id]->write_size_histogram(filename);
 }
 
+
+std::vector<unsigned int> System::get_size_histogram(int box_id)
+{
+    return boxes[box_id]->size_histogram;
+}
 
 /* ----------------------------------------------------------------------------
    Returns the last iteration
@@ -1044,9 +1049,8 @@ void Box::run_md(const int nsteps)
 void System::run_mc(const int nsteps, const int nmoves)
 {
     for (Box* box : boxes) {
-        box->nsystemsize.resize(box->npar + 1);
-        box->nsystemsize[box->npar] ++;
-        std::cout << box->store_distance << std::endl;
+        box->size_histogram.resize(box->npar + 1);
+        box->size_histogram[box->npar] ++;
         if (box->store_distance) {
             box->distance_manager->initialize();
         }

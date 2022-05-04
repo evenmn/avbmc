@@ -13,12 +13,10 @@
 #include "../forcefield/forcefield.h"
 
 
-/*---------------------------------------------------
-  Constructor of biased translational move, with
-  'dx_in' being the maximum step length (in any
-  direction) and 'Ddt_in' being the biasing 
-  parameter.
------------------------------------------------------ */
+/*-----------------------------------------------------------------------------
+  Constructor of biased translational move, with 'dx_in' being the maximum step
+  length (in any direction) and 'Ddt_in' being the biasing parameter.
+------------------------------------------------------------------------------- */
 
 TransMH::TransMH(System* system_in, Box* box_in, const double dx_in,
                  const double Ddt_in)
@@ -32,9 +30,9 @@ TransMH::TransMH(System* system_in, Box* box_in, const double dx_in,
 }
 
 
-/* ---------------------------------------------------
+/* ----------------------------------------------------------------------------
    Propose particle to move and new position randomly.
------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 void TransMH::perform_move()
 {
@@ -69,10 +67,9 @@ void TransMH::perform_move()
 }
 
 
-/* -----------------------------------------------------
-   Compute acceptance probability of translational
-   move
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Compute acceptance probability of translational move
+------------------------------------------------------------------------------- */
 
 double TransMH::accept(double temp, double /*chempot*/)
 {
@@ -87,10 +84,9 @@ double TransMH::accept(double temp, double /*chempot*/)
 }
 
 
-/* -----------------------------------------------------
-   Set back to old state before move if move was
-   rejected
--------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Set back to old state before move if move was rejected
+------------------------------------------------------------------------------- */
 
 void TransMH::reset()
 {
@@ -101,23 +97,19 @@ void TransMH::reset()
 }
 
 
-/* ----------------------------------------------------------
-   Update number of time this system size has occured if
-   move was accepted
-------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------
+   Update number of time this system size has occured if move was accepted
+------------------------------------------------------------------------------- */
 
-void TransMH::update_nsystemsize()
+void TransMH::update_size_histogram()
 {
-    if (box->npar + 1 > box->nsystemsize.size()) {
-        box->nsystemsize.resize(box->npar + 1);
-    }
-    box->nsystemsize[box->npar] ++;
+    box->update_size_histogram();
 }
 
 
-/* -----------------------------------------------------
+/* ----------------------------------------------------------------------------
    Represent move in a clean way
--------------------------------------------------------- */
+------------------------------------------------------------------------------- */
 
 std::string TransMH::repr()
 {

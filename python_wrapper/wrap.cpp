@@ -133,6 +133,7 @@ PYBIND11_MODULE(avbmc, m) {
         .def("add_particles", py::overload_cast<const std::string &, std::vector<std::valarray<double> >, int>(&System::add_particles),
             "Add particles of the same type", py::arg("element"), py::arg("positions"), py::arg("box_id") = 0)
         .def("read_particles", &System::read_particles, "Read particles from xyz-file", py::arg("filename"), py::arg("box_id") = 0)
+        .def("get_size_histogram", &System::get_size_histogram, "Get size histogram", py::arg("box_id") = 0)
         .def("write_size_histogram", &System::write_size_histogram, "Write size histogram", py::arg("filename"), py::arg("box_id") = 0)
 
         //.def("run_md", &System::run_md, py::arg("steps"))
@@ -142,7 +143,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("temp", &System::temp)
         .def_readonly("chempot", &System::chempot)
         .def_readonly("working_dir", &System::working_dir)
-        .def_readonly("boxes", &System::boxes);
+        .def_readonly("boxes", &System::boxes)
+        .def_readonly("moves", &System::moves);
 
     // Box
     py::class_<Box>(m, "Box")
