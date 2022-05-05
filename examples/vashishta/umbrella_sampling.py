@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 # Set up system
 system = mc.System()
 system.set_temp(300.)
-#system.set_chempot(-50.)
+system.set_chempot(-50.)
 #system.set_seed(54456)
 
 # Set forcefield and sampler
@@ -20,13 +20,13 @@ system.add_move("trans", 0.9, dx=0.1)
 system.add_move("avbmcmol", 0.1, water_mol)
 
 # Add constraints
-#system.add_constraint("minneigh", "O", "O", 3.0, 4)
+system.add_constraint("minneigh", "O", "O", 3.0, 4)
 
 # Set outputs
 system.set_dump(1000, "dump.xyz", ["x", "y", "z"])
 #system.set_thermo(100, "mc.log", ["step", "atoms", "poteng"])
 
-system.run_mc(500000)
+system.run_mc(100000)
 """
 # summary
 print("#ndrawn   #naccept   time")
