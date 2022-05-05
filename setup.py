@@ -4,6 +4,11 @@ from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from setuptools.command.build_ext import build_ext
 
+
+# set version number both for pip and python interface
+__version__ = "0.0.3"
+
+
 this_dir = os.path.dirname(os.path.abspath(__file__))
 
 with open("README.md", "r") as fh:
@@ -28,12 +33,13 @@ ext_modules = [
                 ],
     language='c++',
     extra_compile_args = ['-std=c++14'],
+    define_macros = [('VERSION_INFO', __version__)],
     ),
 ]
 
 
 setup(name='avbmc',
-      version="0.0.2",
+      version=__version__,
       description='Python library for atomistic Monte Carlo simulations',
       long_description=long_description,
       long_description_content_type="text/markdown",
