@@ -9,9 +9,10 @@
 class MinNeigh : public Constraint
 {
 public:
-    MinNeigh(class Box *, std::string, std::string, double, int);
+    MinNeigh(class Box *, std::string, std::string, double, int, bool = true);
     bool verify() override;
 
 private:
     unsigned int nc;
+    bool restrict_lower;
 };
