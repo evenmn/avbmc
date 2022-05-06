@@ -2,7 +2,7 @@
 Adding particles
 ----------------
 
-A single particle can be added to the system by its element type and position,
+A single particle can be added to the box by its element type and position,
 
 .. code-block:: python
 
@@ -26,4 +26,9 @@ Make sure that all element types are covered by the forcefield parameter file - 
 Initialize face-centered cube
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TO BE ADDED
+The positions of a face-centered cube can be written to a list by specifying the number of repeating unit cells in each direction, ``n``, and the length of a unit cell, ``d`` in the ``fcc`` function. Then, the particles can be added to the system by specifying the particle label. Currently, the face-centered cube initialization only support particles of the same type. An example:
+
+.. code-block:: python
+
+   positions = mc.fcc(n=3, d=1.7)
+   system.add_particles("Ar", positions)
