@@ -1,11 +1,10 @@
-
 System outputs
 --------------
 
-Writing system properties to file
+Writing box properties to file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-System properties can be written to a log file using the ``set_thermo`` method (inspired by LAMMPS' ``thermo`` command). The signature is the following:
+Box properties can be written to a log file using the ``set_thermo`` method (inspired by LAMMPS' ``thermo`` command). The signature is the following:
 
 .. code-block:: python
 
@@ -17,7 +16,7 @@ where ``outputs`` is a list of system properties, for instance ``step``\ , ``ato
 
    system.set_thermo(1, "mc1.log", ["step", "atoms", "poteng"], box_id=1)
 
-The output file starts with a line of keywords, followed by a line of properties for every ``freq`` step. The file can easily be read using `\ ``numpy.loadtxt`` <https://numpy.org/doc/stable/reference/generated/numpy.loadtxt.html>`_ or `\ ``pandas.read_csv`` <https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>`_.
+The output file starts with a line of keywords, followed by a line of properties for every ``freq`` step. The file can easily be read using ```numpy.loadtxt`` <https://numpy.org/doc/stable/reference/generated/numpy.loadtxt.html>`_ or ```pandas.read_csv`` <https://pandas.pydata.org/docs/reference/api/pandas.read_csv.html>`_.
 
 Writing particle properties to file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -39,4 +38,15 @@ The XYZ-file can be analysed using `Ovito <https://www.ovito.org/>`_\ , `VMD <ht
 Writing number of particles histogram
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TO BE WRITTEN
+A histogram of system sizes throughout the run can be written to file with
+
+.. code-block:: python
+
+   system.write_size_histogram(filename, box_id=0)
+
+To get the histogram as a Python list, use
+
+.. code-block:: python
+
+   histogram = system.get_size_histogram()
+

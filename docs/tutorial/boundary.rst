@@ -14,7 +14,7 @@ By default, the boundaries are open, which may be set by
 
    system.set_boundary("open", box_id=0)
 
-Currently, ``Periodic`` is the only alternative to ``Open``\ , wraps the boundaries according to the minimum-image convention. The ``Periodic`` boundary requires box lengths to be defined:
+Currently, ``Periodic`` is the only alternative to ``Open``\ , wrapping the boundaries according to the minimum-image convention. The ``Periodic`` boundary requires box lengths to be defined:
 
 .. code-block:: python
 
