@@ -24,6 +24,25 @@ Welcome to AVBMC's documentation!
 
 
 
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+
+
+
+For developers
+==============
+
+.. toctree::
+   :maxdepth: 1
+
+   for_developers/code_structure
+   for_developers/build_cpp
+   for_developers/code_style
+
+
 
 Indices and tables
 ==================
