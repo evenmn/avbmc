@@ -19,7 +19,7 @@ The ``box_id`` starts from 0 for the first box and increases with 1 for every bo
 Dealing with forcefield-object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Since everything is threated as objects under the hood, it is also possible to deal with the raw objects:
+Since everything is treated as objects under the hood, it is also possible to deal with the raw objects:
 
 .. code-block:: python
 
