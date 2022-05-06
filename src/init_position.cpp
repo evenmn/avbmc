@@ -8,10 +8,9 @@
 
 
 /* ----------------------------------------------------------------------------
-   Creating a face-centered cube of n^dim unit cells with
-   4 particles in each unit cell. The number of particles
-   then becomes (dim+1) * n ^ dim. Each unit cell has a
-   length d. L=nd
+   Creating a face-centered cube of n^dim unit cells with 4 particles in each
+   unit cell. The number of particles then becomes (dim+1) * n ^ dim. Each unit
+   cell has a length d. L=nd
    Parameters
    ----------
    cells : int
@@ -24,18 +23,18 @@
 
 std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
 {
-    // initialize position vector
+    unsigned int i, j, k;
     std::vector<std::valarray<double> > positions;
 
     if(ndim == 1){
-        for(int i=0; i<ncells; i++){
+        for(i=0; i<ncells; i++){
             positions.push_back({.0+i});
             positions.push_back({.5+i});
         }
     }
     else if(ndim == 2){
-        for(int i=0; i<ncells; i++){
-            for(int j=0; j<ncells; j++){
+        for(i=0; i<ncells; i++){
+            for(j=0; j<ncells; j++){
                 positions.push_back({.0+i, .0+j});
                 positions.push_back({.0+i, .5+j});
                 positions.push_back({.5+i, .0+j});
@@ -43,9 +42,9 @@ std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
         }
     }
     else if(ndim == 3){
-        for(int i=0; i<ncells; i++){
-            for(int j=0; j<ncells; j++){
-                for(int k=0; k<ncells; k++){
+        for(i=0; i<ncells; i++){
+            for(j=0; j<ncells; j++){
+                for(k=0; k<ncells; k++){
                     positions.push_back({.0+i, .0+j, .0+k});
                     positions.push_back({.0+i, .5+j, .5+k});
                     positions.push_back({.5+i, .0+j, .5+k});

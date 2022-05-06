@@ -89,7 +89,7 @@ PYBIND11_MODULE(avbmc, m) {
     m.def("fcc", &fcc,
         "Initialize in face-centered cube",
         py::arg("n"),
-        py::arg("d"),
+        py::arg("L"),
         py::arg("ndim") = 3
     );
 

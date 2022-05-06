@@ -3,6 +3,7 @@
 #include <valarray>
 #include <cassert>
 #include <numeric>  // accumulate
+#include <cmath>    // fmod
 
 #include "periodic.h"
 #include "../box.h"
@@ -12,9 +13,9 @@
 
 /* ----------------------------------------------------------------------------
    Periodic boundary conditions class. Ensures that particles are always
-   located inside the box. Potential energy and force calculations 
-   always use the shortest distance between particles (might be through
-   the wall). Velocities are not touched.
+   located inside the box. Potential energy and force calculations always use
+   the shortest distance between particles (might be through the wall).
+   Velocities are not touched.
 ------------------------------------------------------------------------------- */
 
 Periodic::Periodic(Box* box_in, std::valarray<double> length_in)
@@ -38,10 +39,10 @@ Periodic::Periodic(Box* box_in, std::valarray<double> length_in)
 
 inline void Periodic::correct_position(unsigned int i)
 {
-    //box->particles[i].r = (box->particles[i].r + length) % length;
-    for (unsigned int j=0; j<ndim; j++) {
-        box->particles[i].r[j] -= floor(box->particles[i].r[j] / length[j]);
-        //box->particles[i].r[j] = (box->particles[i].r[j] + length[j]) % length[j];
+    unsigned int j;
+
+    for (j=0; j<ndim; j++) {
+        box->particles[i].r[j] = std::fmod(box->particles[i].r[j], length[j]);
     }
 }
 
@@ -55,6 +56,7 @@ inline void Periodic::correct_position(unsigned int i)
 inline void Periodic::correct_distance(std::valarray<double> &dr)
 {
     unsigned int i;
+
     for (i=0; i<ndim; i++) {
         dr[i] -= round(dr[i]/length[i]) * length[i];
     }
