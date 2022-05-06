@@ -1,4 +1,4 @@
-![build](https://github.com/evenmn/avbmc/actions/workflows/c-cpp.yml/badge.svg) ![build docs](https://github.com/evenmn/avbmc/actions/workflows/docs.yml/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+![build](https://github.com/evenmn/avbmc/actions/workflows/c-cpp.yml/badge.svg) ![build docs](https://github.com/evenmn/avbmc/actions/workflows/docs.yml/badge.svg) ![tests](https://github.com/evenmn/avbmc/actions/workflows/test.yml/badge.svg) [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # AVBMC
 Python library for non-bonded Monte Carlo simulations. Open (uVT) and closed systems (NVT) are supported thought various move types, including translational moves and insertation/deletion moves (AVBMC). Additionally, a groups of particles can be inserted/removed, allowing non-bonded molecule to be inserted/removed. The library is entirely written in C++ for performance reasons, and binded to Python using [pybind11](https://pybind11.readthedocs.io/en/stable/index.html).
