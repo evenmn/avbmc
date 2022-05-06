@@ -26,9 +26,9 @@ Make sure that all element types are covered by the forcefield parameter file - 
 Initialize face-centered cube
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The positions of a face-centered cube can be written to a list by specifying the number of repeating unit cells in each direction, ``n``, and the length of a unit cell, ``d`` in the ``fcc`` function. Then, the particles can be added to the system by specifying the particle label. Currently, the face-centered cube initialization only support particles of the same type. An example:
+The positions of a face-centered cube can be written to a list by specifying the number of repeating unit cells in each direction, ``n``, and the length of the crystal, ``L`` in the ``fcc`` function. Then, the particles can be added to the system by specifying the particle label. Currently, the face-centered cube initialization only support particles of the same type. An example:
 
 .. code-block:: python
 
-   positions = mc.fcc(n=3, d=1.7)
+   positions = mc.fcc(n=3, L=5.1)
    system.add_particles("Ar", positions)
