@@ -7,7 +7,7 @@ Welcome to AVBMC's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    about
    tutorial/installation
