@@ -5,8 +5,6 @@
 #include <cassert>
 #include <chrono>
 
-//#include <mpi.h>
-
 #include "particle.h"
 #include "io.h"
 #include "box.h"
@@ -232,7 +230,6 @@ void Box::add_particle(Particle particle)
 {
     if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
-        //MPI_Abort(MPI_COMM_WORLD, 143);
         exit(0);
     }
     npar ++;
@@ -301,7 +298,6 @@ void Box::add_constraint(Constraint* constraint)
 {
     if (!initialized) {
         std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
-        //MPI_Abort(MPI_COMM_WORLD, 143);
         exit(0);
     }
     nconstraint ++;
@@ -311,38 +307,18 @@ void Box::add_constraint(Constraint* constraint)
 
 
 /* ----------------------------------------------------------------------------
-   Returning a string with information about rank-ID and box-ID if there are
-   more than one rank/box. The string can then be added to a filename to mark
-   the file.
-------------------------------------------------------------------------------- */
-
-std::string Box::file_marking()
-{
-    std::string str;
-    if (system->nbox > 1) {
-        str = "BOX" + std::to_string(box_id) + "_";
-    }
-    if (system->nprocess > 1) {
-        str += "RANK" + std::to_string(system->rank) + "_";
-    }
-    return str;
-}
-
-/* ----------------------------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function from io.cpp to file
    'filename', which is marked with box-ID and rank-ID if 'mark_file' is true
 ------------------------------------------------------------------------------- */
    
 void Box::snapshot(std::string filename) //, const bool mark_file)
 {
-    //if (mark_file) {
-    //    filename = file_marking() + filename;
-    //}
     std::vector<std::string> outputs = {"xyz"};
     Dump* dump_tmp = new Dump(this, 1, filename, outputs);
     dump_tmp->print_frame(0);
     delete dump_tmp;
 }
+
 
 /* ----------------------------------------------------------------------------
    Specify dump output
@@ -351,9 +327,6 @@ void Box::snapshot(std::string filename) //, const bool mark_file)
 void Box::set_dump(const int freq, std::string filename, 
                    std::vector<std::string> outputs) //, const bool mark_file)
 {
-    //if (mark_file) {
-    //    filename = file_marking() + filename;
-    //}
     if (!dump_allocated_externally) {
         delete dump;
     }
@@ -459,18 +432,6 @@ void Box::write_size_histogram(const std::string &filename)
     unsigned int nsize;
 
     nsize = size_histogram.size();
-    //int maxsize;
-    //MPI_Barrier(MPI_COMM_WORLD);
-    //MPI_Reduce(&size, &maxsize, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-    //MPI_Bcast(&maxsize, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    //nsystemsize.resize(maxsize);
-    //int* nsystemsizetot = new int[maxsize];
-    //MPI_Reduce(nsystemsize.data(), nsystemsizetot, maxsize, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-    //if (system->rank == 0)
-    //{
-    //    write_array(nsystemsizetot, maxsize, filename, "\n");
-    //}
-    //delete[] nsystemsizetot;
     write_array(size_histogram.data(), nsize, filename, "\n");
 }
 

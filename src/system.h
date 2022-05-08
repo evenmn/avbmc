@@ -49,13 +49,13 @@ public:
     std::vector<unsigned int> get_size_histogram(int = 0);
 
     void check_masses();
-    int get_maxiter(int);
+    unsigned int get_maxiter(unsigned int);
     void print_logo();
     void print_info();
     void print_mc_info();
 
     void run_md(int);
-    void run_mc(int, int = 1);
+    void run_mc(unsigned int, unsigned int = 1);
 
 
     ~System();
@@ -65,7 +65,7 @@ public:
     class RandomNumberGenerator* rng = nullptr;
 
     bool logo_printed, rng_allocated_externally, sampler_allocated_externally;
-    unsigned int nbox, ndim, nmove, nprocess, step, rank;
+    unsigned int nbox, ndim, nmove, step;
     double temp, chempot, poteng, time;
     std::string working_dir;
 

@@ -6,8 +6,6 @@
 #include <chrono>
 #include <functional>
 
-//#include <mpi.h>
-
 #include "system.h"
 #include "box.h"
 #include "tqdm.h"
@@ -57,9 +55,8 @@
 System::System(const std::string &working_dir_in, bool initialize_in) 
     : working_dir(working_dir_in)
 {
-    nbox = nmove = step = rank = 0;
+    nbox = nmove = step = 0;
     time = temp = chempot = poteng = 0.;
-    nprocess = 1;
     ndim = 3;
 
     //print_logo();
@@ -75,17 +72,6 @@ System::System(const std::string &working_dir_in, bool initialize_in)
         add_box(box);
         box->box_allocated_in_system = true;
     }
-
-    /*
-    // initialize MPI
-    int initialized_mpi;
-    MPI_Initialized(&initialized_mpi);
-    if (!initialized_mpi) {
-        MPI_Init(nullptr, nullptr);
-    }
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocess);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    */
 }
 
 
@@ -105,8 +91,6 @@ System::System(const System &other)
     nbox = other.nbox;
     nmove = other.nmove;
     step = other.step;
-    rank = other.rank;
-    //nprocess = other.nprocess;
     ndim = other.ndim;
     rng_allocated_externally = other.rng_allocated_externally;
     sampler_allocated_externally = other.sampler_allocated_externally;
@@ -258,6 +242,7 @@ void System::set_forcefield(class ForceField* forcefield_in, int box_id)
     }
 }
 
+
 void System::set_forcefield(const std::string &forcefield_in,
     const std::vector<std::string> &labels, int box_id)
 {
@@ -293,6 +278,7 @@ void System::set_forcefield(const std::string &forcefield_in,
         }
     }
 }
+
 
 void System::set_forcefield(const std::string &forcefield_in,
     const std::string &paramfile, int box_id)
@@ -557,9 +543,6 @@ void System::add_constraint(const std::string &constraint_in,
     }
 }
 
-    
-
-
 
 /* ----------------------------------------------------------------------------
    Take a snapshot of a given box.
@@ -623,7 +606,7 @@ void System::add_move(Moves* move, double prob)
 {
     //if (!initialized) {
     //    std::cout << "Forcefield needs to be initialized before adding moves!" << std::endl;
-    //    MPI_Abort(MPI_COMM_WORLD, 143);
+    //    exit(0);
     //}
     nmove ++;
     moves.push_back(move);
@@ -933,14 +916,15 @@ std::vector<unsigned int> System::get_size_histogram(int box_id)
    Returns the last iteration
 ------------------------------------------------------------------------------- */
 
-int System::get_maxiter(const int nsteps)
+unsigned int System::get_maxiter(unsigned int nsteps)
 {
-    int maxiter = 0;
+    unsigned int maxiter;
+
+    maxiter = 0;
     if (step == 0) {
         maxiter += 1;
     }
-    maxiter += step + nsteps/nprocess + nsteps % nprocess;
-    return maxiter;
+    return maxiter + step + nsteps;
 }
 
 
@@ -969,8 +953,7 @@ void System::print_logo()
 void System::print_info()
 {
     std::time_t start_time = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    std::cout << "Started computation on " << std::ctime(&start_time)
-              << "Running on " << nprocess << " CPU threads using MPI" << std::endl;
+    std::cout << "Started computation on " << std::ctime(&start_time) << std::endl;
 
     //std::cout << std::fixed;
     //std::cout << std::boolalpha;
@@ -1053,10 +1036,11 @@ void Box::run_md(const int nsteps)
 */
 
 /* ----------------------------------------------------------------------------
-   Run Monte Carlo simulation
+   Run Monte Carlo simulation with 'nsteps' cycles and 'nmoves' moves per
+   cycle. A progress bar is printed using tqdm. 
 ------------------------------------------------------------------------------- */
 
-void System::run_mc(const int nsteps, const int nmoves)
+void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
 {
     for (Box* box : boxes) {
         box->size_histogram.resize(box->npar + 1);
@@ -1077,27 +1061,12 @@ void System::run_mc(const int nsteps, const int nmoves)
     double sum_prob = std::accumulate(moves_prob.begin(), moves_prob.end(), 0.);
     assert ((sum_prob - 1.0) < 0.01);
 
-    /*
-    if (rank == 0) {
-        if (!logo_printed) { 
-            print_info();
-        }
-        print_mc_info();
-        std::cout << std::endl;
-        std::cout << "            Running Monte Carlo Simulation" << std::endl;
-        std::cout << "=======================================================" << std::endl;
-    }
-    */
 
-    int maxiter = get_maxiter(nsteps);
-
-    // run Monte Carlo simulation
-    //double start = MPI_Wtime();
+    unsigned int init_step = step;
     tqdm bar;
+    unsigned int maxiter = get_maxiter(nsteps);
     while (step < maxiter) {
-        //if (rank == 0){
-        bar.progress(step * nprocess, maxiter * nprocess);
-        //}
+        bar.progress(step-init_step, nsteps);
         for (Box* box : boxes) {
             box->dump->print_frame(step);
             box->thermo->print_line(step);
@@ -1106,41 +1075,11 @@ void System::run_mc(const int nsteps, const int nmoves)
         step ++;
     }
     std::cout << std::endl;
-    //MPI_Barrier(MPI_COMM_WORLD);
-    //double end = MPI_Wtime();
-
-    // write acceptance information to terminal
-    /*
-    if (rank == 0) {
-        std::cout << "\n" << std::endl;
-        std::cout << "Time elapsed during the job: " << end - start << "s" << std::endl;
-        std::cout << std::endl;
-        std::cout << "                      Acceptance Ratio" << std::endl;
-        std::cout << "===================================================================================" << std::endl;
-        std::cout << "Move type\t #attempts\t #accepted\t acceptance ratio\t time (s)" << std::endl;
-    }
-    for(Moves* move : moves){
-        int ndrawntot, naccepttot;
-        MPI_Reduce(&move->ndrawn, &ndrawntot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        MPI_Reduce(&move->naccept, &naccepttot, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-        if (rank == 0) {
-            std::cout << move->label << "\t "
-                      << ndrawntot << "\t\t "
-                      << naccepttot << "\t\t "
-                      << (double) naccepttot / ndrawntot << "\t\t "
-                      << move->cum_time
-                      << std::endl;
-        }
-    }
-    if (rank == 0) {
-        std::cout << "===================================================================================" << std::endl;
-    }
-    */
 }
 
 
 /* ----------------------------------------------------------------------------
-   System destructor, finalizing MPI
+   System destructor, free memory allocated within this class
 ------------------------------------------------------------------------------- */
 
 System::~System()
@@ -1174,5 +1113,4 @@ System::~System()
             delete moves[i];
         }
     }
-    //MPI_Finalize();
 }
