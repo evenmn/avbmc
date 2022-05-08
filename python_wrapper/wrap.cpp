@@ -345,6 +345,15 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("cycles"),
             py::arg("steps") = 1
         )
+        .def("run_mc_cycle",
+            &System::run_mc_cycle,
+            "Run a Monte Carlo cycle",
+            py::arg("steps") = 1
+        )
+        .def("initialize_mc_run",
+            &System::initialize_mc_run,
+            "Initialize Monte Carlo run before running"
+        )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
         .def_readonly("temp", &System::temp)

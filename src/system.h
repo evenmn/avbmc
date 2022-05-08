@@ -56,6 +56,8 @@ public:
 
     void run_md(int);
     void run_mc(unsigned int, unsigned int = 1);
+    void initialize_mc_run();
+    void run_mc_cycle(unsigned int = 1);
 
 
     ~System();

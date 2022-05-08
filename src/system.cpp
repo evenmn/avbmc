@@ -1040,7 +1040,7 @@ void Box::run_md(const int nsteps)
    cycle. A progress bar is printed using tqdm. 
 ------------------------------------------------------------------------------- */
 
-void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
+void System::initialize_mc_run()
 {
     for (Box* box : boxes) {
         box->size_histogram.resize(box->npar + 1);
@@ -1060,21 +1060,32 @@ void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
 
     double sum_prob = std::accumulate(moves_prob.begin(), moves_prob.end(), 0.);
     assert ((sum_prob - 1.0) < 0.01);
+}
 
+
+void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
+{
+    initialize_mc_run();
 
     unsigned int init_step = step;
     tqdm bar;
     unsigned int maxiter = get_maxiter(nsteps);
     while (step < maxiter) {
         bar.progress(step-init_step, nsteps);
-        for (Box* box : boxes) {
-            box->dump->print_frame(step);
-            box->thermo->print_line(step);
-        }
-        sampler->sample(nmoves);
-        step ++;
+        run_mc_cycle(nmoves);
     }
     std::cout << std::endl;
+}
+
+
+void System::run_mc_cycle(const unsigned int nmoves)
+{
+    for (Box* box : boxes) {
+        box->dump->print_frame(step);
+        box->thermo->print_line(step);
+    }
+    sampler->sample(nmoves);
+    step ++;
 }
 
 
