@@ -30,6 +30,11 @@ Examples
 .. toctree::
    :maxdepth: 1
 
+   examples/1_lennardjones_nvt
+   examples/2_lennardjones_upt
+   examples/3_vashishta_upt
+   examples/4_mpi_parallelisation
+
 
 
 For developers
