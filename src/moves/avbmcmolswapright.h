@@ -2,14 +2,14 @@
 #include <string>
 
 #include "moves.h"
-#include "avbmcin.h"
-#include "avbmcout.h"
+#include "avbmcmolin.h"
+#include "avbmcmolout.h"
 
 
-class AVBMCSwapRight : public AVBMCIn, public AVBMCOut
+class AVBMCMolSwapRight : public AVBMCMolIn, public AVBMCMolOut
 {
 public:
-    AVBMCSwapRight(class System *, class Box *, class Box *, const std::string &, double = 0.95, double = 3.0, bool = false);
+    AVBMCMolSwapRight(class System *, class Box *, class Box *, std::vector<Particle>, double = 0.95, double = 3.0, double 1.5, bool = false, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
@@ -17,8 +17,8 @@ public:
     std::string repr() override;
 
 private:
-    bool energy_bias;
-    double r_below, r_above;
+    bool energy_bias, target_mol;
+    double r_below, r_above, r_inner;
     class Particle* particle_out = nullptr;
     class Box* box1 = nullptr;
     class Box* box2 = nullptr;

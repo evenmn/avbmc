@@ -19,7 +19,11 @@ public:
     std::string repr() override;
 
 private:
-    bool reject_move, energy_bias, target_mol;
+    unsigned int detect_target_molecule(bool &);
+    std::vector<Particle> create_molecule();
+    std::valarray<double> insertion_position(unsigned int, bool = false); 
+
+    bool detected_target, energy_bias, target_mol;
     unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner;
     double r_below, r_above, r_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
     std::vector<unsigned int> npartype_old;

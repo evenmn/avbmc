@@ -16,9 +16,15 @@ public:
     void update_size_histogram() override;
     std::string repr() override;
 
+    std::vector<unsigned int> molecule_out;
+
 private:
-    unsigned int natom, neigh_id_above, neigh_id_inner;
-    bool reject_move, energy_bias, target_mol;
+    unsigned int detect_target_molecule(bool &);
+    std::vector<unsigned int> detect_deletion_molecule(unsigned int, bool &);
+
+
+    unsigned int natom, neigh_id_above, neigh_id_inner, n_in;
+    bool detected_target, detected_out, energy_bias, target_mol;
     double r_above, r_abovesq, v_in, nmolavg, r_inner, natom_inv;
     std::vector<unsigned int> npartype_old;
     std::vector<class Particle> particles_old, molecule;
