@@ -56,7 +56,7 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by stillinger
+    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by constraints
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
     std::vector<bool> constraint_allocated_in_system;
