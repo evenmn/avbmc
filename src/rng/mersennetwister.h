@@ -14,6 +14,7 @@ public:
     double next_double() override;
     double next_gaussian(double, double) override;
     int choice(std::vector<double>) override;
+    std::vector<unsigned int> shuffle(std::vector<unsigned int> &) override;
     ~MersenneTwister() = default;
 
 private:

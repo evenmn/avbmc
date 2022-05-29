@@ -84,3 +84,14 @@ int MersenneTwister::choice(std::vector<double> probabilities)
     }
     return 0;
 }
+
+
+/* ----------------------------------------------------------------------------
+   Shuffle vector randomly
+---------------------------------------------------------------------------- */
+
+std::vector<unsigned int> MersenneTwister::shuffle(std::vector<unsigned int> &vector)
+{
+    std::shuffle(vector.begin(), vector.end(), generator);
+    return vector;
+}

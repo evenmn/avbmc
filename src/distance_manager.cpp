@@ -6,8 +6,7 @@
    of the code relying on the distance between particles (forcefield, moves
    etc..) call the distance manager - distance should never be computed outside
    this class!
--------------------------------------------------------------------------------
-*/
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <vector>
@@ -23,7 +22,7 @@
 /* ----------------------------------------------------------------------------
    Distance manager class constructor. 'cutoff_tol_in' is the tolerance when
    checking if two cutoffs are equivalent and should share neighbor lists.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 {
@@ -37,7 +36,7 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
    Add a cutoff to the list of cutoffs in order to make the distance manager
    manage neighbor lists. This cutoff applies to all components. Returning the
    cutoff-ID, which has to be used when extracting the correct neighbor list.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 unsigned int DistanceManager::add_cutoff(double rc)
 {
@@ -73,7 +72,7 @@ unsigned int DistanceManager::add_cutoff(double rc)
    components 'label1' and 'label2'. If 'mutual' is true, both label1 and 
    label2's neighbor lists will be updated. Returning the cutoff-ID, which has
    to be used when extracting the correct neighbor list.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                                          std::string label2, bool mutual)
@@ -117,7 +116,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
    Add a cutoff matrix 'rc' of shape (ntype, ntype) and create a combined
    neighbor list. Returning the cutoff-ID, which has to be used when extracting
    the correct neighbor list.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 unsigned int DistanceManager::add_cutoff(double **rc)
 {
@@ -131,11 +130,11 @@ unsigned int DistanceManager::add_cutoff(double **rc)
     return ncutoff - 1;
 }
 
+
 /* ----------------------------------------------------------------------------
    Clear neighbor lists of particle 'i' and clear it from the other neighbor
    lists. This is done when a particle is moved.
--------------------------------------------------------------------------------
-*/
+---------------------------------------------------------------------------- */
 
 void DistanceManager::clear_neigh(unsigned int i) {
   unsigned int j, k;
@@ -153,11 +152,11 @@ void DistanceManager::clear_neigh(unsigned int i) {
   }
 }
 
+
 /* ----------------------------------------------------------------------------
    Remove neighbor lists of particle 'i' and clear it from the other neighbor
    lists. This has to be done when a particle is removed.
--------------------------------------------------------------------------------
-*/
+---------------------------------------------------------------------------- */
 
 void DistanceManager::remove_neigh(unsigned int i) {
   unsigned int j, k, l;
@@ -180,11 +179,11 @@ void DistanceManager::remove_neigh(unsigned int i) {
   }
 }
 
+
 /* ----------------------------------------------------------------------------
    Update neighbor lists of a particle pair 'i' and 'j' with respect to the
    distance (squared), 'rij'. This is done when a particle is moved or inserted
--------------------------------------------------------------------------------
-*/
+---------------------------------------------------------------------------- */
 
 void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
@@ -224,7 +223,7 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 
 /* ----------------------------------------------------------------------------
    Compute the squared norm of a valarray 'array'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double DistanceManager::normsq(std::valarray<double> array)
 {
@@ -241,47 +240,34 @@ double DistanceManager::normsq(std::valarray<double> array)
 
 
 /* ----------------------------------------------------------------------------
-   Initialize distance matrix and neighbor lists
-------------------------------------------------------------------------------- */
-
-void DistanceManager::initialize()
+   ff
+---------------------------------------------------------------------------- */
+/*
+std::vector<unsigned int> DistanceManager::build_neigh_list(const int i, const double rsq)
 {
-    double rij;
-    unsigned int i, j, k, npar;
-    std::valarray<double> delij;
-
-    // initialize matrices
-    npar = box->npar;
-    distance_mat.resize(npar);
-    distance_cube.resize(npar);
-    for (i=0; i<npar; i++) {
-        distance_mat[i].resize(npar);
-        distance_cube[i].resize(npar);
-        for (k=0; k<ncutoff; k++) {
-            neigh_lists[k].push_back({});
+    double rijsq;
+    std::valarray<double> ri = particles[i].r;
+    std::vector<unsigned int> neigh_list;
+    for(unsigned int j=0; j<i; j++){
+        rijsq = normsq(particles[j].r - ri);
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
         }
     }
-    
-    // fill matrices
-    for (i=0; i<npar; i++) {
-        for (j=0; j<i; j++) {
-            delij = box->particles[j].r - box->particles[i].r;
-            box->boundary->correct_distance(delij);
-            rij = normsq(delij);
-            distance_mat[i][j] = rij;
-            distance_cube[i][j] = delij;
-            distance_mat[j][i] = rij;
-            distance_cube[j][i] = -delij;
-            update_neigh(i, j, rij);
-            //update_neigh(j, i, rij);
+    for(unsigned int j=i+1; j<npar; j++){
+        //std::valarray<double> rii = particles[j].r - particles[i].r;
+        rijsq = normsq(particles[j].r - ri);
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
         }
     }
+    return neigh_list;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Store old matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void DistanceManager::set()
 {
@@ -293,7 +279,7 @@ void DistanceManager::set()
 
 /* ----------------------------------------------------------------------------
    Reset new matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void DistanceManager::reset()
 {
@@ -306,7 +292,7 @@ void DistanceManager::reset()
 /* ----------------------------------------------------------------------------
    Update distance matrix due to translational move of a particle 'i'. This 
    corresponds to updating the i'th row and column in the distance matrix.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void DistanceManager::update_trans(unsigned int i)
 {
@@ -320,8 +306,8 @@ void DistanceManager::update_trans(unsigned int i)
         box->boundary->correct_distance(delij);
         rij = normsq(delij);
         distance_mat[i][j] = rij;
-        distance_cube[i][j] = delij;
         distance_mat[j][i] = rij;
+        distance_cube[i][j] = delij;
         distance_cube[j][i] = -delij;
         update_neigh(i, j, rij);
     }
@@ -330,8 +316,8 @@ void DistanceManager::update_trans(unsigned int i)
         box->boundary->correct_distance(delij);
         rij = normsq(delij);
         distance_mat[i][j] = rij;
-        distance_cube[i][j] = delij;
         distance_mat[j][i] = rij;
+        distance_cube[i][j] = delij;
         distance_cube[j][i] = -delij;
         update_neigh(i, j, rij);
     }
@@ -341,7 +327,7 @@ void DistanceManager::update_trans(unsigned int i)
 /* ----------------------------------------------------------------------------
    Update distance matrix after a deletion move of a particle 'i' is accepted.
    This means removing the i'th row and column from the distance matrix.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void DistanceManager::update_remove(unsigned int i)
 {
@@ -362,7 +348,7 @@ void DistanceManager::update_remove(unsigned int i)
    appending a row and a column to the distance matrix. If more than one 
    particle is inserted, this function has to be called in ascending order
    for the particles.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void DistanceManager::update_insert(unsigned int i)
 {

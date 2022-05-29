@@ -16,6 +16,7 @@ IdealGas::IdealGas(Box* box_in, const std::vector<std::string> &elements_in)
     label = "Ideal gas";
     label1_vec = elements_in;
     create_label_mapping();
+    init_ntype();
 }
 
 

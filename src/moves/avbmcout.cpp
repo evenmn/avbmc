@@ -13,6 +13,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <random>
 
 #include "avbmcout.h"
 #include "../box.h"
@@ -38,7 +39,7 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const std::string &particle_i
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     n_in = 0;
-    reject_move = true;
+    particle_type = box->forcefield->label2type[particle_label];
     label = "AVBMCOut";
 }
 
@@ -49,43 +50,32 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in, const std::string &particle_i
 
 void AVBMCOut::perform_move()
 {
-    unsigned int i, j, counti, countj, neigh_idx;
-    reject_move = true;
-    if (box->npar > 2) {
-        counti = 0;
-        // ensure that removed particle is of correct type
-        while (reject_move && counti < box->npar) {
-            i = rng->next_int(box->npar);
-            if (box->particles[i].label == particle_label) {
-                reject_move = false;
-            }
-            counti ++;
-        }
-        if (!reject_move) {
-            std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
-            n_in = neigh_listi.size();
+    unsigned int i;
 
-            if (n_in > 0) {
-                // pick particle to be removed randomly among neighbors
-                reject_move = true;
-                countj = 0;
-                // ensure that removed particle is of correct type
-                while (reject_move && countj < n_in) {
-                    neigh_idx = rng->next_int(n_in);
-                    j = neigh_listi[neigh_idx];  // particle to be removed
-                    if (box->particles[j].label == particle_label) {
-                        reject_move = false;
-                    }
-                    countj ++;
-                }
-                if (!reject_move) {
-                    du = -box->forcefield->comp_energy_par_force0(j);
-                    box->poteng += du;
-                    particle_out = box->particles[j];
-                    box->particles.erase(box->particles.begin() + j);
-                    box->npar --;
-                }
-            }
+    du = 0.;
+
+    // cannot remove particle if it does not exist
+    if (box->npartype[particle_type] < 1) {
+        return;
+    }
+
+    // pick target particle and count number of neighbors
+    i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
+    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    n_in = neigh_listi.size();
+
+    // target atom needs neighbors in order to remove neighbor
+    if (n_in < 1) {
+        return;
+    }
+    // pick particle to be removed randomly among neighbors
+    for (unsigned int j : rng->shuffle(neigh_listi)) {
+        if (box->particles[j].type == particle_type) {
+            du = -box->forcefield->comp_energy_par_force0(j); // this should be
+            box->poteng += du;                                // baked into rm_particle
+            box->rm_particle(j);
+            particle_out = box->particles[j];
+            break;
         }
     }
 }
@@ -98,15 +88,9 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
-    if (reject_move) {
-        return 0.;
-    }
-    else {
-        //box->boundary->correct_position(i);
-        double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
-        double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
-        return prefactor * std::exp(-(du+chempot+dw)/temp);
-    }
+    double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
+    double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
+    return prefactor * std::exp(-(du+chempot+dw)/temp);
 }
 
 
@@ -116,11 +100,8 @@ double AVBMCOut::accept(double temp, double chempot)
 
 void AVBMCOut::reset()
 {
-    if (!reject_move) {
-        box->npar ++;
-        box->poteng -= du;
-        box->particles.push_back(particle_out);
-    }
+    box->add_particle(particle_out);
+    box->poteng -= du;
 }
 
 

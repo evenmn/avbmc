@@ -40,6 +40,7 @@
 #include "moves/avbmcmolin.h"
 #include "moves/avbmcmolout.h"
 #include "moves/avbmcswapright.h"
+#include "moves/avbmcmolswapright.h"
 
 #include "constraint/constraint.h"
 #include "constraint/maxdistance.h"
@@ -830,6 +831,22 @@ void System::add_move(const std::string &move_in, double prob,
                 moves_allocated_in_system[nmove-1] = true;
             }
         }
+        else if (move_in == "avbmcmolswapright") {
+            if (box_id < 0 || box_id2 < 0) {
+                std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+                          << "inter-box swap moves! Aborting." << std::endl;
+                exit(0);
+            }
+            else {
+                Moves *move = new AVBMCMolSwapRight(this, boxes[box_id], boxes[box_id2], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcmolswap") {
+            add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id, box_id2);
+            add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id2, box_id);
+        }
         else {
             std::cout << "Move '" << move_in << "' is not implemented!"
                       << "Aborting." << std::endl;
@@ -1106,9 +1123,9 @@ void System::initialize_mc_run()
     for (Box* box : boxes) {
         box->size_histogram.resize(box->npar + 1);
         box->size_histogram[box->npar] ++;
-        if (box->store_distance) {
-            box->distance_manager->initialize();
-        }
+        //if (box->store_distance) {
+        //    box->distance_manager->initialize();
+        //}
         if (box->store_energy) {
             box->forcefield->initialize();
         }
