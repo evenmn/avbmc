@@ -324,15 +324,22 @@ void Box::_rm_typeidx(unsigned int i, unsigned int type)
     if (position != typeidx[type].end()) {
         typeidx[type].erase(position);
     }
+    for (std::vector<unsigned int> &idxs : typeidx) {
+        for (unsigned int &j : idxs) {
+            if (j > i) {
+                j--;
+            }
+        }
+    }
 }
 
 
 void Box::rm_particle(unsigned int i)
 {
     assert (i < npar);
+    _rm_typeidx(i, particles[i].type);
     npar --;
     npartype[particles[i].type] --;
-    _rm_typeidx(i, particles[i].type);
     if (store_distance) {
         distance_manager->update_remove(i);
     }
