@@ -4,7 +4,7 @@
    Aggregate-volume-biased in move. This is a fictitious inter-box move, and
    works in the grand canonical essemble only. A predefined molecule is
    inserted.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <cmath>
@@ -28,7 +28,7 @@
    AVBMC molecule insertation move constructor. Molecule is inserted in the
    bonded region of an equivalent molecule, defined by inner radius
    'r_below_in' and outer radius 'r_above_in'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in, std::vector<Particle> molecule_in,
                        const double r_below_in, const double r_above_in,
@@ -53,11 +53,12 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in, std::vector<Particle> mol
     cum_time = 0.;
     label = "AVBMCMolIn";
 
+    /*
     neigh_id_above = box->distance_manager->add_cutoff(
         r_above, particles[0].label, particles[0].label, false);
     neigh_id_inner = box->distance_manager->add_cutoff(
         r_inner, particles[0].label, particles[1].label, false);
-
+    */
     // ensure that first particle is located at origin
     for (Particle &particle : particles) {
         particle.r -= particles[0].r;
@@ -70,187 +71,97 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in, std::vector<Particle> mol
    Detect target molecule (or atom if target_mol=false). Make maximum 'npar' 
    attempts of finding target molecule. For performance reasons, this is done
    before insertion molecule is created.
-------------------------------------------------------------------------------- */
-
+---------------------------------------------------------------------------- */
+/*
 unsigned int AVBMCMolIn::detect_target_molecule(bool &detected)
 {
     unsigned int count, i;
     std::vector<unsigned int> target_molecule;
     std::vector<std::vector<unsigned int> > neigh_list_inner;
 
-    count = 0;
+    count = i = 0;
+    detected = false;
     while (count < box->npar && !detected) {
         count ++;
-        if (target_mol) {
-            neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-            target_molecule = detect_molecule(neigh_list_inner, particles, detected);
-            i = target_molecule[0];
-        }
-        else {
-            i = rng->next_int(box->npar);
-            detected = (box->particles[i].type == particles[0].type);
-        }
+        neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
+        target_molecule = detect_molecule(neigh_list_inner, particles, detected);
+        i = target_molecule[0];
     }
     return i;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Create insertion molecule.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<Particle> AVBMCMolIn::create_molecule()
 {
     std::vector<Particle> molecule;
 
     for (Particle particle : particles) {
-        molecule.push_back(Particle(particle));
+        std::cout << particle.label << std::endl;
+        molecule.push_back(Particle(particle)); // utilizing copy constructor
     }
-    return rotate_molecule(molecule);
+    molecule = rotate_molecule(molecule);
+    return molecule;
 }
 
 
 /* ----------------------------------------------------------------------------
-   Find where to insert insertion molecule (center of mass position). There are
-   two common techniques for sampling positions uniformly in a hypersphere:
-    1. Sample hypercube and reject points that are not inside hypersphere
-    2. Obtain positions in spherical coordinates and transform to Cartesian
-   The former method is recommended for low dimensions (d<4), as less than
-   50% of attempts will be rejected in average. Set spherical=false to use it.
-------------------------------------------------------------------------------- */
+   Insert molecule if target can be detected
+---------------------------------------------------------------------------- */
 
-std::valarray<double> AVBMCMolIn::insertion_position(unsigned int i,
-    bool spherical)
+void AVBMCMolIn::insert(std::vector<Particle> molecule)
 {
-    std::valarray<double> dr(system->ndim);
-    if (spherical) {
-        double r, phi, cos_theta;
+    unsigned int i, j;
+    std::valarray<double> dr;
 
-        assert (system->ndim == 3);
-        phi = 2 * pi * rng->next_double();
-        r = std::pow(rng->next_double(), 1/3.) * r_above;
-        cos_theta = 2 * rng->next_double() - 1.;
-        dr[0] = r * std::sqrt(1-cos_theta*cos_theta) * std::cos(phi);
-        dr[1] = r * std::sqrt(1-cos_theta*cos_theta) * std::sin(phi);
-        dr[2] = r * cos_theta;
-    }
-    else {
-        double normsq;
-
-        normsq = norm(dr);
-        while (normsq > r_abovesq || normsq < r_belowsq) {
-            for (double &d : dr) {
-                d = r_above * (2 * rng->next_double() - 1);
-            }
-            normsq = norm(dr);
+    // detect target particle (molecule)
+    /*
+    if (target_mol) {
+        i = detect_target_molecule(detected_target);
+        if (!detected_target) {
+            return;
         }
     }
-    return dr + box->particles[i].r;
+    else {
+        i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
+    }
+    */
+    i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
+    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    nmolavg = neigh_listi.size() * natom_inv;
+
+    // add molecule
+    dr = box->particles[i].r + insertion_position(false);
+    for (Particle &particle : molecule) {
+        particle.r += dr;
+        box->add_particle(particle);
+    }
+
+    // compute energy difference
+    du = 0.;
+    for (j=0; j < natom; j++) {
+        du += box->forcefield->comp_energy_par_force0(box->npar - j - 1);
+    }
+    box->poteng += du;
 }
 
 
 /* ----------------------------------------------------------------------------
    Insert molecule into the bonded region of an equivalent molecule
-------------------------------------------------------------------------------- */
-
+---------------------------------------------------------------------------- */
+        
 void AVBMCMolIn::perform_move()
 {
-    unsigned int i, j;
-    std::vector<unsigned int> neigh_listi;
-    std::vector<Particle> molecule;  // insertion molecule
-    std::valarray<double> dr;
-
-    i = detect_target_molecule(detected_target);
-
-    if (detected_target) {
-        neigh_listi = box->build_neigh_list(i, r_abovesq);
-        nmolavg = neigh_listi.size() * natom_inv;
-
-        molecule = create_molecule();
-        dr = insertion_position(i);
-        for (Particle &particle : molecule) {
-            box->npar ++;
-            particle.r += dr;
-            box->npartype[particle.type] ++;
-            box->particles.push_back(particle);
-            box->distance_manager->update_insert(box->npar - 1);
-        }
-        // compute energy difference
-        du = 0.;
-        for (j=0; j < natom; j++) {
-            du += box->forcefield->comp_energy_par_force0(box->npar - j - 1);
-        }
-        box->poteng += du;
-    }
-
-    /*
-    unsigned int count, i, j;
-    std::vector<unsigned int> neigh_listi;
-    std::vector<std::vector<unsigned int> > neigh_list_inner;
-
-    count = 0;
-    reject_move = true;
-    detected_target = false;
-    while (count < box->npar && reject_move) {
-        count ++;
-        if (target_mol) {
-            neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-            std::vector<unsigned int> target_molecule = detect_molecule(neigh_list_inner, particles, detected_target);
-            i = target_molecule[0];
-        }
-        else {
-            i = rng->next_int(box->npar);
-            detected_target = (box->particles[i].type == particles[0].type);
-        }
-        if (detected_target) {
-            reject_move = false;
-            
-            //neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
-            neigh_listi = box->build_neigh_list(i, r_abovesq);
-            nmolavg = neigh_listi.size() * natom_inv;
-
-            // shift in-molecule relative to target molecule
-            // replace with sin/cos
-            std::valarray<double> dr(system->ndim);
-            double normsq = norm(dr);
-            while (normsq > r_abovesq || normsq < r_belowsq) {
-                for (double &d : dr) {
-                    d = r_above * (2 * rng->next_double() - 1);
-                }
-                normsq = norm(dr);
-            }
-            dr += box->particles[i].r;
-
-            npartype_old = box->npartype;
-            particles_old = box->particles;
-            // construct new molecule
-            particles = rotate_molecule(particles);
-            box->distance_manager->set();
-            for (j=0; j < natom; j++) {
-                box->npar ++;
-                //std::valarray<double> new_pos = particles[j].r + dr;
-                Particle particle(particles[j].label, particles[j].r + dr);
-                particle.type = particles[j].type;
-                box->npartype[particle.type] ++;
-                box->particles.push_back(particle);
-                box->distance_manager->update_insert(box->npar - 1);
-            }
-
-            // compute energy difference
-            du = 0.;
-            for (j=0; j < natom; j++) {
-                du += box->forcefield->comp_energy_par_force0(box->npar - j - 1);
-            }
-            box->poteng += du;
-        }
-    }
-    */
+    insert(create_molecule());
 }
 
 
 /* ----------------------------------------------------------------------------
    Get acceptance probability of move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double AVBMCMolIn::accept(double temp, double chempot)
 {
@@ -259,8 +170,7 @@ double AVBMCMolIn::accept(double temp, double chempot)
         constr_satis *= constraint->verify();
     }
     double accept_prob = 0.;
-    if (detected_target && constr_satis) {
-        //box->boundary->correct_position();
+    if (constr_satis) {
         double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
         double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
         accept_prob = prefactor * std::exp(-(du-chempot+dw)/temp);
@@ -271,24 +181,24 @@ double AVBMCMolIn::accept(double temp, double chempot)
 
 /* ----------------------------------------------------------------------------
    Set back to old state before move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMolIn::reset()
 {
-    if (detected_target) {
-        box->distance_manager->reset();
-        box->forcefield->reset();
-        box->npar -= natom;
-        box->poteng -= du;
-        box->npartype = npartype_old;
-        box->particles = particles_old;
+    unsigned int i, start, stop;
+
+    start = box->npar-1;
+    stop = box->npar-natom-1;
+    for (i=start; i>stop; i--) {
+        box->rm_particle(i);
     }
+    box->poteng -= du;
 }
 
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMolIn::update_size_histogram()
 {
@@ -298,7 +208,7 @@ void AVBMCMolIn::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string AVBMCMolIn::repr()
 {
