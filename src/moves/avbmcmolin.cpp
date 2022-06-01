@@ -164,16 +164,12 @@ void AVBMCMolIn::perform_move()
 
 double AVBMCMolIn::accept(double temp, double chempot)
 {
-    bool constr_satis = true;
     for (Constraint* constraint : box->constraints) {
-        constr_satis *= constraint->verify();
+        if (!constraint->verify()) return 0.;
     }
-    double accept_prob = 0.;
-    if (constr_satis) {
-        double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
-        double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
-        accept_prob = prefactor * std::exp(-(du-chempot+dw)/temp);
-    }
+    double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
+    double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
+    double accept_prob = prefactor * std::exp(-(du-chempot+dw)/temp);
     return accept_prob;
 }
 
@@ -184,12 +180,8 @@ double AVBMCMolIn::accept(double temp, double chempot)
 
 void AVBMCMolIn::reset()
 {
-    unsigned int i, start, stop;
-
-    start = box->npar-1;
-    stop = box->npar-natom-1;
-    for (i=start; i>stop; i--) {
-        box->rm_particle(i);
+    for (unsigned int i=natom; i--;) {
+        box->rm_particle(box->npar-1);
     }
     box->poteng -= du;
 }

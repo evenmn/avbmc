@@ -128,6 +128,8 @@ void AVBMCMolOut::perform_move()
     unsigned int i, n_in;
     std::vector<unsigned int> molecule_idx_out;
 
+    detected_out = false;
+
     // cannot remove particle if it does not exist
     if (box->npartype[molecule[0].type] < 1) {
         return;
@@ -159,123 +161,32 @@ void AVBMCMolOut::perform_move()
     if (n_in < natom) {
         return;
     }
-    /*
-    // pick particle to be removed randomly among neighbors
-    for (unsigned int j : rng->shuffle(neigh_listi)) {
-        if (box->particles[j].type == molecule[0].type) {
-            du = -box->forcefield->comp_energy_par_force0(j); // this should be
-            box->poteng += du;                                // baked into rm_particle
-            box->rm_particle(j);
-            particle_out = box->particles[j];
-            break;
-        }
-    }
-    */
-    detected_out = false;
     molecule_idx_out = detect_deletion_molecule(i, detected_out);
-    if (detected_out) {
-        // compute change of energy when removing molecule
-        du = 0.;
-        if (box->store_energy) {
-            // std::accumulate
-            for (unsigned int k : molecule_idx_out) {
-                du -= box->forcefield->poteng_vec[k];
-            }
-        }
-        else {
-            for (unsigned int k : molecule_idx_out) {
-                du -= box->forcefield->comp_energy_par_force0(k);
-            }
-        }
-        // remove molecule
-        molecule_out.clear();
-        std::sort(molecule_idx_out.begin(), molecule_idx_out.end(), std::greater<unsigned int>()); // sort in descending order
-        //box->distance_manager->set();
+    if (!detected_out) return;
+
+    // compute change of energy when removing molecule
+    du = 0.;
+    if (box->store_energy) {
+        // std::accumulate
         for (unsigned int k : molecule_idx_out) {
-            //box->npar --;
-            //box->npartype[box->particles[k].type] --;
-            //box->particles[k] = box->particles.back();
-            //box->particles.pop_back();
-            //box->distance_manager->update_remove(k);
-            molecule_out.push_back(box->particles[k]);
-            box->rm_particle(k);
+            du -= box->forcefield->poteng_vec[k];
         }
-        box->poteng += du;
-        nmolavg = n_in * natom_inv;
     }
-        
-        
-    /*
-    count = 0;
-    while (count < box->npar && reject_move) {  // do maximum npar attempts to detect target molecule
-        count ++;
-        detected_target = false;
-        if (target_mol) {
-            //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-            target_molecule = detect_molecule(box->particles, molecule, detected_target, r_inner);
-            i = target_molecule[0];
+    else {
+        for (unsigned int k : molecule_idx_out) {
+            du -= box->forcefield->comp_energy_par_force0(k);
         }
-        else {
-            i = rng->next_int(box->npar);
-            detected_target = (box->particles[i].type == molecule[0].type);
-        }
-        if (detected_target) {  // target molecule detected
-            //neigh_listi = box->build_neigh_list(i, r_abovesq);
-            neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
-            n_in = neigh_listi.size();
-            if (n_in >= natom) {  // ensure that there is a least one molecule left
-                std::vector<Particle> particles_tmp;
-                for (j=0; j < n_in; j++){
-                    particles_tmp.push_back(box->particles[neigh_listi[j]]);
-                }
-                detected_out = false;
-
-                //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-                //std::vector<int> molecule_out = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected_out);
-                std::vector<unsigned int> molecule_out = detect_molecule(particles_tmp, molecule, detected_out, r_inner);
-                if (detected_out) {
-                    std::vector<unsigned int> molecule_out2;
-                    // std::transform
-                    for (unsigned int idx : molecule_out) {
-                        molecule_out2.push_back(neigh_listi[idx]);
-                    }
-                    reject_move = false;
-                    // compute change of energy when removing molecule
-                    du = 0.;
-                    if (box->store_energy) {
-                        // std::accumulate
-                        for (unsigned int k : molecule_out2) {
-                            du -= box->forcefield->poteng_vec[k];
-                        }
-                    }
-                    else {
-                        for (unsigned int k : molecule_out2) {
-                            du -= box->forcefield->comp_energy_par_force0(k);
-                        }
-                    }
-
-                    // remove molecule
-                    npartype_old = box->npartype;
-                    particles_old = box->particles;
-                    std::sort(molecule_out2.begin(), molecule_out2.end(), std::greater<unsigned int>()); // sort in descending order
-                    box->distance_manager->set();
-                    for (unsigned int k : molecule_out2){
-                        box->npar --;
-                        box->npartype[box->particles[k].type] --;
-                        box->particles[k] = box->particles.back();
-                        box->particles.pop_back();
-                        box->distance_manager->update_remove(k);
-
-                        //box->particles.erase(box->particles.begin() + j);
-                    }
-                    box->poteng += du;
-                    nmolavg = n_in * natom_inv;
-                }  // end 
-            }  // end if n_in
-        }  // end if constructed_target
-    }  // end while
-    */
-}  // end perform_move
+    }
+    // remove molecule
+    molecule_out.clear();
+    std::sort(molecule_idx_out.begin(), molecule_idx_out.end(), std::greater<unsigned int>()); // sort in descending order
+    for (unsigned int k : molecule_idx_out) {
+        molecule_out.push_back(box->particles[k]);
+        box->rm_particle(k);
+    }
+    box->poteng += du;
+    nmolavg = n_in * natom_inv;
+}
 
 
 /* ----------------------------------------------------------------------------
@@ -285,13 +196,12 @@ void AVBMCMolOut::perform_move()
 
 double AVBMCMolOut::accept(double temp, double chempot)
 {
-    bool constr_satis = true;
+    if (!detected_out) return 0.;
+
     for (Constraint* constraint : box->constraints) {
-        constr_satis *= constraint->verify();
+        if (!constraint->verify()) return 0.;
     }
-    if (!detected_out || !constr_satis){
-        return 0.;
-    }
+
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + natom);
     double prefactor = nmolavg * box->npar / (v_in * (box->npar - natom)); 
     return prefactor * std::exp(-(du+chempot+dw)/temp);
@@ -305,9 +215,7 @@ double AVBMCMolOut::accept(double temp, double chempot)
 void AVBMCMolOut::reset()
 {
     if (detected_out) {
-        int count = 0;
         for (Particle particle : molecule_out) {
-            std::cout << "AVBMCMolOut::reset count: " << count << std::endl;
             box->add_particle(particle);
         }
         box->poteng -= du;
