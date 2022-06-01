@@ -17,12 +17,15 @@ public:
     void reset() override;
     void update_size_histogram() override;
     std::string repr() override;
+    void insert(std::vector<class Particle>);
 
 private:
-    bool reject_move, energy_bias, target_mol;
+    unsigned int detect_target_molecule(bool &);
+    std::vector<Particle> create_molecule();
+
+    bool detected_target, energy_bias, target_mol;
     unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner;
-    double r_below, r_above, r_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
-    std::vector<unsigned int> npartype_old;
-    std::vector<class Particle> particles, particles_old;
+    double r_inner, v_in, nmolavg, natom_inv;
+    std::vector<class Particle> particles;
     class Box* box = nullptr;
 };

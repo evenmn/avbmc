@@ -23,6 +23,7 @@
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
+#include "../distance_manager.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -39,7 +40,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
-    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    v_in = 1.;
 
     particle_label = particle_in;
     particle_type = box->forcefield->label2type.at(particle_in);
@@ -53,28 +54,19 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
 
 void AVBMCIn::perform_move()
 {
-    // pick particle i and create local neighbor list of particle
-    int i = rng->next_int(box->npar);
+    unsigned int i;
+    std::valarray<double> dr(system->ndim);
+
+    // pick target particle and count number of neighbors
+    i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
     std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
-    // construct new particle
-    std::valarray<double> dr(system->ndim);
-    double normsq = norm(dr);
-    while(normsq > r_abovesq || normsq < r_belowsq){
-        // std::generate
-        for(double &d : dr){
-            d = 2 * rng->next_double() - 1;
-        }
-        normsq = norm(dr);
-    }
+    // construct new particle close to target particle
+    dr = insertion_position(false);
+    box->add_particle(particle_label, box->particles[i].r + dr);
 
-    Particle particle_in(particle_label, box->particles[i].r + dr);
-    box->npar ++;
-    particle_in.type = particle_type;
-    box->particles.push_back(particle_in);
-
-    // compute du
+    // compute du (also bake this into add_particle?)
     du = box->forcefield->comp_energy_par_force0(box->npar - 1);
     box->poteng += du;
 }
@@ -86,7 +78,6 @@ void AVBMCIn::perform_move()
 
 double AVBMCIn::accept(double temp, double chempot)
 {
-    //box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
     double prefactor = v_in * box->npar / ((n_in + 1) * (box->npar + 1));
     return prefactor * std::exp(-(du-chempot+dw)/temp);
@@ -94,14 +85,13 @@ double AVBMCIn::accept(double temp, double chempot)
 
 
 /* ----------------------------------------------------------------------------
-   Set back to old state before move is move was rejected
+   Set back to old state before move is rejected
 ------------------------------------------------------------------------------- */
 
 void AVBMCIn::reset()
 {
-    box->npar --;
+    box->rm_particle(box->npar-1);
     box->poteng -= du;
-    box->particles.erase(box->particles.begin() + box->npar);
 }
 
 

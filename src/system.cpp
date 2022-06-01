@@ -11,18 +11,25 @@
 #include "tqdm.h"
 #include "dump.h"
 #include "thermo.h"
+#include "particle.h"
+#include "distance_manager.h"
+
 #include "rng/rng.h"
 #include "rng/mersennetwister.h"
+
 #include "boundary/boundary.h"
 #include "boundary/open.h"
 #include "boundary/periodic.h"
+
 #include "forcefield/forcefield.h"
 #include "forcefield/idealgas.h"
 #include "forcefield/lennardjones.h"
 #include "forcefield/vashishta.h"
+
 #include "sampler/sampler.h"
 #include "sampler/metropolis.h"
 #include "sampler/umbrella.h"
+
 #include "moves/moves.h"
 #include "moves/trans.h"
 #include "moves/transmh.h"
@@ -32,8 +39,9 @@
 #include "moves/avbmcmol.h"
 #include "moves/avbmcmolin.h"
 #include "moves/avbmcmolout.h"
-#include "particle.h"
-#include "distance_manager.h"
+#include "moves/avbmcswapright.h"
+#include "moves/avbmcmolswapright.h"
+
 #include "constraint/constraint.h"
 #include "constraint/maxdistance.h"
 #include "constraint/mindistance.h"
@@ -615,7 +623,7 @@ void System::add_move(Moves* move, double prob)
 }
 
 
-void System::add_move(const std::string &move_in, double prob, double dx, double Ddt, int box_id)
+void System::add_move(const std::string &move_in, double prob, double dx, double Ddt, const std::string &element, int box_id)
 {
     if (nbox < 1) {
         std::cout << "No box found, cannot add move! Aborting." << std::endl;
@@ -625,13 +633,13 @@ void System::add_move(const std::string &move_in, double prob, double dx, double
         if (move_in == "trans") {
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new Trans(this, box, dx);
+                    Moves *move = new Trans(this, box, dx, element);
                     add_move(move, prob);
                     moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new Trans(this, boxes[box_id], dx);
+                Moves *move = new Trans(this, boxes[box_id], dx, element);
                 add_move(move, prob);
                 moves_allocated_in_system[nmove-1] = true;
             }
@@ -639,13 +647,13 @@ void System::add_move(const std::string &move_in, double prob, double dx, double
         else if (move_in == "transmh") {
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new TransMH(this, box, dx, Ddt);
+                    Moves *move = new TransMH(this, box, dx, Ddt, element);
                     add_move(move, prob);
                     moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new TransMH(this, boxes[box_id], dx, Ddt);
+                Moves *move = new TransMH(this, boxes[box_id], dx, Ddt, element);
                 add_move(move, prob);
                 moves_allocated_in_system[nmove-1] = true;
             }
@@ -660,26 +668,47 @@ void System::add_move(const std::string &move_in, double prob, double dx, double
 
 
 void System::add_move(const std::string &move_in, double prob, 
-    const std::string &particle_in, double r_below, double r_above, bool energy_bias, int box_id)
+    const std::string &particle_in, double r_below, double r_above, bool energy_bias, int box_id, int box_id2)
 {
     if (nbox < 1) {
         std::cout << "No box found, cannot add move! Aborting." << std::endl;
         exit(0);
     }
+    //else if(nbox <= box_id || nbox <= box_id2) {
+    //    std::cout << "Box id is out of range! Aborting." << std::endl;
+    //    exit(0);
+    //}
     else {
         if (move_in == "avbmc") {
+            // simply add both avbmcin and avbmcout with equal probability
+            add_move("avbmcin", prob / 2., particle_in, r_below, r_above, energy_bias, box_id);
+            add_move("avbmcout", prob / 2., particle_in, r_below, r_above, energy_bias, box_id);
+            /*
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new AVBMC(this, box, particle_in, r_below, r_above, energy_bias);
-                    add_move(move, prob);
+                    Moves *movein = new AVBMCIn(this, box, particle_in, r_below, r_above, energy_bias);
+                    add_move(movein, prob / 2.);
                     moves_allocated_in_system[nmove-1] = true;
+                    Moves *moveout = new AVBMCOut(this, box, particle_in, r_below, r_above, energy_bias);
+                    add_move(moveout, prob / 2.);
+                    moves_allocated_in_system[nmove-1] = true;
+                    //Moves *move = new AVBMC(this, box, particle_in, r_below, r_above, energy_bias);
+                    //add_move(move, prob);
+                    //moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new AVBMC(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
-                add_move(move, prob);
+                Moves *movein = new AVBMCIn(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
+                add_move(movein, prob / 2.);
                 moves_allocated_in_system[nmove-1] = true;
+                Moves *moveout = new AVBMCOut(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
+                add_move(moveout, prob / 2.);
+                moves_allocated_in_system[nmove-1] = true;
+                //Moves *move = new AVBMC(this, boxes[box_id], particle_in, r_below, r_above, energy_bias);
+                //add_move(move, prob);
+                //moves_allocated_in_system[nmove-1] = true;
             }
+            */
         }
         else if (move_in == "avbmcin") {
             if (box_id < 0) {
@@ -709,6 +738,22 @@ void System::add_move(const std::string &move_in, double prob,
                 moves_allocated_in_system[nmove-1] = true;
             }
         }
+        else if (move_in == "avbmcswapright") {
+            if (box_id < 0 || box_id2 < 0) {
+                std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+                          << "inter-box swap moves! Aborting." << std::endl;
+                exit(0);
+            }
+            else {
+                Moves *move = new AVBMCSwapRight(this, boxes[box_id], boxes[box_id2], particle_in, r_below, r_above, energy_bias);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcswap") {
+            add_move("avbmcswapright", prob / 2., particle_in, r_below, r_above, energy_bias, box_id, box_id2);
+            add_move("avbmcswapright", prob / 2., particle_in, r_below, r_above, energy_bias, box_id2, box_id);
+        }
         else {
             std::cout << "Move '" << move_in << "' is not implemented!"
                       << "Aborting." << std::endl;
@@ -720,7 +765,7 @@ void System::add_move(const std::string &move_in, double prob,
 
 void System::add_move(const std::string &move_in, double prob,
     std::vector<Particle> molecule_in, double r_below,
-    double r_above, double r_inner, bool energy_bias, bool target_mol, int box_id)
+    double r_above, double r_inner, bool energy_bias, bool target_mol, int box_id, int box_id2)
 {
     if (nbox < 1) {
         std::cout << "No box found, cannot add move! Aborting." << std::endl;
@@ -728,18 +773,35 @@ void System::add_move(const std::string &move_in, double prob,
     }
     else {
         if (move_in == "avbmcmol") {
+            // simply add both avbmcmolin and avbmcmolout with equal probability
+            add_move("avbmcmolin", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id);
+            add_move("avbmcmolout", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id);
+            /*
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new AVBMCMol(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
-                    add_move(move, prob);
+                    Moves *movein = new AVBMCMolIn(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                    add_move(movein, prob / 2.);
                     moves_allocated_in_system[nmove-1] = true;
+                    Moves *moveout = new AVBMCMolOut(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                    add_move(moveout, prob / 2.);
+                    moves_allocated_in_system[nmove-1] = true;
+                    //Moves *move = new AVBMCMol(this, box, molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                    //add_move(move, prob);
+                    //moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new AVBMCMol(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
-                add_move(move, prob);
+                Moves *movein = new AVBMCMolIn(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(movein, prob / 2.);
                 moves_allocated_in_system[nmove-1] = true;
+                Moves *moveout = new AVBMCMolOut(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(moveout, prob / 2.);
+                moves_allocated_in_system[nmove-1] = true;
+                //Moves *move = new AVBMCMol(this, boxes[box_id], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                //add_move(move, prob);
+                //moves_allocated_in_system[nmove-1] = true;
             }
+            */
         }
         else if (move_in == "avbmcmolin") {
             if (box_id < 0) {
@@ -768,6 +830,22 @@ void System::add_move(const std::string &move_in, double prob,
                 add_move(move, prob);
                 moves_allocated_in_system[nmove-1] = true;
             }
+        }
+        else if (move_in == "avbmcmolswapright") {
+            if (box_id < 0 || box_id2 < 0) {
+                std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+                          << "inter-box swap moves! Aborting." << std::endl;
+                exit(0);
+            }
+            else {
+                Moves *move = new AVBMCMolSwapRight(this, boxes[box_id], boxes[box_id2], molecule_in, r_below, r_above, r_inner, energy_bias, target_mol);
+                add_move(move, prob);
+                moves_allocated_in_system[nmove-1] = true;
+            }
+        }
+        else if (move_in == "avbmcmolswap") {
+            add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id, box_id2);
+            add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id2, box_id);
         }
         else {
             std::cout << "Move '" << move_in << "' is not implemented!"
@@ -1045,9 +1123,9 @@ void System::initialize_mc_run()
     for (Box* box : boxes) {
         box->size_histogram.resize(box->npar + 1);
         box->size_histogram[box->npar] ++;
-        if (box->store_distance) {
-            box->distance_manager->initialize();
-        }
+        //if (box->store_distance) {
+        //    box->distance_manager->initialize();
+        //}
         if (box->store_energy) {
             box->forcefield->initialize();
         }

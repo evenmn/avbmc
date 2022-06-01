@@ -26,7 +26,7 @@
        2: Storing distances and relative coordinates between particles
        3: Storing distances, relative coordinates and energy contributions
           of each particle
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Box::Box(System* system_in) //, int memory_intensity)
 {
@@ -73,7 +73,7 @@ Box::Box(System* system_in) //, int memory_intensity)
 /* ----------------------------------------------------------------------------
    Copy constructor, needed to fulfill the rule of five needed for the class
    to be exception-safe.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npartype),
                            particles(box.particles), constraints(box.constraints)
@@ -112,7 +112,7 @@ Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npar
 
 /* ----------------------------------------------------------------------------
    Swap the ownership of the internals
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::swap(Box &other)
 {
@@ -223,8 +223,17 @@ void Box::set_boundary(Boundary* boundary_in)
 
 
 /* ----------------------------------------------------------------------------
-   Add a single particle from a particle object
-------------------------------------------------------------------------------- */
+   Add a single particle from a particle object. Particle is always appended
+   to the particles-vector, with particle-ID npar-1. When adding a new
+   particle, there are a few things that need to be done: 
+     1. assign correct type based on the label
+     2. add particle index to list of indices of particular type
+     3. add particle to list of particles
+     4. check that particle is located inside box, move it otherwise
+     5. bump up number of particles and number of particles of particular type
+     6. expand distance matrix and neighbor lists
+     7. (expand size of energy and force matrices)
+---------------------------------------------------------------------------- */
 
 void Box::add_particle(Particle particle)
 {
@@ -232,18 +241,25 @@ void Box::add_particle(Particle particle)
         std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
         exit(0);
     }
-    npar ++;
     particle.type = forcefield->label2type[particle.label];
-    npartype.resize(forcefield->ntype);
-    npartype[particle.type] ++;
+    typeidx[particle.type].push_back(npar);
     system->ndim = particle.r.size();
     particles.push_back(particle);
+    boundary->correct_position(npar);
+    npar ++;
+    npartype[particle.type] ++;
+    if (store_distance) {
+        distance_manager->update_insert(npar-1);
+    }
+    //if (store_energy) {
+    //    forcefield->update_insert(npar-1);
+    //}
 }
 
 
 /* ----------------------------------------------------------------------------
    Add a single particle given a label 'label' and initial position 'r'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::add_particle(const std::string &label, const std::valarray<double> r)
 {
@@ -267,7 +283,7 @@ void Box::add_particles(std::vector<Particle> particles_in)
 /* ----------------------------------------------------------------------------
    Add a set of particles, stored in a vector of particle objects
    'particles_in'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::add_particles(const std::string &label, std::vector<std::valarray<double> > positions_in)
 {
@@ -279,7 +295,7 @@ void Box::add_particles(const std::string &label, std::vector<std::valarray<doub
 
 /* ----------------------------------------------------------------------------
    Initialize particles from an xyz-file, 'filename'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::read_particles(const std::string &filename)
 {
@@ -291,8 +307,52 @@ void Box::read_particles(const std::string &filename)
 
 
 /* ----------------------------------------------------------------------------
+   Remove a single particle by index. When a particle is removed, there are
+   a few things that have to be updated:
+     1. reduce number of particles and number of particles of particular 
+        type by one
+     2. remove particle index from list of indices of particular type
+     3. reduce size of distance matrix and neighbor lists
+     4. (reduce size of energy and force matrices)
+---------------------------------------------------------------------------- */
+
+void Box::_rm_typeidx(unsigned int i, unsigned int type)
+{
+    std::vector<unsigned int>::iterator position;
+
+    position = std::find(typeidx[type].begin(), typeidx[type].end(), i);
+    if (position != typeidx[type].end()) {
+        typeidx[type].erase(position);
+    }
+    for (std::vector<unsigned int> &idxs : typeidx) {
+        for (unsigned int &j : idxs) {
+            if (j > i) {
+                j--;
+            }
+        }
+    }
+}
+
+
+void Box::rm_particle(unsigned int i)
+{
+    assert (i < npar);
+    _rm_typeidx(i, particles[i].type);
+    npar --;
+    npartype[particles[i].type] --;
+    if (store_distance) {
+        distance_manager->update_remove(i);
+    }
+    //if (store_energy) {
+    //    forcefield->update_remove(i);
+    //}
+    particles.erase(particles.begin() + i);
+}
+
+
+/* ----------------------------------------------------------------------------
    Add box constraint
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::add_constraint(Constraint* constraint)
 {

@@ -7,6 +7,7 @@ class Particle
 {
 public:
     Particle(std::string, std::valarray<double>);
+    Particle(const Particle &);
 
     std::valarray<double> r;
     std::valarray<double> v;

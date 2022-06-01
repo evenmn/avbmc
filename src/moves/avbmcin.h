@@ -18,7 +18,7 @@ public:
 private:
     bool energy_bias;
     unsigned int n_in, particle_type;
-    double r_below, r_above, r_belowsq, r_abovesq, v_in;
+    double v_in;
     std::string particle_label;
     class Box* box = nullptr;
 };

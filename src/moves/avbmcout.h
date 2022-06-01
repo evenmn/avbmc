@@ -17,9 +17,9 @@ public:
 
 private:
     bool reject_move, energy_bias;
-    unsigned int n_in;
+    unsigned int n_in, particle_type;
     std::string particle_label;
-    double r_above, r_abovesq, v_in;
+    double v_in;
     Particle particle_out = Particle("", {0});
     class Box* box = nullptr;
 };

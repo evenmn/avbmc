@@ -23,6 +23,7 @@ Vashishta::Vashishta(Box* box_in, const std::string &params)
     paramfile = params;
     read_param_file(params);
     create_label_mapping();
+    init_ntype();
     allocate_memory();
     sort_params();
     temp_scale = 8.617333262e-5;  // Have to scale all temperatures with the

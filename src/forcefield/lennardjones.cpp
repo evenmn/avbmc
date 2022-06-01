@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------------
    This is the default constructor when a parameter file 'params' is given.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 LennardJones::LennardJones(Box* box_in, const std::string &params)
     : ForceField(box_in)
@@ -22,6 +22,7 @@ LennardJones::LennardJones(Box* box_in, const std::string &params)
     paramfile = params;
     read_param_file(params);
     create_label_mapping();
+    init_ntype();
     allocate_memory();
     sort_params();
 }
@@ -31,7 +32,7 @@ LennardJones::LennardJones(Box* box_in, const std::string &params)
    Read parameter file 'params' and store parameters globally. It takes the
    following form:
        <label1> <label2> <sigma> <epsilon> <rc>
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::read_param_file(const std::string &params)
 {

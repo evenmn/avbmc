@@ -12,7 +12,6 @@ public:
     unsigned int add_cutoff(double);
     unsigned int add_cutoff(double, std::string, std::string, bool = true);
     unsigned int add_cutoff(double **);
-    void initialize();
     void set(), reset();
     void update_trans(unsigned int);
     void update_remove(unsigned int);

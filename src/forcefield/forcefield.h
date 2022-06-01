@@ -18,7 +18,7 @@ public:
     virtual ~ForceField() = default;
     
     // Declare global functions
-    void initialize(), set(), reset();
+    void init_ntype(), initialize(), set(), reset();
     double comp_energy_par_force0(unsigned int);
     double comp_energy_par_force1(unsigned int, std::valarray<double> &);
     double (ForceField::*comp_energy_par)(unsigned int, std::valarray<double> &, bool) = nullptr;
