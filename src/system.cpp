@@ -623,7 +623,7 @@ void System::add_move(Moves* move, double prob)
 }
 
 
-void System::add_move(const std::string &move_in, double prob, double dx, double Ddt, int box_id)
+void System::add_move(const std::string &move_in, double prob, double dx, double Ddt, const std::string &element, int box_id)
 {
     if (nbox < 1) {
         std::cout << "No box found, cannot add move! Aborting." << std::endl;
@@ -633,13 +633,13 @@ void System::add_move(const std::string &move_in, double prob, double dx, double
         if (move_in == "trans") {
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new Trans(this, box, dx);
+                    Moves *move = new Trans(this, box, dx, element);
                     add_move(move, prob);
                     moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new Trans(this, boxes[box_id], dx);
+                Moves *move = new Trans(this, boxes[box_id], dx, element);
                 add_move(move, prob);
                 moves_allocated_in_system[nmove-1] = true;
             }
@@ -647,13 +647,13 @@ void System::add_move(const std::string &move_in, double prob, double dx, double
         else if (move_in == "transmh") {
             if (box_id < 0) {
                 for (Box *box : boxes) {
-                    Moves *move = new TransMH(this, box, dx, Ddt);
+                    Moves *move = new TransMH(this, box, dx, Ddt, element);
                     add_move(move, prob);
                     moves_allocated_in_system[nmove-1] = true;
                 }
             }
             else {
-                Moves *move = new TransMH(this, boxes[box_id], dx, Ddt);
+                Moves *move = new TransMH(this, boxes[box_id], dx, Ddt, element);
                 add_move(move, prob);
                 moves_allocated_in_system[nmove-1] = true;
             }

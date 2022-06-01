@@ -17,29 +17,42 @@
 /* ----------------------------------------------------------------------------
   Constructor of naive translational move, with 'dx_in' being the maximum step
   length (in any direction)
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-Trans::Trans(System* system_in, Box* box_in, const double dx_in)
+Trans::Trans(System* system_in, Box* box_in, const double dx_in,
+    const std::string &element_in)
     : Moves(system_in)
 {
     box = box_in;
     dx = dx_in;
     i = 0;
     cum_time = 0.;
+    if (element_in.empty()) {
+        element_spec = false;
+    }
+    else {
+        element_type = box->forcefield->label2type.at(element_in);
+        element_spec = true;
+    }
     label = "Trans   ";
 }
 
 
 /* ----------------------------------------------------------------------------
    Propose particle to move and new position randomly.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Trans::perform_move()
 {
     unsigned int j;
     double u0, u1;
 
-    i = rng->next_int(box->npar); // particle to move
+    if (element_spec) {
+        i = box->typeidx[element_type][rng->next_int(box->npartype[element_type])];
+    }
+    else {
+        i = rng->next_int(box->npar);
+    }
     if (box->store_energy) {
         u0 = box->forcefield->poteng_vec[i];
     }
@@ -68,7 +81,7 @@ void Trans::perform_move()
 
 /* ----------------------------------------------------------------------------
    Compute acceptance probability of translational move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Trans::accept(double temp, double /*chempot*/)
 {
@@ -83,7 +96,7 @@ double Trans::accept(double temp, double /*chempot*/)
 
 /* ----------------------------------------------------------------------------
    Set back to old state before move if move was rejected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Trans::reset()
 {
@@ -96,7 +109,7 @@ void Trans::reset()
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Trans::update_size_histogram()
 {
@@ -106,7 +119,7 @@ void Trans::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string Trans::repr()
 {

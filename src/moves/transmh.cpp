@@ -16,30 +16,42 @@
 /*-----------------------------------------------------------------------------
   Constructor of biased translational move, with 'dx_in' being the maximum step
   length (in any direction) and 'Ddt_in' being the biasing parameter.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 TransMH::TransMH(System* system_in, Box* box_in, const double dx_in,
-                 const double Ddt_in)
+                 const double Ddt_in, const std::string &element_in)
     : Moves(system_in)
 {
     box = box_in;
     dx = dx_in;
     Ddt = Ddt_in;
     cum_time = 0.;
+    if (element_in.empty()) {
+        element_spec = false;
+    }
+    else {
+        element_type = box->forcefield->label2type.at(element_in);
+        element_spec = true;
+    }
     label = "TransMH ";
 }
 
 
 /* ----------------------------------------------------------------------------
    Propose particle to move and new position randomly.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void TransMH::perform_move()
 {
     double u0, u1;
     std::valarray<double> f0, f1;
 
-    i = rng->next_int(box->npar); // particle to move
+    if (element_spec) {
+        i = box->typeidx[element_type][rng->next_int(box->npartype[element_type])];
+    }
+    else {
+        i = rng->next_int(box->npar);
+    }
 
     if (box->store_energy) {
         u0 = box->forcefield->poteng_vec[i];
@@ -69,7 +81,7 @@ void TransMH::perform_move()
 
 /* ----------------------------------------------------------------------------
    Compute acceptance probability of translational move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double TransMH::accept(double temp, double /*chempot*/)
 {
@@ -86,7 +98,7 @@ double TransMH::accept(double temp, double /*chempot*/)
 
 /* ----------------------------------------------------------------------------
    Set back to old state before move if move was rejected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void TransMH::reset()
 {
@@ -99,7 +111,7 @@ void TransMH::reset()
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void TransMH::update_size_histogram()
 {
@@ -109,7 +121,7 @@ void TransMH::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string TransMH::repr()
 {

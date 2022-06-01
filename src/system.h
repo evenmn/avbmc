@@ -35,7 +35,7 @@ public:
     void snapshot(const std::string &, int = 0);
         
     void add_move(class Moves *, double);
-    void add_move(const std::string &, double = 1., double = 0.1, double = 0.1, int = -1); // for trans and transmh
+    void add_move(const std::string &, double = 1., double = 0.1, double = 0.1, const std::string & = "", int = -1); // for trans and transmh
     void add_move(const std::string &, double, const std::string &, double = 0.95, double = 3.0, bool = false, int = 0, int = 1); // for avbmc, avbmcin, avbmcout, avbmcswap, avbmcswapright
     void add_move(const std::string &, double, std::vector<class Particle>, double = 1.3, double = 0.95, double = 3.0, bool = false, bool = false, int = 0, int = 1); // for avbmcmol, avbmcmolin, avbmcmolout, avbmcmolswap, avbmcmolswapright
     void add_box(class Box *);

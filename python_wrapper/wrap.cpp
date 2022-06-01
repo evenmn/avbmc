@@ -180,12 +180,13 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("prob") = 1.0
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, double, double, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, double, double, const std::string &, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
             py::arg("dx") = 0.1,
             py::arg("Ddt") = 0.1,
+            py::arg("element") = "",
             py::arg("box_id") = -1
         )
         .def("add_move",
