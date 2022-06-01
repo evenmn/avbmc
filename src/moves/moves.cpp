@@ -174,15 +174,13 @@ std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particle
     std::vector<unsigned int> neigh_list;
     for (j=0; j<i; j++) {
         rijsq = std::pow(particles[j].r - ri, 2).sum();
-        //std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
     for (j=i+1; j<npar; j++) {
         rijsq = std::pow(particles[j].r - ri, 2).sum();
-        //std::cout << "rij " << rsq << " " << rijsq << " " << norm(particles[j].r - ri) << std::endl;
-        if(rijsq < rsq){
+        if (rijsq < rsq) {
             neigh_list.push_back(j);
         }
     }
@@ -197,17 +195,11 @@ std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particle
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
                             unsigned int elm_count, std::vector<unsigned int> &elm_idx,
                             std::vector<Particle> particles, double rc) {
-    //std::cout << "1elm_idx.size() " << elm_idx.size() << std::endl;
     if (elm_idx.size() < molecule.size()) {  
-        //std::cout << "2elm_idx.size() " << elm_idx.size() << std::endl;
-        //std::cout << particles[i].type << " " << molecule[elm_count].type << std::endl;
         if (particles[i].type == molecule[elm_count].type) {
-            //std::cout << "1molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
             elm_idx.push_back(i);
             elm_count ++;
-            //std::cout << "2particles.size() " << particles.size() << std::endl;
             std::vector<unsigned int> neigh_list = build_neigh_list(particles, i, rc*rc);
-            //std::cout << "3neigh_list.size(): " << neigh_list.size() << std::endl;
             for (int neigh : neigh_list) {
                 check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
             }
@@ -321,12 +313,9 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
                             unsigned int elm_count, std::vector<unsigned int> &elm_idx,
                             std::vector<std::vector<unsigned int> > neigh_list) {
     if (elm_idx.size() < molecule.size()) {  
-        //std::cout << "1molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
         if (particles[i].type == molecule[elm_count].type) {
-            //std::cout << "2molecule.size(): " << elm_idx.size() << " " << molecule.size() << std::endl;
             elm_idx.push_back(i);
             elm_count ++;
-            //std::cout << "neigh_list.size(): " << neigh_list[i].size() << std::endl;
             for (unsigned int neigh : neigh_list[i]) {
                 check_neigh_recu(neigh, particles, molecule, elm_count, elm_idx, neigh_list);
             }
@@ -350,8 +339,7 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigne
     std::vector<unsigned int> elm_idx;
     
     count = 0;
-    while (count < neigh_list.size() && !detected)
-    {
+    while (count < neigh_list.size() && !detected) {
         elm_idx.clear();
         i = rng->next_int(neigh_list.size());     // pick initial particle
         check_neigh_recu(i, particles, molecule, 0, elm_idx, neigh_list);
@@ -360,8 +348,7 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigne
         }
         count ++;
     }
-    if (!detected)
-    {
+    if (!detected) {
         elm_idx.clear();
     }
     return elm_idx;

@@ -100,7 +100,6 @@ std::vector<Particle> AVBMCMolIn::create_molecule()
     std::vector<Particle> molecule;
 
     for (Particle particle : particles) {
-        std::cout << particle.label << std::endl;
         molecule.push_back(Particle(particle)); // utilizing copy constructor
     }
     molecule = rotate_molecule(molecule);

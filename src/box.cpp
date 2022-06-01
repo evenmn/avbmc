@@ -26,7 +26,7 @@
        2: Storing distances and relative coordinates between particles
        3: Storing distances, relative coordinates and energy contributions
           of each particle
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Box::Box(System* system_in) //, int memory_intensity)
 {
@@ -73,7 +73,7 @@ Box::Box(System* system_in) //, int memory_intensity)
 /* ----------------------------------------------------------------------------
    Copy constructor, needed to fulfill the rule of five needed for the class
    to be exception-safe.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npartype),
                            particles(box.particles), constraints(box.constraints)
@@ -112,7 +112,7 @@ Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npar
 
 /* ----------------------------------------------------------------------------
    Swap the ownership of the internals
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::swap(Box &other)
 {

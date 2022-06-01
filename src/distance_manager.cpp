@@ -231,8 +231,7 @@ double DistanceManager::normsq(std::valarray<double> array)
     unsigned int i;
 
     norm = 0.;
-    for (i=0; i < array.size(); i++)
-    {
+    for (i=0; i < array.size(); i++) {
         norm += array[i] * array[i];
     }
     return norm;

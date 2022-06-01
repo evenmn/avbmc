@@ -23,7 +23,7 @@
    to be considered a molecule. 'energy_bias_in' is a boolean controlling
    whether or not energy biasing should be used. 'target_mol_in' is a boolean
    defining the target molecule as the entire molecule or main atom.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
          std::vector<Particle> molecule_in, const double r_above_in,
@@ -48,8 +48,8 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
     // particles[0].label, particles[0].label, false); neigh_id_inner =
     // box->distance_manager->add_cutoff(r_inner, particles[0].label,
     // particles[1].label, false);
-    neigh_id_above = box->distance_manager->add_cutoff(r_above);
-    neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
+    //neigh_id_above = box->distance_manager->add_cutoff(r_above);
+    //neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
 
     for (Particle &particle : molecule) {
         particle.type = box->forcefield->label2type.at(particle.label);
@@ -60,15 +60,15 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
 /* ----------------------------------------------------------------------------
    Detect target molecule (or atom if target_mol=false). Make maximum 'npar' 
    attempts of finding target molecule.
-------------------------------------------------------------------------------- */
-
+---------------------------------------------------------------------------- */
+/*
 unsigned int AVBMCMolOut::detect_target_molecule(bool &detected)
 {
     unsigned int count, i;
     std::vector<unsigned int> target_molecule;
     std::vector<std::vector<unsigned int> > neigh_list_inner;
 
-    count = 0;
+    count = i = 0;
     while (count < box->npar || detected) {
         count ++;
         if (target_mol) {
@@ -83,20 +83,20 @@ unsigned int AVBMCMolOut::detect_target_molecule(bool &detected)
     }
     return i;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Detect deletion molecule.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
     bool &detected)
 {
-    std::vector<unsigned int> molecule_out2, neigh_listi;
+    std::vector<unsigned int> molecule_out, molecule_out2, neigh_listi;
     molecule_out.clear();
 
-    //neigh_listi = box->build_neigh_list(i, r_abovesq);
-    neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
+    neigh_listi = box->build_neigh_list(i, r_abovesq);
+    //neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
     n_in = neigh_listi.size();
     if (n_in < natom) {  // ensure that there is a least one molecule left
         detected = false;
@@ -115,58 +115,93 @@ std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
         molecule_out.push_back(neigh_listi[idx]);
         //molecule_out2.push_back(particles_tmp[idx]);
     }
-    return molecule_out2;
+    return molecule_out;
 }
 
 
 /* ----------------------------------------------------------------------------
    Remove a random molecule from the bonded region of another similar molecule.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMolOut::perform_move()
 {
-    unsigned int i;
-    std::vector<unsigned int> target_molecule, neigh_listi, molecule_out;
-    //std::vector<std::vector<int> > neigh_list_inner;
+    unsigned int i, n_in;
+    std::vector<unsigned int> molecule_idx_out;
 
-    detected_out = false;
-    if (box->npar < 2 * natom - 1) {
-        // do not remove molecule if there is less than two molecules available
+    // cannot remove particle if it does not exist
+    if (box->npartype[molecule[0].type] < 1) {
         return;
     }
 
-    i = detect_target_molecule(detected_target);
-    if (detected_target) {
-        molecule_out = detect_deletion_molecule(i, detected_out);
-        if (detected_out) {
-            // compute change of energy when removing molecule
-            du = 0.;
-            if (box->store_energy) {
-                // std::accumulate
-                for (unsigned int k : molecule_out) {
-                    du -= box->forcefield->poteng_vec[k];
-                }
-            }
-            else {
-                for (unsigned int k : molecule_out) {
-                    du -= box->forcefield->comp_energy_par_force0(k);
-                }
-            }
-            // remove molecule
-            npartype_old = box->npartype;
-            particles_old = box->particles;
-            std::sort(molecule_out.begin(), molecule_out.end(), std::greater<unsigned int>()); // sort in descending order
-            box->distance_manager->set();
-            for (unsigned int k : molecule_out){
-                box->npar --;
-                box->npartype[box->particles[k].type] --;
-                box->particles[k] = box->particles.back();
-                box->particles.pop_back();
-                box->distance_manager->update_remove(k);
-            }
-            box->poteng += du;
-            nmolavg = n_in * natom_inv;
+    //if (box->npar < 2 * natom - 1) {
+    //    // do not remove molecule if there is less than two molecules available
+    //    return;
+    //}
+
+    // detect target particle (molecule)
+    /*
+    if (target_mol) {
+        i = detect_target_molecule(detected_target);
+        if (!detected_target) {
+            return;
         }
+    }
+    else {
+        i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
+    }
+    */
+    i = box->typeidx[molecule[0].type][rng->next_int(box->npartype[molecule[0].type])];
+    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    n_in = neigh_listi.size(); 
+    nmolavg = n_in * natom_inv;
+
+    // target particle needs at least natom neighbors
+    if (n_in < natom) {
+        return;
+    }
+    /*
+    // pick particle to be removed randomly among neighbors
+    for (unsigned int j : rng->shuffle(neigh_listi)) {
+        if (box->particles[j].type == molecule[0].type) {
+            du = -box->forcefield->comp_energy_par_force0(j); // this should be
+            box->poteng += du;                                // baked into rm_particle
+            box->rm_particle(j);
+            particle_out = box->particles[j];
+            break;
+        }
+    }
+    */
+    detected_out = false;
+    molecule_idx_out = detect_deletion_molecule(i, detected_out);
+    if (detected_out) {
+        // compute change of energy when removing molecule
+        du = 0.;
+        if (box->store_energy) {
+            // std::accumulate
+            for (unsigned int k : molecule_idx_out) {
+                du -= box->forcefield->poteng_vec[k];
+            }
+        }
+        else {
+            for (unsigned int k : molecule_idx_out) {
+                du -= box->forcefield->comp_energy_par_force0(k);
+            }
+        }
+        // remove molecule
+        molecule_out.clear();
+        std::sort(molecule_idx_out.begin(), molecule_idx_out.end(), std::greater<unsigned int>()); // sort in descending order
+        //box->distance_manager->set();
+        for (unsigned int k : molecule_idx_out) {
+            //box->npar --;
+            //box->npartype[box->particles[k].type] --;
+            //box->particles[k] = box->particles.back();
+            //box->particles.pop_back();
+            //box->distance_manager->update_remove(k);
+            molecule_out.push_back(box->particles[k]);
+            box->rm_particle(k);
+        }
+        box->poteng += du;
+        nmolavg = n_in * natom_inv;
     }
         
         
@@ -246,7 +281,7 @@ void AVBMCMolOut::perform_move()
 /* ----------------------------------------------------------------------------
    Return the acceptance probability of move, given temperature
    'temp' and chemical potential 'chempot'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double AVBMCMolOut::accept(double temp, double chempot)
 {
@@ -257,7 +292,6 @@ double AVBMCMolOut::accept(double temp, double chempot)
     if (!detected_out || !constr_satis){
         return 0.;
     }
-    //box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + natom);
     double prefactor = nmolavg * box->npar / (v_in * (box->npar - natom)); 
     return prefactor * std::exp(-(du+chempot+dw)/temp);
@@ -266,24 +300,24 @@ double AVBMCMolOut::accept(double temp, double chempot)
 
 /* ----------------------------------------------------------------------------
    Set back to old state if move is rejected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMolOut::reset()
 {
     if (detected_out) {
-        box->distance_manager->reset();
-        box->forcefield->reset();
-        box->npar += natom;
-        box->npartype = npartype_old;
+        int count = 0;
+        for (Particle particle : molecule_out) {
+            std::cout << "AVBMCMolOut::reset count: " << count << std::endl;
+            box->add_particle(particle);
+        }
         box->poteng -= du;
-        box->particles = particles_old;
     }
 }
 
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMolOut::update_size_histogram()
 {
@@ -293,7 +327,7 @@ void AVBMCMolOut::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string AVBMCMolOut::repr()
 {
