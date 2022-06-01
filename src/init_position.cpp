@@ -21,7 +21,8 @@
        number of dimensions
 ------------------------------------------------------------------------------- */
 
-std::vector<std::valarray<double> > fcc(int ncells, double lenbulk, int ndim)
+std::vector<std::valarray<double> > fcc(unsigned int ncells, double lenbulk,
+    unsigned int ndim)
 {
     unsigned int i, j, k;
     std::vector<std::valarray<double> > positions;

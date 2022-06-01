@@ -36,6 +36,7 @@
 #include "../src/moves/avbmcmol.h"
 #include "../src/moves/avbmcmolin.h"
 #include "../src/moves/avbmcmolout.h"
+#include "../src/moves/avbmcswapright.h"
 
 #include "../src/boundary/boundary.h"
 #include "../src/boundary/open.h"
@@ -179,16 +180,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("prob") = 1.0
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, double, double, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, double, double, const std::string &, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
             py::arg("dx") = 0.1,
             py::arg("Ddt") = 0.1,
+            py::arg("element") = "",
             py::arg("box_id") = -1
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, const std::string &, double, double, bool, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, const std::string &, double, double, bool, int, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
@@ -196,10 +198,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_below") = 0.95,
             py::arg("r_above") = 3.0,
             py::arg("energy_bias") = false,
-            py::arg("box_id") = -1
+            py::arg("box_id") = 0,
+            py::arg("box_id2") = 1
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, std::vector<Particle>, double, double, double, bool, bool, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, std::vector<Particle>, double, double, double, bool, bool, int, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
@@ -209,7 +212,8 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_mol") = false,
-            py::arg("box_id") = -1
+            py::arg("box_id") = 0,
+            py::arg("box_id2") = 1
         )
         .def("add_box",
             py::overload_cast<>(&System::add_box),

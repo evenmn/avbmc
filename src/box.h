@@ -29,6 +29,8 @@ public:
     void add_particles(const std::string &, std::vector<std::valarray<double> >);
     void read_particles(const std::string &);
     void add_constraint(class Constraint *);
+    void rm_particle(unsigned int);
+    void _rm_typeidx(unsigned int, unsigned int);
 
     std::string file_marking();
     void snapshot(std::string); //, bool = true);
@@ -56,7 +58,8 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by stillinger
+    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by constraints
+    std::vector<std::vector<unsigned int> > typeidx;     // indices of each type
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
     std::vector<bool> constraint_allocated_in_system;

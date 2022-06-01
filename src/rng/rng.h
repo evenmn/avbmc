@@ -13,6 +13,7 @@ public:
     virtual double next_double() = 0;
     virtual double next_gaussian(double = 0.0, double = 1.0) = 0;
     virtual int choice(std::vector<double>) = 0;
+    virtual std::vector<unsigned int> shuffle(std::vector<unsigned int> &) = 0;
     virtual ~RandomNumberGenerator() = default;
 
     std::string label;
