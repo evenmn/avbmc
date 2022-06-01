@@ -367,9 +367,20 @@ void Box::add_constraint(Constraint* constraint)
 
 
 /* ----------------------------------------------------------------------------
+   Remove box constraint
+---------------------------------------------------------------------------- */
+/*
+void Box::rm_constraint(unsigned int idx)
+{
+    constraints.erase(constraints.begin() + idx);
+    nconstraint --;
+}
+*/
+
+/* ----------------------------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function from io.cpp to file
    'filename', which is marked with box-ID and rank-ID if 'mark_file' is true
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
    
 void Box::snapshot(std::string filename) //, const bool mark_file)
 {
