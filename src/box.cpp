@@ -357,7 +357,8 @@ void Box::rm_particle(unsigned int i)
 void Box::add_constraint(Constraint* constraint)
 {
     if (!initialized) {
-        std::cout << "Forcefield needs to be initialized before adding constraints!" << std::endl;
+        std::cout << "Forcefield needs to be initialized "
+                  << "before adding constraints!" << std::endl;
         exit(0);
     }
     nconstraint ++;
@@ -369,13 +370,17 @@ void Box::add_constraint(Constraint* constraint)
 /* ----------------------------------------------------------------------------
    Remove box constraint
 ---------------------------------------------------------------------------- */
-/*
+
 void Box::rm_constraint(unsigned int idx)
 {
+    if (constraint_allocated_in_system[idx]) {
+        delete constraints[idx];
+    }
     constraints.erase(constraints.begin() + idx);
+    constraint_allocated_in_system.erase(constraint_allocated_in_system.begin() + idx);
     nconstraint --;
 }
-*/
+
 
 /* ----------------------------------------------------------------------------
    Dump snapshot of system using the "write_xyz"-function from io.cpp to file

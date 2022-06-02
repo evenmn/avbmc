@@ -31,7 +31,7 @@ public:
     void add_constraint(class Constraint *);
     void _rm_typeidx(unsigned int, unsigned int);
     void rm_particle(unsigned int);
-    //void rm_constraint(unsigned int);
+    void rm_constraint(unsigned int);
 
     std::string file_marking();
     void snapshot(std::string); //, bool = true);

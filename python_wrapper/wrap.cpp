@@ -71,7 +71,15 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Particle
     py::class_<Particle>(m, "Particle", py::dynamic_attr())
-        .def(py::init<std::string, std::valarray<double> >())
+        .def(py::init<std::string, std::valarray<double> >(),
+        "Particle constructor",
+        py::arg("element"),
+        py::arg("position")
+        )
+        .def(py::init<Particle>(),
+        "Particle copy constructor",
+        py::arg("particle")
+        )
         .def("__repr__",
             [](const Particle &particle) {
                 return particle.label;
@@ -103,7 +111,10 @@ PYBIND11_MODULE(avbmc, m) {
         )
         .def_readonly("label", &RandomNumberGenerator::label);
     py::class_<MersenneTwister, RandomNumberGenerator>(m, "MersenneTwister")
-        .def(py::init<>())
+        .def(py::init<int>(),
+        "Mersenne-Twister constructor",
+        py::arg("seed") = -1
+        )
         .def("set_seed",
             &MersenneTwister::set_seed,
             "Set seed to be used by the random number generator",
@@ -128,6 +139,11 @@ PYBIND11_MODULE(avbmc, m) {
             &MersenneTwister::choice,
             "Index is picked according to a list of probabilities",
             py::arg("probabilities")
+        )
+        .def("shuffle",
+            &MersenneTwister::shuffle,
+            "Shuffle list of unsigned ints",
+            py::arg("list")
         );
 
     // System
@@ -215,6 +231,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("box_id") = 0,
             py::arg("box_id2") = 1
         )
+        .def("rm_move",
+            &System::rm_move,
+            "Remove move by index",
+            py::arg("index")
+        )
         .def("add_box",
             py::overload_cast<>(&System::add_box),
             "Add system box automatically"
@@ -223,6 +244,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::overload_cast<Box *>(&System::add_box),
             "Add system box manually with a box object",
             py::arg("box_object")
+        )
+        .def("rm_box",
+            &System::rm_box,
+            "Remove box by index",
+            py::arg("index")
         )
         .def("set_forcefield",
             py::overload_cast<ForceField *, int>(&System::set_forcefield),
@@ -271,6 +297,12 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh") = 1,
+            py::arg("box_id") = 0
+        )
+        .def("rm_constraint",
+            &System::rm_constraint,
+            "Remove constraint from given box by index. box_id = 0 by default",
+            py::arg("index"),
             py::arg("box_id") = 0
         )
         .def("snapshot",
@@ -327,6 +359,12 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("filename"),
             py::arg("box_id") = 0
         )
+        .def("rm_particle",
+            &System::rm_particle,
+            "Remove particle from a given box by index. box_id=0 by default",
+            py::arg("index"),
+            py::arg("box_id") = 0
+        )
         .def("get_size_histogram",
             &System::get_size_histogram,
             "Get histogram of all system sizes during simulation. box_id = 0 by default",
@@ -360,6 +398,7 @@ PYBIND11_MODULE(avbmc, m) {
         )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
+        .def_readonly("nmove", &System::nmove)
         .def_readonly("temp", &System::temp)
         .def_readonly("chempot", &System::chempot)
         .def_readonly("working_dir", &System::working_dir)
@@ -415,10 +454,20 @@ PYBIND11_MODULE(avbmc, m) {
             "Add a set of particles to the box read from an xyz-file",
             py::arg("filename")
         )
+        .def("rm_particle",
+            &Box::rm_particle,
+            "Remove particle by index",
+            py::arg("index")
+        )
         .def("add_constraint",
             &Box::add_constraint,
             "Add box constraint by object",
             py::arg("constraint_object")
+        )
+        .def("rm_constraint",
+            &Box::rm_constraint,
+            "Remove constraint by index",
+            py::arg("index")
         )
         .def("snapshot",
             &Box::snapshot,

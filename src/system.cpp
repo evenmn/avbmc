@@ -599,6 +599,27 @@ void System::add_constraint(const std::string &constraint_in,
 
 
 /* ----------------------------------------------------------------------------
+   Remove constraint of box 'box_id' by index
+---------------------------------------------------------------------------- */
+
+void System::rm_constraint(unsigned int idx, int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found! Aborting." << std::endl;
+        exit(0);
+    }
+    else if (box_id >= nbox)
+    {
+        std::cout << "Box-ID is out of range! " << nbox << " boxes found. "
+                  << "Aborting." << std::endl;
+        exit(0);
+    }
+
+    boxes[box_id]->rm_constraint(idx);
+}
+
+
+/* ----------------------------------------------------------------------------
    Take a snapshot of a given box.
 ---------------------------------------------------------------------------- */
 
@@ -893,6 +914,21 @@ void System::add_move(const std::string &move_in, double prob,
 
 
 /* ----------------------------------------------------------------------------
+   Remove move by index 'idx'
+---------------------------------------------------------------------------- */
+
+void System::rm_move(unsigned int idx)
+{
+    if (moves_allocated_in_system[idx]) {
+        delete moves[idx];
+    }
+    moves.erase(moves.begin() + idx);
+    moves_allocated_in_system.erase(moves_allocated_in_system.begin() + idx);
+    nmove--;
+}
+
+
+/* ----------------------------------------------------------------------------
    Add box 'box_in' to system
 ---------------------------------------------------------------------------- */
 
@@ -909,6 +945,47 @@ void System::add_box()
     Box *box = new Box(this);
     add_box(box);
     box->box_allocated_in_system = true;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Remove box by index 'box_id'. All later box indices will be shifted
+---------------------------------------------------------------------------- */
+
+void System::rm_box(unsigned int box_id)
+{
+    if (nbox < 1) {
+        std::cout << "No box found! Aborting." << std::endl;
+        exit(0);
+    }
+    else if (box_id >= nbox)
+    {
+        std::cout << "Box-ID is out of range! " << nbox << " boxes found. "
+                  << "Aborting." << std::endl;
+        exit(0);
+    }
+
+    if (boxes[box_id]->forcefield_allocated_in_system) {
+        delete boxes[box_id]->forcefield;
+    }
+    if (boxes[box_id]->boundary_allocated_in_system) {
+        delete boxes[box_id]->boundary;
+    }
+    for (unsigned int i=boxes[box_id]->nconstraint; i--;) {
+        rm_constraint(i, box_id=box_id);
+    }
+    /*
+    for (unsigned int i=0; i<boxes[box_id]->nconstraint; i++) {
+        if (boxes[box_id]->constraint_allocated_in_system[i]) {
+            delete boxes[box_id]->constraints[i];
+        }
+    }
+    */
+    if (boxes[box_id]->box_allocated_in_system) {
+        delete boxes[box_id];
+    }
+    boxes.erase(boxes.begin() + box_id);
+    nbox--;
 }
 
 
@@ -1066,76 +1143,6 @@ void System::rm_particle(unsigned int idx, int box_id)
     }
 
     boxes[box_id]->rm_particle(idx);
-}
-
-
-/* ----------------------------------------------------------------------------
-   Remove box by index 'box_id'. All later box indices will be shifted
----------------------------------------------------------------------------- */
-
-void System::rm_box(unsigned int box_id)
-{
-    if (nbox < 1) {
-        std::cout << "No box found! Aborting." << std::endl;
-        exit(0);
-    }
-    else if (box_id >= nbox)
-    {
-        std::cout << "Box-ID is out of range! " << nbox << " boxes found. "
-                  << "Aborting." << std::endl;
-        exit(0);
-    }
-
-    if (boxes[box_id]->forcefield_allocated_in_system) {
-        delete boxes[box_id]->forcefield;
-    }
-    if (boxes[box_id]->boundary_allocated_in_system) {
-        delete boxes[box_id]->boundary;
-    }
-    for (unsigned int i=0; i<boxes[box_id]->nconstraint; i++) {
-        if (boxes[box_id]->constraint_allocated_in_system[i]) {
-            delete boxes[box_id]->constraints[i];
-        }
-    }
-    if (boxes[box_id]->box_allocated_in_system) {
-        delete boxes[box_id];
-    }
-    boxes.erase(boxes.begin() + box_id);
-}
-
-
-/* ----------------------------------------------------------------------------
-   Remove move by index 'idx'
----------------------------------------------------------------------------- */
-
-void System::rm_move(unsigned int idx)
-{
-    if (moves_allocated_in_system[idx]) {
-        delete moves[idx];
-    }
-    moves.erase(moves.begin() + idx);
-    moves_allocated_in_system.erase(moves_allocated_in_system.begin() + idx);
-}
-
-
-/* ----------------------------------------------------------------------------
-   Remove constraint of box 'box_id' by index
----------------------------------------------------------------------------- */
-
-void System::rm_constraint(unsigned int idx, int box_id)
-{
-    if (nbox < 1) {
-        std::cout << "No box found! Aborting." << std::endl;
-        exit(0);
-    }
-    else if (box_id >= nbox)
-    {
-        std::cout << "Box-ID is out of range! " << nbox << " boxes found. "
-                  << "Aborting." << std::endl;
-        exit(0);
-    }
-
-    //boxes[box_id]->rm_constraint(idx);
 }
 
 
@@ -1355,14 +1362,16 @@ void System::run_mc_cycle(const unsigned int nmoves)
 
 System::~System()
 {
-    unsigned int i;
-
     if (!rng_allocated_externally) {
         delete rng;
     }
     if (!sampler_allocated_externally) {
         delete sampler;
     }
+    for (unsigned int i=nbox; i--;) {
+        rm_box(i);
+    }
+    /*
     for (Box *box : boxes) {
         if (box->forcefield_allocated_in_system) {
             delete box->forcefield;
@@ -1370,18 +1379,25 @@ System::~System()
         if (box->boundary_allocated_in_system) {
             delete box->boundary;
         }
-        for (i=0; i<box->nconstraint; i++) {
-            if (box->constraint_allocated_in_system[i]) {
-                delete box->constraints[i];
-            }
+        for (unsigned int i=box->nconstraint; i--;) {
+            rm_constraint(i-1);
+            //if (box->constraint_allocated_in_system[i]) {
+            //    delete box->constraints[i];
+            //}
         }
         if (box->box_allocated_in_system) {
             delete box;
         }
     }
+    */
+    for (unsigned int i=nmove; i--;) {
+        rm_move(i);
+    }
+    /*
     for (i=0; i<nmove; i++) {
         if (moves_allocated_in_system[i]) {
             delete moves[i];
         }
     }
+    */
 }
