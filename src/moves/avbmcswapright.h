@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <string>
 
@@ -9,7 +15,8 @@
 class AVBMCSwapRight : public AVBMCIn, public AVBMCOut
 {
 public:
-    AVBMCSwapRight(class System *, class Box *, class Box *, const std::string &, double = 0.95, double = 3.0, bool = false);
+    AVBMCSwapRight(class System *, class Box *, class Box *,
+        const std::string &, double = 0.95, double = 3.0, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;

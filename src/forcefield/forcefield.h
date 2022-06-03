@@ -1,5 +1,10 @@
-#pragma once
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
 
+#pragma once
 #include <map>
 #include <string>
 #include <vector>
@@ -12,16 +17,20 @@ public:
     ForceField(class Box *);
 
     // Declare pure virtual functions
-    virtual double comp_energy_par_neigh0_eng0(unsigned int, std::valarray<double> &, bool) = 0;
-    virtual double comp_energy_par_neigh1_eng0(unsigned int, std::valarray<double> &, bool) = 0;
-    virtual double comp_energy_par_neigh1_eng1(unsigned int, std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh0_eng0(unsigned int,
+        std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh1_eng0(unsigned int,
+        std::valarray<double> &, bool) = 0;
+    virtual double comp_energy_par_neigh1_eng1(unsigned int,
+        std::valarray<double> &, bool) = 0;
     virtual ~ForceField() = default;
     
     // Declare global functions
     void init_ntype(), initialize(), set(), reset();
     double comp_energy_par_force0(unsigned int);
     double comp_energy_par_force1(unsigned int, std::valarray<double> &);
-    double (ForceField::*comp_energy_par)(unsigned int, std::valarray<double> &, bool) = nullptr;
+    double (ForceField::*comp_energy_par)(unsigned int,
+        std::valarray<double> &, bool) = nullptr;
 
     // Store state properties to avoid unnecessary computations
     std::map<std::string, unsigned int> label2type;
