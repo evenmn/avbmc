@@ -491,7 +491,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("npar", &Box::npar)
         .def_readonly("step", &Box::step)
         .def_readonly("box_id", &Box::box_id)
-        .def_readonly("nconstraint", &Box::nconstraint);
+        .def_readonly("nconstraint", &Box::nconstraint)
+        .def_readonly("constraints", &Box::constraints);
 
     // Sampler
     py::class_<Sampler>(m, "Sampler")
