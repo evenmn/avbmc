@@ -10,9 +10,10 @@
    Umbrella sampling initialization. This class takes only one weight function
    'f_in', and is therefore basic compared to more advanced Umbrella sampling 
    approaches.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in, const int maxpar_in)
+Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in,
+    int maxpar_in)
     : Sampler(system_in), f(f_in)
 {
     maxpar = maxpar_in;
@@ -21,16 +22,31 @@ Umbrella::Umbrella(System* system_in, std::function<double (int npar)> f_in, con
 }
 
 
+Umbrella::Umbrella(System* system_in, std::valarray<double> tabulated_in)
+    : Sampler(system_in), tabulated(tabulated_in)
+{
+    maxpar = tabulated.size() - 1;
+    f = [](int n) -> double {
+        std::cout << "Number of particles exceeded tabulated umbrellas! "
+                  << "Aborting." << std::endl;
+        exit(0);
+        return 0.;
+    };
+    label = "Umbrella";
+}
+
+
 /* ----------------------------------------------------------------------------
    Tabulate the weight function 'f_in'. Since the weight function takes integer
    inputs, it is discrete and can be tabulated. 'maxpar_in' is the maximum int
    to tabulate.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in, const int maxpar_in)
+std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in,
+    int maxpar_in)
 {
     std::valarray<double> tabulated(maxpar_in);
-    for(int i=0; i<maxpar; i++){
+    for (int i=0; i<maxpar; i++) {
         tabulated[i] = f_in(i);
     }
     return tabulated;
@@ -39,14 +55,14 @@ std::valarray<double> Umbrella::tabulate(std::function<double (int npar)> f_in, 
 
 /* ----------------------------------------------------------------------------
    Return value of weight function
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Umbrella::w(const int npar)
 {
-    if(npar < maxpar){
+    if (npar < maxpar) {
         return tabulated[npar];
     }
-    else{
+    else {
         return f(npar);
     }
 }

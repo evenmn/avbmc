@@ -20,7 +20,8 @@ public:
     void set_seed(unsigned int);
 
     void set_sampler(class Sampler *);
-    void set_sampler(const std::string &, std::function<double(int)>);
+    void set_sampler(const std::string &, std::function<double(int)>, int = 100);
+    void set_sampler(const std::string &, std::valarray<double> = {});
     void set_rng(class RandomNumberGenerator *);
     void set_rng(const std::string &);
     void set_forcefield(class ForceField *, int = -1);

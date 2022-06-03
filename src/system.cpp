@@ -164,7 +164,7 @@ void System::set_sampler(class Sampler *sampler_in)
 
 
 void System::set_sampler(const std::string &sampler_in,
-    std::function<double(int)> f)
+    std::function<double(int)> f, int ntabulated)
 {
     if (!sampler_allocated_externally) {
         delete sampler;
@@ -174,7 +174,29 @@ void System::set_sampler(const std::string &sampler_in,
         sampler_allocated_externally = false;
     }
     else if (sampler_in == "umbrella") {
-        sampler = new Umbrella(this, f);
+        sampler = new Umbrella(this, f, ntabulated);
+        sampler_allocated_externally = false;
+    }
+    else {
+        std::cout << "Sampler '" << sampler_in << "' is not implemented!"
+                  << "Aborting." << std::endl;
+        exit(0);
+    }
+}
+
+
+void System::set_sampler(const std::string &sampler_in,
+    std::valarray<double> tabulated)
+{
+    if (!sampler_allocated_externally) {
+        delete sampler;
+    }
+    if (sampler_in == "metropolis") {
+        sampler = new Metropolis(this);
+        sampler_allocated_externally = false;
+    }
+    else if (sampler_in == "umbrella") {
+        sampler = new Umbrella(this, tabulated);
         sampler_allocated_externally = false;
     }
     else {

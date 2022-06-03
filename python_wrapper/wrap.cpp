@@ -159,10 +159,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("sampler_object")
         )
         .def("set_sampler",
-            py::overload_cast<const std::string &, std::function<double(int)> >(&System::set_sampler),
+            py::overload_cast<const std::string &, std::function<double(int)>, int >(&System::set_sampler),
             "Set sampler used in Monte Carlo simulations",
             py::arg("sampler_label"),
-            py::arg("weight_function") = py::none()
+            py::arg("weight_function") = py::none(),
+            py::arg("ntabulated") = 100
+        )
+        .def("set_sampler",
+            py::overload_cast<const std::string &, std::valarray<double> >(&System::set_sampler),
+            "Set sampler used in Monte Carlo simulations",
+            py::arg("sampler_label"),
+            py::arg("tabulated") = py::none()
         )
         .def("set_rng",
             py::overload_cast<RandomNumberGenerator *>(&System::set_rng),
@@ -518,6 +525,16 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("system_object"),
             py::arg("weight_function"),
             py::arg("ntabulated") = 100
+        )
+        .def(py::init<System *, std::valarray<double> >(),
+            "Umbrella sampling class constructor with pre-tabulated elements",
+            py::arg("system_object"),
+            py::arg("tabulated")
+        )
+        .def("w",
+            &Umbrella::w,
+            "Get umbrella value for some system size",
+            py::arg("npar")
         );
 
     // Moves
