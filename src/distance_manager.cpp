@@ -100,7 +100,8 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     for (i=0; i<ncutoff; i++) {
         if (modes[i] == mode) {
           if (types1[j] == type1 && types2[j] == type2 &&
-              mutuals[j] == mutual && fabs(cutoffs[k] - rcsq) < cutoff_tol) {
+              mutuals[j] == mutual &&
+              fabs(cutoffs[k] - rcsq) < cutoff_tol) {
             return i;
           }
             j++;

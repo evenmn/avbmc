@@ -8,6 +8,13 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  This files hosts the dump class, which is used to output per-atom properties.
+  The output format is xyz-files, which are simple but powerful in the sense
+  that they are universial and can be read by popular visualisation software
+  like Ovito, VMD and ASE.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <functional>
@@ -22,7 +29,7 @@
 
 /* ----------------------------------------------------------------------------
    Write x-position to file
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto x = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
@@ -36,7 +43,7 @@ auto x = [] (Box* box) -> double ** {
 
 /* ----------------------------------------------------------------------------
    Write y-position to file
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto y = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
@@ -49,7 +56,7 @@ auto y = [] (Box* box) -> double ** {
 
 /* ----------------------------------------------------------------------------
    Write z-position to file
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto z = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
@@ -62,8 +69,9 @@ auto z = [] (Box* box) -> double ** {
 
 
 /* ----------------------------------------------------------------------------
-   Write x and y-positions to file
-------------------------------------------------------------------------------- */
+   Write x and y-positions to file. This might be slightly faster than calling
+   x + y.
+---------------------------------------------------------------------------- */
 
 auto xy = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
@@ -77,8 +85,9 @@ auto xy = [] (Box* box) -> double ** {
 
 
 /* ----------------------------------------------------------------------------
-   Write x, y and z-positions to file
-------------------------------------------------------------------------------- */
+   Write x, y and z-positions to file. This might be slightly faster than 
+   calling x + y + z.
+---------------------------------------------------------------------------- */
 
 auto xyz = [] (Box* box) -> double ** {
     double** data = new double*[box->npar];
@@ -91,53 +100,12 @@ auto xyz = [] (Box* box) -> double ** {
     return data;
 };
 
-/*
-auto vx = [] (class Box* box) -> mat {
-    return box->velocities.col(0);
-};
-
-auto vy = [] (class Box* box) -> mat {
-    return box->velocities.col(1);
-};
-
-auto vz = [] (class Box* box) -> mat {
-    return box->velocities.col(2);
-};
-
-auto vxvy = [] (class Box* box) -> mat {
-    return box->velocities.cols(0, 1);
-};
-
-auto vxvyvz = [] (class Box* box) -> mat {
-    return box->velocities;
-};
-
-auto ax = [] (class Box* box) -> mat {
-    return box->accelerations.col(0);
-};
-
-auto ay = [] (class Box* box) -> mat {
-    return box->accelerations.col(1);
-};
-
-auto az = [] (class Box* box) -> mat {
-    return box->accelerations.col(2);
-};
-
-auto axay = [] (class Box* box) -> mat {
-    return box->accelerations.cols(0, 1);
-};
-
-auto axayaz = [] (class Box* box) -> mat {
-    return box->accelerations;
-};
-*/
 
 /* ----------------------------------------------------------------------------
-   Initialize dumper, with which box to dump 'box_in', dump frequency 
+   Initialize dumper, with which box to dump 'box_in', dump frequency
    'freq_in', output file 'filename' and which atom quantities to dump 
    'outputs_in'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
            const std::vector<std::string> outputs_in)
@@ -227,7 +195,7 @@ Dump::Dump(Box* box_in, const unsigned int freq_in, const std::string &filename,
 
 /* ----------------------------------------------------------------------------
    Dump atom quantities at the current step
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Dump::print_frame(const unsigned int step)
 {
@@ -279,7 +247,7 @@ void Dump::print_frame(const unsigned int step)
 
 /* ----------------------------------------------------------------------------
    Dump destructor, closing dump file.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Dump::~Dump()
 {
