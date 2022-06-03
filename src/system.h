@@ -48,13 +48,18 @@ public:
     void write_size_histogram(const std::string &, int = 0);
     std::vector<unsigned int> get_size_histogram(int = 0);
 
+    void rm_particle(unsigned int, int = 0);
+    void rm_box(unsigned int);
+    void rm_move(unsigned int);
+    void rm_constraint(unsigned int, int = 0);
+
     void check_masses();
     unsigned int get_maxiter(unsigned int);
     void print_logo();
     void print_info();
     void print_mc_info();
 
-    void run_md(int);
+    void run_md(unsigned int);
     void run_mc(unsigned int, unsigned int = 1);
     void initialize_mc_run();
     void run_mc_cycle(unsigned int = 1);
@@ -67,7 +72,8 @@ public:
     class RandomNumberGenerator* rng = nullptr;
 
     bool logo_printed, rng_allocated_externally, sampler_allocated_externally;
-    unsigned int nbox, ndim, nmove, step;
+    int nbox;  // nbox is signed as it is compared to box_id which is signed
+    unsigned int ndim, nmove, step;
     double temp, chempot, poteng, time;
     std::string working_dir;
 

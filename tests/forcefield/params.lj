@@ -1,0 +1,3 @@
+# Lennard-Jones parameters
+# element1 element2 sigma epsilon rc
+H H 1. 1. 3.

@@ -29,8 +29,9 @@ public:
     void add_particles(const std::string &, std::vector<std::valarray<double> >);
     void read_particles(const std::string &);
     void add_constraint(class Constraint *);
-    void rm_particle(unsigned int);
     void _rm_typeidx(unsigned int, unsigned int);
+    void rm_particle(unsigned int);
+    void rm_constraint(unsigned int);
 
     std::string file_marking();
     void snapshot(std::string); //, bool = true);
