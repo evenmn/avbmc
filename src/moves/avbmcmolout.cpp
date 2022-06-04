@@ -1,3 +1,21 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  AVBMC molecule deletion moves. The AVBMC moves were first proposed by Chen
+  and Siepmann, "A Novel Monte Carlo Algorithm for Simulating Strongly
+  Associating Fluids:  Applications to Water, Hydrogen Fluoride, and Acetic
+  Acid" (2000). Non-bonded molecule moves have not yet been reported in the
+  literature
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <vector>

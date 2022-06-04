@@ -1,3 +1,19 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Biased translational move. Random particle is moved a random distance biased
+  in the direction of the force. It is accepted according to the Boltzmann
+  distribution. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <string>

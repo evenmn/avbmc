@@ -1,3 +1,21 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  This where the system class is implemented, with all its functionality. The
+  system may contain several boxes. The moves are associated with the system
+  class, as a move may touch several boxes. Most other properties (boundary,
+  forcefield, constraints and so on) are associated with a box. System class
+  includes all keyword initialization methods.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -68,7 +86,9 @@ System::System(const std::string &working_dir_in, bool initialize_in)
     ndim = 3;
 
     //print_logo();
-    logo_printed = rng_allocated_externally = sampler_allocated_externally = false;
+    logo_printed = false;
+    rng_allocated_externally = false;
+    sampler_allocated_externally = false;
 
     // set default rng and sampler
     rng = new MersenneTwister;
@@ -317,8 +337,9 @@ void System::set_forcefield(const std::string &forcefield_in,
         }
     }
     else {
-        std::cout << "Force-field '" << forcefield_in << "' is not implemented or"
-                  << "does not have the given signature! Aborting." << std::endl;
+        std::cout << "Force-field '" << forcefield_in << "' is not implemented"
+                  << "or does not have the given signature! Aborting."
+                  << std::endl;
         exit(0);
     }
 }
@@ -328,7 +349,8 @@ void System::set_forcefield(const std::string &forcefield_in,
     const std::string &paramfile, int box_id)
 {
     if (nbox < 1) {
-        std::cout << "No box found, cannot set forcefield! Aborting." << std::endl;
+        std::cout << "No box found, cannot set forcefield! Aborting."
+                  << std::endl;
         exit(0);
     }
     else if (box_id >= nbox)
@@ -648,7 +670,8 @@ void System::rm_constraint(unsigned int idx, int box_id)
 void System::snapshot(const std::string &filename, int box_id)
 {
     if (nbox < 1) {
-        std::cout << "No box found, cannot take snapshot! Aborting." << std::endl;
+        std::cout << "No box found, cannot take snapshot! Aborting."
+                  << std::endl;
         exit(0);
     }
     else if (box_id >= nbox)
@@ -694,7 +717,8 @@ void System::set_thermo(int freq, const std::string &filename,
     const std::vector<std::string> &outputs, int box_id)
 {
     if (nbox < 1) {
-        std::cout << "No box found, cannot set thermo! Aborting." << std::endl;
+        std::cout << "No box found, cannot set thermo! Aborting."
+                  << std::endl;
         exit(0);
     }
     else if (box_id >= nbox)
@@ -1393,33 +1417,7 @@ System::~System()
     for (unsigned int i=nbox; i--;) {
         rm_box(i);
     }
-    /*
-    for (Box *box : boxes) {
-        if (box->forcefield_allocated_in_system) {
-            delete box->forcefield;
-        }
-        if (box->boundary_allocated_in_system) {
-            delete box->boundary;
-        }
-        for (unsigned int i=box->nconstraint; i--;) {
-            rm_constraint(i-1);
-            //if (box->constraint_allocated_in_system[i]) {
-            //    delete box->constraints[i];
-            //}
-        }
-        if (box->box_allocated_in_system) {
-            delete box;
-        }
-    }
-    */
     for (unsigned int i=nmove; i--;) {
         rm_move(i);
     }
-    /*
-    for (i=0; i<nmove; i++) {
-        if (moves_allocated_in_system[i]) {
-            delete moves[i];
-        }
-    }
-    */
 }

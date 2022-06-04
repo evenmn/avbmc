@@ -1,3 +1,20 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Vashishta potential like proposed by P. Vashishta et al., "Interaction
+  potential for SiO2: A molecular-dynamics study of structural correlations"
+  (1990). The default temperature scaling assumes metal units, see LAMMPS. For
+  other unit styles, the temperature scaling "temp_scale" has to be adjusted.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -13,8 +30,8 @@
 
 /* ----------------------------------------------------------------------------
    Vashishta constructor, which takes a parameter file 'params' as an
-   argument.
-------------------------------------------------------------------------------- */
+   argument. Parameter file style follows the LAMMPS standard.
+---------------------------------------------------------------------------- */
 
 Vashishta::Vashishta(Box* box_in, const std::string &params)
     : ForceField(box_in)
@@ -39,7 +56,7 @@ Vashishta::Vashishta(Box* box_in, const std::string &params)
    The file is inspired by LAMMPS, and for an explanation of the 
    symbols and the way it is used, see the LAMMPS Vashishta
    documentation.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Vashishta::read_param_file(const std::string &params)
 {
@@ -95,7 +112,7 @@ void Vashishta::read_param_file(const std::string &params)
 /* ----------------------------------------------------------------------------
    Parameters have to be sorted with respect to the particle types, and are
    stored in two- and three-dimensional arrays.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Vashishta::sort_params()
 {
@@ -183,7 +200,7 @@ void Vashishta::sort_params()
 /* ----------------------------------------------------------------------------
    Compute two-body interaction energy between two particles i and j of types
    'typei' and 'typej', respectively, separated by a distance 'rij'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_twobody_par(const int typei, const int typej,
                                    const double rij,
@@ -218,7 +235,7 @@ double Vashishta::comp_twobody_par(const int typei, const int typej,
    vector from i to j, while 'delik' is the distance vector from i to k. 'rij'
    is the actual distance between particle i and j. Used when rik is computed
    in advance.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
                                      const int typek, const double rij,
@@ -248,7 +265,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    vector from i to j, while 'delik' is the distance vector from i to k. 'rij'
    is the actual distance between particle i and j. Used when rik is not
    computed in advance.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_threebody_par(const int typei, const int typej,
         const int typek, const std::valarray<double> delij,
@@ -278,7 +295,7 @@ double Vashishta::comp_threebody_par(const int typei, const int typej,
    Compute energy contribution of a particle 'i', given a box containing
    particles. This function is not based on neighbor lists, and will be used
    if memory is an issue.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_energy_par_neigh0_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -333,7 +350,7 @@ double Vashishta::comp_energy_par_neigh0_eng0(const unsigned int i,
    particles. This function relies on neighbor lists and precalculated 
    distances and relative coordinates, and will be used if memory is not an
    issue.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -371,7 +388,7 @@ double Vashishta::comp_energy_par_neigh1_eng0(const unsigned int i,
    particles. This function relies on neighbor lists and precalculated
    distances and relative coordinates, and will be used if memory is not an
    issue. This is the most memory intense method.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -422,7 +439,7 @@ double Vashishta::comp_energy_par_neigh1_eng1(const unsigned int i,
    Compute total energy of a system consisting of a set of particles stored
    in the vector 'particles'. This is just used to verify that the energy 
    difference is computed correctly.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 /*
 double Vashishta::comp_energy_tot(const std::vector<Particle> particles)
 {
@@ -469,7 +486,7 @@ double Vashishta::comp_energy_tot(const std::vector<Particle> particles)
 
 /* ----------------------------------------------------------------------------
    Allocate memory
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Vashishta::allocate_memory()
 {
@@ -517,7 +534,7 @@ void Vashishta::allocate_memory()
 
 /* ----------------------------------------------------------------------------
    Free memory
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Vashishta::free_memory()
 {
@@ -565,7 +582,7 @@ void Vashishta::free_memory()
 
 /* ----------------------------------------------------------------------------
    Vashishta destructor, memory of all parameter arrays is released.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Vashishta::~Vashishta()
 {

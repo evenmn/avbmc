@@ -1,5 +1,12 @@
 /* ----------------------------------------------------------------------------
-------------------------------------------------------------------------------- */
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
    Aggregation-volume-biased Monte Carlo (AVBMC) insertion move. This is a
@@ -8,7 +15,7 @@
    conjunction with an AVBMC deletion move, with the same radius of the 
    bonded region and the same move probability. This is ensured when applying
    the 'AVBMC' move. The AVBMC moves were first proposed by Chen (2000).
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <cmath>
@@ -28,10 +35,10 @@
 
 /* ----------------------------------------------------------------------------
    AVBMCIn constructor
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
-                 const double r_below_in, const double r_above_in, bool energy_bias_in)
+    const double r_below_in, const double r_above_in, bool energy_bias_in)
     : Moves(system_in)
 {
     box = box_in;
@@ -50,7 +57,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
 
 /* ----------------------------------------------------------------------------
    Insert molecule into the bonded region 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::perform_move()
 {
@@ -74,7 +81,7 @@ void AVBMCIn::perform_move()
 
 /* ----------------------------------------------------------------------------
    Get acceptance probability of move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double AVBMCIn::accept(double temp, double chempot)
 {
@@ -86,7 +93,7 @@ double AVBMCIn::accept(double temp, double chempot)
 
 /* ----------------------------------------------------------------------------
    Set back to old state before move is rejected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::reset()
 {
@@ -97,7 +104,7 @@ void AVBMCIn::reset()
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::update_size_histogram()
 {
@@ -107,7 +114,7 @@ void AVBMCIn::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string AVBMCIn::repr()
 {

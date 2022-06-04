@@ -1,3 +1,19 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Output system and box properties to a file. This includes number of atoms,
+  steps, potential energy and so on. Properties are written to a file format 
+  that can be easily read by numpy.loadtxt or pandas.read_csv
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -11,7 +27,7 @@
 
 /* ----------------------------------------------------------------------------
    Get current step
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto step = [] (Box* box) -> double {
     return box->system->step;
@@ -20,7 +36,7 @@ auto step = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get current time (for molecular dynamics)
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto time_ = [] (Box* box) -> double {
     return box->time;
@@ -29,7 +45,7 @@ auto time_ = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get current number of atoms
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto atoms = [] (Box* box) -> double {
     return box->npar;
@@ -38,7 +54,7 @@ auto atoms = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get current number of atom types
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto types = [] (Box* box) -> double {
     return box->ntype;
@@ -46,7 +62,7 @@ auto types = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get current potential energy
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 auto poteng = [] (Box* box) -> double {
     return box->poteng;
@@ -55,7 +71,7 @@ auto poteng = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get current kinetic energy (for molecular dynamics simulations)
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 /*
 auto kineng = [] (Box* box) -> double {
     vec vel = box->velocities;
@@ -65,7 +81,7 @@ auto kineng = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get acceptance ratio of current cycle (for Monte Carlo simulations)
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 /*
 auto acceptance_ratio = [] (Box* box) -> double {
     return box->sampler->acceptance_ratio;
@@ -74,7 +90,7 @@ auto acceptance_ratio = [] (Box* box) -> double {
 
 /* ----------------------------------------------------------------------------
    Get index of current move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 /*
 auto move_idx = [] (Box* box) -> double {
     return box->sampler->move_idx;
@@ -85,7 +101,7 @@ auto move_idx = [] (Box* box) -> double {
    Constructor of thermo class. Takes dump frequency, 'freq_in', thermo output
    filename 'filename' and vector of quantities to output 'outputs_in' as
    arguments.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Thermo::Thermo(Box* box_in, const int freq_in, const std::string &filename,
                const std::vector<std::string> &outputs_in) : outputs(outputs_in)
@@ -138,7 +154,7 @@ Thermo::Thermo(Box* box_in, const int freq_in, const std::string &filename,
 
 /* ----------------------------------------------------------------------------
    Print header of thermo outputs
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Thermo::print_header()
 {
@@ -152,7 +168,7 @@ void Thermo::print_header()
 
 /* ----------------------------------------------------------------------------
    Print thermo outputs of current step
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Thermo::print_line (const int step)
 {
@@ -169,7 +185,7 @@ void Thermo::print_line (const int step)
 
 /* ----------------------------------------------------------------------------
   Thermo destructor, closing output file.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Thermo::~Thermo()
 {

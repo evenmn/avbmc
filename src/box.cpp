@@ -1,3 +1,20 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+   This file hosts the Box class, and controls construction, manipulation and
+   destruction of system boxes. Every box is associated with a boundary style
+   and forcefield. In addition, particles are always affiliated with a box.
+   Thermo and dump outputs are also associated with a box.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -64,7 +81,8 @@ Box::Box(System* system_in) //, int memory_intensity)
         store_energy = true;
     }
     else {
-        std::cout << "memory_intensity has to be 1, 2 or 3! Aborting." << std::endl;
+        std::cout << "memory_intensity has to be 1, 2 or 3! Aborting."
+                  << std::endl;
         exit(0);
     }
 }
@@ -75,8 +93,9 @@ Box::Box(System* system_in) //, int memory_intensity)
    to be exception-safe.
 ---------------------------------------------------------------------------- */
 
-Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npartype),
-                           particles(box.particles), constraints(box.constraints)
+Box::Box(const Box &box) : size_histogram(box.size_histogram),
+    npartype(box.npartype), particles(box.particles),
+    constraints(box.constraints)
 {
     //system = new System(box.system);
     //dump = new Dump();
@@ -116,7 +135,8 @@ Box::Box(const Box &box) : size_histogram(box.size_histogram), npartype(box.npar
 
 void Box::swap(Box &other)
 {
-    unsigned int npar_tmp, step_tmp, ntype_tmp, nmove_tmp, box_id_tmp, nconstraint_tmp;
+    unsigned int npar_tmp, step_tmp, ntype_tmp;
+    unsigned int nmove_tmp, box_id_tmp, nconstraint_tmp;
     bool initialized_tmp, store_energy_tmp, store_distance_tmp;
     double time_tmp, poteng_tmp;
     std::vector<unsigned int> size_histogram_tmp, npartype_tmp;
@@ -197,7 +217,7 @@ void Box::swap(Box &other)
 
 /* ----------------------------------------------------------------------------
    Overwrite default forcefield object
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::set_forcefield(ForceField* forcefield_in)
 {
@@ -210,7 +230,7 @@ void Box::set_forcefield(ForceField* forcefield_in)
 
 /* ----------------------------------------------------------------------------
    Set box boundaries
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::set_boundary(Boundary* boundary_in)
 {
@@ -238,7 +258,8 @@ void Box::set_boundary(Boundary* boundary_in)
 void Box::add_particle(Particle particle)
 {
     if (!initialized) {
-        std::cout << "Forcefield needs to be initialized before adding particles!" << std::endl;
+        std::cout << "Forcefield needs to be initialized before "
+                  << "adding particles!" << std::endl;
         exit(0);
     }
     particle.type = forcefield->label2type[particle.label];
@@ -270,7 +291,7 @@ void Box::add_particle(const std::string &label, const std::valarray<double> r)
 /* ----------------------------------------------------------------------------
    Add a set of particles, stored in a vector of particle objects
    'particles_in'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::add_particles(std::vector<Particle> particles_in)
 {
@@ -285,7 +306,8 @@ void Box::add_particles(std::vector<Particle> particles_in)
    'particles_in'.
 ---------------------------------------------------------------------------- */
 
-void Box::add_particles(const std::string &label, std::vector<std::valarray<double> > positions_in)
+void Box::add_particles(const std::string &label,
+    std::vector<std::valarray<double> > positions_in)
 {
     for (std::valarray<double> position : positions_in) {
         add_particle(label, position);
@@ -377,7 +399,9 @@ void Box::rm_constraint(unsigned int idx)
         delete constraints[idx];
     }
     constraints.erase(constraints.begin() + idx);
-    constraint_allocated_in_system.erase(constraint_allocated_in_system.begin() + idx);
+    constraint_allocated_in_system.erase(
+        constraint_allocated_in_system.begin() + idx
+    );
     nconstraint --;
 }
 
@@ -398,7 +422,7 @@ void Box::snapshot(std::string filename) //, const bool mark_file)
 
 /* ----------------------------------------------------------------------------
    Specify dump output
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::set_dump(const int freq, std::string filename, 
                    std::vector<std::string> outputs) //, const bool mark_file)
@@ -413,7 +437,7 @@ void Box::set_dump(const int freq, std::string filename,
 
 /* ----------------------------------------------------------------------------
    Specify thermo output
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::set_thermo(const int freq, std::string filename,
                      std::vector<std::string> outputs) //, const bool mark_file)
@@ -432,7 +456,7 @@ void Box::set_thermo(const int freq, std::string filename,
 /* ----------------------------------------------------------------------------
    Build neighbor list of particle 'i' with maximum neighbor
    distance squared 'rsq'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double normsq(std::valarray<double> array)
 {
@@ -501,7 +525,7 @@ std::vector<unsigned int> Box::build_neigh_list(const int i, double **rsq)
 /* ----------------------------------------------------------------------------
    Write number of times each system size has occured to
    file 'filename'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::write_size_histogram(const std::string &filename)
 {
@@ -514,7 +538,7 @@ void Box::write_size_histogram(const std::string &filename)
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Box::update_size_histogram()
 {
@@ -526,8 +550,10 @@ void Box::update_size_histogram()
 
 
 /* ----------------------------------------------------------------------------
-   Box destructor, deleting thermo and dump pointers
-------------------------------------------------------------------------------- */
+   Box destructor, deleting boundary, distance_manager, thermo and dump
+   pointers
+---------------------------------------------------------------------------- */
+
 Box::~Box()
 {
     if (!dump_allocated_externally) {

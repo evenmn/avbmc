@@ -1,3 +1,18 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  The tools needed for input/output is implemented in this file. This includes
+  reading and writing xyz-files and writing vectors and arrays to file.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -11,7 +26,7 @@
 
 /* ----------------------------------------------------------------------------
    Split string 's' by whitespace.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<std::string> split(const std::string &s)
 {
@@ -26,7 +41,7 @@ std::vector<std::string> split(const std::string &s)
 /* ----------------------------------------------------------------------------
    Read xyz-file 'filename' consisting of one time frame into vector of
    particle objects.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<Particle> read_xyz(const std::string &filename)
 {
@@ -85,7 +100,7 @@ std::vector<Particle> read_xyz(const std::string &filename)
       labels : vector containing labels of all involved particles
       info : information to put in info line, empty by default
 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void write_xyz(std::ofstream &f, double **data, const unsigned int nrow,
                const unsigned int ncol, const std::vector<std::string> &labels,
@@ -107,10 +122,10 @@ void write_xyz(std::ofstream &f, double **data, const unsigned int nrow,
 
 /* ----------------------------------------------------------------------------
    Write vector 'vec' to file 'filename' with instances separated by 'delim'.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void write_vector(std::vector<int> vec, const std::string &filename,
-                  const std::string &delim)
+    const std::string &delim)
 {
     std::ofstream f(filename);
     for (int element : vec)
@@ -122,7 +137,7 @@ void write_vector(std::vector<int> vec, const std::string &filename,
 
 
 void write_vector(std::vector<double> vec, const std::string &filename,
-                  const std::string &delim)
+    const std::string &delim)
 {
     std::ofstream f(filename);
     for (double element : vec)
@@ -134,7 +149,7 @@ void write_vector(std::vector<double> vec, const std::string &filename,
 
 
 void write_array(int* arr, int length, const std::string &filename,
-                 const std::string &delim)
+    const std::string &delim)
 {
     int i;
     std::ofstream f(filename);
@@ -146,8 +161,8 @@ void write_array(int* arr, int length, const std::string &filename,
 }
 
 
-void write_array(unsigned int* arr, unsigned int length, const std::string &filename,
-                 const std::string &delim)
+void write_array(unsigned int* arr, unsigned int length,
+    const std::string &filename, const std::string &delim)
 {
     unsigned int i;
 

@@ -1,3 +1,18 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  The forcefield base class resides this file. It is responsible for creating
+  label mapping and maintaining energy and force matrices. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,8 +25,8 @@
 
 
 /* ----------------------------------------------------------------------------
-   Forcefield base class. Making 'comp_energy_par' point to the correct energy
-   calculation function
+   Forcefield base class constructor. Making 'comp_energy_par' point to the
+   correct energy calculation function
 ---------------------------------------------------------------------------- */
 
 ForceField::ForceField(Box* box_in)

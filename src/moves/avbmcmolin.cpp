@@ -1,9 +1,19 @@
-/* Information */
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
-   Aggregate-volume-biased in move. This is a fictitious inter-box move, and
-   works in the grand canonical essemble only. A predefined molecule is
-   inserted.
+  AVBMC molecule insertion moves. The AVBMC moves were first proposed by Chen
+  and Siepmann, "A Novel Monte Carlo Algorithm for Simulating Strongly
+  Associating Fluids:  Applications to Water, Hydrogen Fluoride, and Acetic
+  Acid" (2000). Non-bonded molecule moves have not yet been reported in the
+  literature
 ---------------------------------------------------------------------------- */
 
 #include <iostream>
@@ -30,10 +40,10 @@
    'r_below_in' and outer radius 'r_above_in'.
 ---------------------------------------------------------------------------- */
 
-AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in, std::vector<Particle> molecule_in,
-                       const double r_below_in, const double r_above_in,
-                       const double r_inner_in,
-                       const bool energy_bias_in, const bool target_mol_in)
+AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
+    std::vector<Particle> molecule_in, const double r_below_in,
+    const double r_above_in, const double r_inner_in, const bool energy_bias_in,
+    const bool target_mol_in)
     : Moves(system_in)
 {
     box = box_in;

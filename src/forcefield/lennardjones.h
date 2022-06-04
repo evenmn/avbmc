@@ -1,5 +1,10 @@
-#pragma once
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
 
+#pragma once
 #include <string>
 #include <vector>
 #include <valarray>
@@ -17,11 +22,14 @@ public:
     void free_memory();
     void sort_params();
     
-    double comp_twobody_par(int, int, std::valarray<double>, std::valarray<double> &, bool);
-    //double comp_energy_par(int, std::valarray<double> &, bool);
-    double comp_energy_par_neigh0_eng0(unsigned int, std::valarray<double> &, bool) override;
-    double comp_energy_par_neigh1_eng0(unsigned int, std::valarray<double> &, bool) override;
-    double comp_energy_par_neigh1_eng1(unsigned int, std::valarray<double> &, bool) override;
+    double comp_twobody_par(int, int, std::valarray<double>,
+        std::valarray<double> &, bool);
+    double comp_energy_par_neigh0_eng0(unsigned int,
+        std::valarray<double> &, bool) override;
+    double comp_energy_par_neigh1_eng0(unsigned int,
+        std::valarray<double> &, bool) override;
+    double comp_energy_par_neigh1_eng1(unsigned int,
+        std::valarray<double> &, bool) override;
     ~LennardJones();
 
 private:
@@ -35,6 +43,4 @@ private:
     double **epsilon_mat = nullptr;
     double **rc_sqrd_mat = nullptr;
     double **shift_mat = nullptr;
-
-    //std::vector<std::vector<int> > neigh_lists;
 };

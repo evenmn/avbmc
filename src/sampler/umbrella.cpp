@@ -1,3 +1,19 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Basic umbrella sampling with a single umbrella. First proposed by Torrie
+  and Valleau, "Nonphysical sampling distributions in Monte Carlo free-energy
+  estimation: Umbrella sampling" (1977)
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 #include <functional>

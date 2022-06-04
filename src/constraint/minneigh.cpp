@@ -1,6 +1,16 @@
 /* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
    Constraining the number of neighbors component A has of component B.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <string>
@@ -18,7 +28,7 @@
    of the components A and B, respectively. 'rc_in' is the maximum number of
    neighbors that a particle of component A can have of particles of 
    component B.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 MinNeigh::MinNeigh(Box* box_in, std::string label1, std::string label2,
                    double rc_in, int nc_in, bool restrict_lower_in)
@@ -34,7 +44,7 @@ MinNeigh::MinNeigh(Box* box_in, std::string label1, std::string label2,
 
 /* ----------------------------------------------------------------------------
    Verify that all particles of interest, 'particles',  meet the constraint
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 bool MinNeigh::verify()
 {
