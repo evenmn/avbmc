@@ -8,6 +8,11 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  This file hosts the move base class. It has methods for finding insertion
+  positions of particles, rotating and detecting molecules, among others.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 #include <vector>
@@ -22,7 +27,7 @@
 
 /* ----------------------------------------------------------------------------
    Moves base class constructor
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Moves::Moves(System* system_in)
 {
@@ -35,7 +40,7 @@ Moves::Moves(System* system_in)
 
 /* ----------------------------------------------------------------------------
    Rotate molecule around the center of mass atom by a random angle. 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<Particle> Moves::rotate_molecule(std::vector<Particle> particles)
 {
@@ -90,7 +95,7 @@ std::vector<Particle> Moves::rotate_molecule(std::vector<Particle> particles)
 
 /* ----------------------------------------------------------------------------
    Compute the squared norm of a valarray 'array'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double Moves::norm(std::valarray<double> array)
 {
@@ -113,7 +118,7 @@ double Moves::norm(std::valarray<double> array)
     2. Obtain positions in spherical coordinates and transform to Cartesian
    The former method is recommended for low dimensions (d<4), as less than
    50% of attempts will be rejected in average. Set spherical=false to use it.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::valarray<double> Moves::insertion_position(bool spherical)
 {
@@ -171,10 +176,10 @@ unsigned int Moves::detect_target_particle(bool &detected)
 /* ----------------------------------------------------------------------------
    Build neighbor list of particle 'i' with maximum neighbor distance squared
    'rsq'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particles,
-                                         const unsigned int i, const double rsq)
+    const unsigned int i, const double rsq)
 {
     double rijsq;
     unsigned int npar, j;
@@ -200,11 +205,12 @@ std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particle
 
 /* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
-                            std::vector<Particle> particles, double rc) {
+    unsigned int elm_count, std::vector<unsigned int> &elm_idx,
+    std::vector<Particle> particles, double rc)
+{
     if (elm_idx.size() < molecule.size()) {  
         if (particles[i].type == molecule[elm_count].type) {
             elm_idx.push_back(i);
@@ -222,28 +228,13 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
    Detect molecule of the same types as 'molecule' randomly by picking a random 
    atom among the elements and checking the neighbor list.
    Returning a list of atom ids if molecule is detected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::vector<unsigned int> Moves::detect_molecule(std::vector<Particle> particles,
-                                        std::vector<Particle> molecule,
-                                        bool &detected, double rc)
+    std::vector<Particle> molecule, bool &detected, double rc)
 {
     unsigned int i, count;
     std::vector<unsigned int> elm_idx;
-
-    /*
-    std::cout << "--- molecule types: ";
-    for (Particle particle : molecule) {
-        std::cout << particle.type << " ";
-    }
-    std::cout << std::endl;
-    
-    std::cout << "--- particle types: ";
-    for (Particle particle : particles) {
-        std::cout << particle.type << " ";
-    }
-    std::cout << std::endl;
-    */
 
     count = 0;
     while (count < particles.size() && !detected)
@@ -266,11 +257,12 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<Particle> particles
 
 /* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
-                            std::vector<std::vector<unsigned int> > neigh_list) {
+    unsigned int elm_count, std::vector<unsigned int> &elm_idx,
+    std::vector<std::vector<unsigned int> > neigh_list)
+{
     if (elm_idx.size() < molecule.size()) {  
         //if (particles[i].label == molecule[elm_count].label) {
         elm_idx.push_back(i);
@@ -286,11 +278,11 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
    Detect molecule of the same types as 'molecule' randomly by picking a random 
    atom among the elements and checking the neighbor list.
    Returning a list of atom ids if molecule is detected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigned int> > neigh_list,
-                                        std::vector<Particle> molecule,
-                                        bool &detected)
+std::vector<unsigned int> Moves::detect_molecule(
+    std::vector<std::vector<unsigned int> > neigh_list,
+    std::vector<Particle> molecule, bool &detected)
 {
     unsigned int i, count;
     std::vector<unsigned int> elm_idx;
@@ -316,18 +308,20 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigne
 
 /* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
-                            std::vector<Particle> molecule,
-                            unsigned int elm_count, std::vector<unsigned int> &elm_idx,
-                            std::vector<std::vector<unsigned int> > neigh_list) {
+    std::vector<Particle> molecule, unsigned int elm_count,
+    std::vector<unsigned int> &elm_idx,
+    std::vector<std::vector<unsigned int> > neigh_list)
+{
     if (elm_idx.size() < molecule.size()) {  
         if (particles[i].type == molecule[elm_count].type) {
             elm_idx.push_back(i);
             elm_count ++;
             for (unsigned int neigh : neigh_list[i]) {
-                check_neigh_recu(neigh, particles, molecule, elm_count, elm_idx, neigh_list);
+                check_neigh_recu(neigh, particles, molecule, elm_count,
+                    elm_idx, neigh_list);
             }
         }
     }
@@ -338,12 +332,12 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
    Detect molecule of the same types as 'molecule' randomly by picking a random 
    atom among the elements and checking the neighbor list.
    Returning a list of atom ids if molecule is detected
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigned int> > neigh_list,
-                                        const std::vector<Particle> &particles, 
-                                        std::vector<Particle> molecule,
-                                        bool &detected)
+std::vector<unsigned int> Moves::detect_molecule(
+    std::vector<std::vector<unsigned int> > neigh_list,
+    const std::vector<Particle> &particles, std::vector<Particle> molecule,
+     bool &detected)
 {
     unsigned int i, count;
     std::vector<unsigned int> elm_idx;
@@ -363,5 +357,4 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<std::vector<unsigne
     }
     return elm_idx;
 }
-
 

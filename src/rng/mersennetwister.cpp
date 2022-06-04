@@ -8,6 +8,13 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Mersenne-Twister pseudo random number generator (prng). The prng has a 
+  period of 2^19937, and is popularly abbreviated mt19937. The algorithm was
+  first proposed and described by ... This code is just a wrapper around the
+  standard C++ implementation of Mersenne-Twister.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <random>
 #include <vector>
@@ -19,7 +26,7 @@
 
 /* ----------------------------------------------------------------------------
    Mersenne Twister constructor
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 MersenneTwister::MersenneTwister(int seed_)
     : RandomNumberGenerator(), generator(seed())
@@ -33,7 +40,7 @@ MersenneTwister::MersenneTwister(int seed_)
 
 /* ----------------------------------------------------------------------------
    Set seed
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void MersenneTwister::set_seed(unsigned int seed)
 {
@@ -44,7 +51,7 @@ void MersenneTwister::set_seed(unsigned int seed)
 /* ----------------------------------------------------------------------------
    Returns a double drawn from a Gaussian distribution with mean 'mean' and
    variance 'variance'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double MersenneTwister::next_gaussian(double mean, double variance)
 {
@@ -55,7 +62,7 @@ double MersenneTwister::next_gaussian(double mean, double variance)
 
 /* ----------------------------------------------------------------------------
    Returns an interger between 0 and (including) 'upper_limit'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 int MersenneTwister::next_int(int upper_limit)
 {
@@ -66,7 +73,7 @@ int MersenneTwister::next_int(int upper_limit)
 
 /* ----------------------------------------------------------------------------
    Returns a double between 0 and 1 drawn from a uniform distribution
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double MersenneTwister::next_double()
 {
@@ -79,7 +86,7 @@ double MersenneTwister::next_double()
    Inspired by numpy.random.choice, but simplified as we always want to draw
    only one sample. The samples are also always range(len(probabilities), so we
    don't need to take them as an argument.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 int MersenneTwister::choice(std::vector<double> probabilities)
 {

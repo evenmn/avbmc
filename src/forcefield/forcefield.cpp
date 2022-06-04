@@ -8,6 +8,11 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  The forcefield base class resides this file. It is responsible for creating
+  label mapping and maintaining energy and force matrices. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -20,8 +25,8 @@
 
 
 /* ----------------------------------------------------------------------------
-   Forcefield base class. Making 'comp_energy_par' point to the correct energy
-   calculation function
+   Forcefield base class constructor. Making 'comp_energy_par' point to the
+   correct energy calculation function
 ---------------------------------------------------------------------------- */
 
 ForceField::ForceField(Box* box_in)

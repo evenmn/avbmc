@@ -8,6 +8,13 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  The ideal gas forcefield can be useful when sampling a gas reservoir, for
+  instance. No force will act between particles, and all moves will be 
+  accepted. It is necessary to specify the expected elements in order for
+  the forcefield class to create type mapping like for other forcefields.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 
@@ -18,7 +25,7 @@
 
 /* ----------------------------------------------------------------------------
    This is the default constructor when a parameter file 'params' is given.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 IdealGas::IdealGas(Box* box_in, const std::vector<std::string> &elements_in)
     : ForceField(box_in)
@@ -34,7 +41,7 @@ IdealGas::IdealGas(Box* box_in, const std::vector<std::string> &elements_in)
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i' without using neighbor
    lists.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double IdealGas::comp_energy_par_neigh0_eng0(const unsigned int /*i*/,
     std::valarray<double> &force, const bool /*comp_force*/)
@@ -46,7 +53,7 @@ double IdealGas::comp_energy_par_neigh0_eng0(const unsigned int /*i*/,
 
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double IdealGas::comp_energy_par_neigh1_eng0(const unsigned int /*i*/,
     std::valarray<double> &force, const bool /*comp_force*/)
@@ -58,7 +65,7 @@ double IdealGas::comp_energy_par_neigh1_eng0(const unsigned int /*i*/,
 
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double IdealGas::comp_energy_par_neigh1_eng1(const unsigned int /*i*/,
     std::valarray<double> &force, const bool /*comp_force*/)

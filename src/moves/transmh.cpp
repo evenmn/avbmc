@@ -8,6 +8,12 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Biased translational move. Random particle is moved a random distance biased
+  in the direction of the force. It is accepted according to the Boltzmann
+  distribution. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <string>

@@ -8,6 +8,12 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Basic umbrella sampling with a single umbrella. First proposed by Torrie
+  and Valleau, "Nonphysical sampling distributions in Monte Carlo free-energy
+  estimation: Umbrella sampling" (1977)
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 #include <functional>

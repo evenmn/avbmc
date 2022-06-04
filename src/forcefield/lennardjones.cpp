@@ -8,6 +8,11 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Lennard-Jones 12-6 potential like used in A. Rahman, "Correlations in the
+  Motion of Atoms in Liquid Argon" (1964). No tail corrections are added.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -71,13 +76,14 @@ void LennardJones::read_param_file(const std::string &params)
                 nline ++;
             }
             else {
-                std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
-                std::cout << "Ignoring line: '" + line + "'" << std::endl;
+                std::cout << "Warning: Corrupt line in parameter file!\n"
+                          << "Ignoring line: '" + line + "'" << std::endl;
             }
         }
     }
     else {
-        std::cout << "\nParameter file '" + params + "' was not found!" << std::endl;
+        std::cout << "\nParameter file '" + params + "' was not found!"
+                  << std::endl;
         exit(0);
     }
 }
@@ -86,7 +92,7 @@ void LennardJones::read_param_file(const std::string &params)
 /* ----------------------------------------------------------------------------
    Parameters have to be sorted with respect to the particle types, and are
    stored in matrices.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::sort_params()
 {
@@ -129,7 +135,7 @@ void LennardJones::sort_params()
    Compute interaction energy between two particles of types 'typei' and
    'typej', respectively, separated by a distance vector 'delij'. Updates a
    force array 'force' if 'comp_force' is true.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_twobody_par(const int typei, const int typej,
                                       const std::valarray<double> delij,
@@ -155,7 +161,7 @@ double LennardJones::comp_twobody_par(const int typei, const int typej,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i' without using neighbor
    lists.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -188,7 +194,7 @@ double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', using pre-calculated
    distance and neighbor lists. Not utilizing the 'comp_twobody_par' function.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -222,7 +228,7 @@ double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', using pre-calculated
    distance and neighbor lists. Storing energy and force for next step.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -263,7 +269,7 @@ double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
 
 /* ----------------------------------------------------------------------------
    Allocate memory for matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::allocate_memory()
 {
@@ -284,7 +290,7 @@ void LennardJones::allocate_memory()
 
 /* ----------------------------------------------------------------------------
    Free memory for matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::free_memory()
 {
@@ -305,7 +311,7 @@ void LennardJones::free_memory()
 
 /* ----------------------------------------------------------------------------
    LennardJones destructor, releasing memory of all parameter arrays
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 LennardJones::~LennardJones()
 {

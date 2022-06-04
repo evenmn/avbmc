@@ -9,7 +9,11 @@
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
-   AVBMC swap move from one box to another. 
+  AVBMC swap molecule between two boxes or within one box. The AVBMC moves were
+  first proposed by Chen and Siepmann, "A Novel Monte Carlo Algorithm for
+  Simulating Strongly Associating Fluids:  Applications to Water, Hydrogen
+  Fluoride, and Acetic Acid" (2000). Non-bonded molecule moves have not yet
+  been reported in the literature
 ---------------------------------------------------------------------------- */
 
 #include <string>

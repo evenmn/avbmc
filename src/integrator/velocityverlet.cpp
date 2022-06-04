@@ -8,6 +8,12 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Velocity verlet integration scheme like described in L. Verlet, "Computer
+  'Experiments' on Classical Fluids. I. Thermodynamical Properties of
+  Lennard-Jones Molecules" (1967)
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 
@@ -19,7 +25,7 @@
 
 /* ----------------------------------------------------------------------------
    Velocity Verlet integrator class
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 VelocityVerlet::VelocityVerlet(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
@@ -31,7 +37,7 @@ VelocityVerlet::VelocityVerlet(Box* box_in, double dt_in)
 
 /* ----------------------------------------------------------------------------
    Move to next step
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double VelocityVerlet::next_step()
 {

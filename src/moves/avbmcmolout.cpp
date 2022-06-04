@@ -8,6 +8,14 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  AVBMC molecule deletion moves. The AVBMC moves were first proposed by Chen
+  and Siepmann, "A Novel Monte Carlo Algorithm for Simulating Strongly
+  Associating Fluids:  Applications to Water, Hydrogen Fluoride, and Acetic
+  Acid" (2000). Non-bonded molecule moves have not yet been reported in the
+  literature
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <vector>

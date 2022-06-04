@@ -8,6 +8,14 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  AVBMC molecule insertion and deletion moves. The AVBMC moves were first
+  proposed by Chen and Siepmann, "A Novel Monte Carlo Algorithm for Simulating
+  Strongly Associating Fluids:  Applications to Water, Hydrogen Fluoride, and
+  Acetic Acid" (2000). Non-bonded molecule moves have not yet been reported
+  in the literature
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -23,9 +31,9 @@
 
 
 /* ----------------------------------------------------------------------------
-   AVBMC constructor, which performs 50% insertation moves and 50% deletion
-   moves. 
-------------------------------------------------------------------------------- */
+   AVBMC Molecule class constructor, which performs 50% insertation moves and
+   50% deletion moves. 
+---------------------------------------------------------------------------- */
 
 AVBMCMol::AVBMCMol(System* system_in, Box* box_in, std::vector<Particle> molecule_in,
     const double r_below_in, const double r_above_in, const double r_inner_in,
@@ -46,7 +54,7 @@ AVBMCMol::AVBMCMol(System* system_in, Box* box_in, std::vector<Particle> molecul
 
 /* ----------------------------------------------------------------------------
    Pick in or out moves with the same probability
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMol::perform_move()
 {
@@ -67,7 +75,7 @@ void AVBMCMol::perform_move()
 
 /* ----------------------------------------------------------------------------
    Get acceptance probability
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double AVBMCMol::accept(const double temp, const double chempot)
 {
@@ -82,7 +90,7 @@ double AVBMCMol::accept(const double temp, const double chempot)
 
 /* ----------------------------------------------------------------------------
    Set back to old state before move as performed
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMol::reset()
 {
@@ -97,25 +105,17 @@ void AVBMCMol::reset()
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCMol::update_size_histogram()
 {
     box->update_size_histogram();
-    /*
-    if (move_in) {
-        AVBMCMolIn::update_size_histogram();
-    }
-    else {
-        AVBMCMolOut::update_size_histogram();
-    }
-    */
 }
 
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string AVBMCMol::repr()
 {

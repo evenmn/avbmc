@@ -8,6 +8,11 @@
   Date: 2022-06-03 (last changed 2022-06-03)
 ---------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------------
+  Naive translational move. Random particle is moved a random distance (in all
+  directions), and accepted according to the Boltzmann distribution. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <cmath>
 #include <string>

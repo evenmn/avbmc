@@ -10,7 +10,7 @@
 
 /* ----------------------------------------------------------------------------
    Constraining the number of neighbors component A has of component B.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <string>
@@ -28,7 +28,7 @@
    of the components A and B, respectively. 'rc_in' is the maximum number of
    neighbors that a particle of component A can have of particles of 
    component B.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 MaxNeigh::MaxNeigh(Box* box_in, std::string label1, std::string label2,
                    double rc_in, int nc_in) : Constraint(box_in)
@@ -42,7 +42,7 @@ MaxNeigh::MaxNeigh(Box* box_in, std::string label1, std::string label2,
 
 /* ----------------------------------------------------------------------------
    Verify that all particles of interest, 'particles',  meet the constraint
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 bool MaxNeigh::verify()
 {

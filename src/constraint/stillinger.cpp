@@ -15,7 +15,7 @@
    that splits up the cluster. Note that if the system is initialized with 
    more than one cluster, all moves will be rejected unless a particle is 
    inserted such that all clusters are bridged. 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <valarray>
@@ -34,7 +34,7 @@
    criterion 'rc'. This contraint differs from the 'max distance' constraint
    in the way that it ensures that the system consists of exactly one cluster
    at all times. 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Stillinger::Stillinger(Box* box_in, double rc)
     : Constraint(box_in)
@@ -61,7 +61,7 @@ Stillinger::Stillinger(Box* box_in, double rc)
 
 /* ----------------------------------------------------------------------------
    Copy constructor, needed to fullfil the rule of three, Marshall Cline (1991)
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Stillinger::Stillinger(const Stillinger &other) 
     : Constraint(other), neigh_lists(other.neigh_lists),
@@ -83,7 +83,7 @@ Stillinger::Stillinger(const Stillinger &other)
 
 /* ----------------------------------------------------------------------------
    Swap function, used by the copy assignment operator
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Stillinger::swap(Stillinger &other)
 {
@@ -175,7 +175,7 @@ bool Stillinger::verify()
    Get volume of cluster. This is done by first overestimating the volume as
    N * v_stillinger, and then subtracting the volume of overlapping sphere
    caps.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 /*
 double Stillinger::comp_volume()
 {
@@ -193,7 +193,7 @@ double Stillinger::comp_volume()
 
 /* ----------------------------------------------------------------------------
    Stillinger destructor, frees up allocated memory
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 Stillinger::~Stillinger()
 {
