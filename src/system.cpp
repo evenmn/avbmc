@@ -1192,6 +1192,19 @@ void System::rm_particle(unsigned int idx, int box_id)
 }
 
 
+void System::clear_particles(int box_id)
+{
+    if (box_id < 0) {
+        for (Box *box : boxes) {
+            box->clear_particles();
+        }
+    }
+    else {
+        boxes[box_id]->clear_particles();
+    }
+}
+
+
 /* ----------------------------------------------------------------------------
    Write histogram of system sizes out to file
 ---------------------------------------------------------------------------- */

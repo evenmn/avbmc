@@ -372,6 +372,22 @@ void Box::rm_particle(unsigned int i)
 }
 
 
+void Box::clear_particles()
+{
+    /*
+    typeidx.clear();
+    for (auto &type : npartype) {
+        type.clear();
+    }
+    particles.clear();
+    npar = 0;
+    */
+    for (unsigned int i=npar; i--;) {
+        rm_particle(i);
+    }
+}
+
+
 /* ----------------------------------------------------------------------------
    Add box constraint
 ---------------------------------------------------------------------------- */

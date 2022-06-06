@@ -59,6 +59,7 @@ public:
     void rm_box(unsigned int);
     void rm_move(unsigned int);
     void rm_constraint(unsigned int, int = 0);
+    void clear_particles(int = -1);
 
     void check_masses();
     unsigned int get_maxiter(unsigned int);

@@ -33,10 +33,11 @@ public:
     void add_particle(const std::string &, std::valarray<double>);
     void add_particles(std::vector<Particle>);
     void add_particles(const std::string &, std::vector<std::valarray<double> >);
+    void rm_particle(unsigned int);
+    void clear_particles();
     void read_particles(const std::string &);
     void add_constraint(class Constraint *);
     void _rm_typeidx(unsigned int, unsigned int);
-    void rm_particle(unsigned int);
     void rm_constraint(unsigned int);
 
     std::string file_marking();

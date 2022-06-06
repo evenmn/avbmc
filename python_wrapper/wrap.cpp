@@ -372,6 +372,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("index"),
             py::arg("box_id") = 0
         )
+        .def("clear_particles",
+            &System::clear_particles,
+            "Remove all particles from a given box. box_id=-1 by default",
+            py::arg("box_id") = -1
+        )
         .def("get_size_histogram",
             &System::get_size_histogram,
             "Get histogram of all system sizes during simulation. box_id = 0 by default",
@@ -465,6 +470,10 @@ PYBIND11_MODULE(avbmc, m) {
             &Box::rm_particle,
             "Remove particle by index",
             py::arg("index")
+        )
+        .def("clear_particles",
+            &Box::clear_particles,
+            "Remove all particles"
         )
         .def("add_constraint",
             &Box::add_constraint,
@@ -700,6 +709,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &Stillinger::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MinNeigh, Constraint>(m, "MinNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
@@ -709,6 +722,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh")
+        )
+        .def("__call__",
+            &MinNeigh::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MaxNeigh, Constraint>(m, "MaxNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
@@ -718,6 +735,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh")
+        )
+        .def("__call__",
+            &MaxNeigh::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MinDistance, Constraint>(m, "MinDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
@@ -726,6 +747,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &MinDistance::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MaxDistance, Constraint>(m, "MaxDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
@@ -734,6 +759,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &MaxDistance::verify,
+            "Verify whether or not the constraint is satisfied"
         );
 
     // Integrator
