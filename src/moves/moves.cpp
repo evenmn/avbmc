@@ -309,7 +309,7 @@ std::vector<unsigned int> Moves::detect_molecule(
 /* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
 ---------------------------------------------------------------------------- */
-
+/*
 void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
     std::vector<Particle> molecule, unsigned int elm_count,
     std::vector<unsigned int> &elm_idx,
@@ -326,14 +326,14 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> particles,
         }
     }
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Detect molecule of the same types as 'molecule' randomly by picking a random 
    atom among the elements and checking the neighbor list.
    Returning a list of atom ids if molecule is detected
 ---------------------------------------------------------------------------- */
-
+/*
 std::vector<unsigned int> Moves::detect_molecule(
     std::vector<std::vector<unsigned int> > neigh_list,
     const std::vector<Particle> &particles, std::vector<Particle> molecule,
@@ -357,4 +357,4 @@ std::vector<unsigned int> Moves::detect_molecule(
     }
     return elm_idx;
 }
-
+*/
