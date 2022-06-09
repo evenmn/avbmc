@@ -139,7 +139,7 @@ void AVBMCMolIn::insert(std::vector<Particle> molecule)
     }
     */
     i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
-    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     nmolavg = neigh_listi.size() * natom_inv;
 
     // add molecule

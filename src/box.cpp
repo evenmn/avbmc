@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-06-09)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -399,6 +399,8 @@ void Box::add_constraint(Constraint* constraint)
                   << "before adding constraints!" << std::endl;
         exit(0);
     }
+    std::cout << "Warning: All constraints have to be added before particles "
+              << "are being added" << std::endl;
     nconstraint ++;
     constraints.push_back(constraint);
     constraint_allocated_in_system.push_back(false);
@@ -473,7 +475,7 @@ void Box::set_thermo(const int freq, std::string filename,
    Build neighbor list of particle 'i' with maximum neighbor
    distance squared 'rsq'
 ---------------------------------------------------------------------------- */
-
+/*
 double normsq(std::valarray<double> array)
 {
     double sumsq;
@@ -536,7 +538,7 @@ std::vector<unsigned int> Box::build_neigh_list(const int i, double **rsq)
     }
     return neigh_list;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Write number of times each system size has occured to

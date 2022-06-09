@@ -22,6 +22,8 @@ public:
     void update_trans(unsigned int);
     void update_remove(unsigned int);
     void update_insert(unsigned int);
+
+    std::vector<unsigned int> build_neigh_list(int, double);
     
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
@@ -40,9 +42,9 @@ private:
   std::vector<double> cutoffs;
   std::vector<unsigned int> types1, types2, modes;
 
-  std::vector<std::vector<std::vector<unsigned int>>> neigh_lists_old;
-  std::vector<std::vector<double>> distance_mat_old;
-  std::vector<std::vector<std::valarray<double>>> distance_cube_old;
+  std::vector<std::vector<std::vector<unsigned int> > > neigh_lists_old;
+  std::vector<std::vector<double> > distance_mat_old;
+  std::vector<std::vector<std::valarray<double> > > distance_cube_old;
 
   class Box *box = nullptr;
 };

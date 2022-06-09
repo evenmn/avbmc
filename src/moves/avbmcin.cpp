@@ -66,7 +66,7 @@ void AVBMCIn::perform_move()
 
     // pick target particle and count number of neighbors
     i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
-    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
     // construct new particle close to target particle

@@ -44,8 +44,8 @@ public:
     void snapshot(std::string); //, bool = true);
     void set_dump(int, std::string, std::vector<std::string>); //, bool = true);
     void set_thermo(int, std::string, std::vector<std::string>); //, bool = true);
-    std::vector<unsigned int> build_neigh_list(int, double);
-    std::vector<unsigned int> build_neigh_list(int, double**);
+    //std::vector<unsigned int> build_neigh_list(int, double);
+    //std::vector<unsigned int> build_neigh_list(int, double**);
     void update_size_histogram();
     void write_size_histogram(const std::string &);
     ~Box();
