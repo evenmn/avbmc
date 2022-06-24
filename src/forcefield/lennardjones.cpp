@@ -1,3 +1,18 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Lennard-Jones 12-6 potential like used in A. Rahman, "Correlations in the
+  Motion of Atoms in Liquid Argon" (1964). No tail corrections are added.
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -13,7 +28,7 @@
 
 /* ----------------------------------------------------------------------------
    This is the default constructor when a parameter file 'params' is given.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 LennardJones::LennardJones(Box* box_in, const std::string &params)
     : ForceField(box_in)
@@ -22,6 +37,7 @@ LennardJones::LennardJones(Box* box_in, const std::string &params)
     paramfile = params;
     read_param_file(params);
     create_label_mapping();
+    init_ntype();
     allocate_memory();
     sort_params();
 }
@@ -31,7 +47,7 @@ LennardJones::LennardJones(Box* box_in, const std::string &params)
    Read parameter file 'params' and store parameters globally. It takes the
    following form:
        <label1> <label2> <sigma> <epsilon> <rc>
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::read_param_file(const std::string &params)
 {
@@ -60,13 +76,14 @@ void LennardJones::read_param_file(const std::string &params)
                 nline ++;
             }
             else {
-                std::cout << "Warning: Corrupt line in parameter file!" << std::endl;
-                std::cout << "Ignoring line: '" + line + "'" << std::endl;
+                std::cout << "Warning: Corrupt line in parameter file!\n"
+                          << "Ignoring line: '" + line + "'" << std::endl;
             }
         }
     }
     else {
-        std::cout << "\nParameter file '" + params + "' was not found!" << std::endl;
+        std::cout << "\nParameter file '" + params + "' was not found!"
+                  << std::endl;
         exit(0);
     }
 }
@@ -75,7 +92,7 @@ void LennardJones::read_param_file(const std::string &params)
 /* ----------------------------------------------------------------------------
    Parameters have to be sorted with respect to the particle types, and are
    stored in matrices.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::sort_params()
 {
@@ -118,7 +135,7 @@ void LennardJones::sort_params()
    Compute interaction energy between two particles of types 'typei' and
    'typej', respectively, separated by a distance vector 'delij'. Updates a
    force array 'force' if 'comp_force' is true.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_twobody_par(const int typei, const int typej,
                                       const std::valarray<double> delij,
@@ -144,7 +161,7 @@ double LennardJones::comp_twobody_par(const int typei, const int typej,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i' without using neighbor
    lists.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -177,7 +194,7 @@ double LennardJones::comp_energy_par_neigh0_eng0(const unsigned int i,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', using pre-calculated
    distance and neighbor lists. Not utilizing the 'comp_twobody_par' function.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -211,7 +228,7 @@ double LennardJones::comp_energy_par_neigh1_eng0(const unsigned int i,
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', using pre-calculated
    distance and neighbor lists. Storing energy and force for next step.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
     std::valarray<double> &force, const bool comp_force)
@@ -251,8 +268,14 @@ double LennardJones::comp_energy_par_neigh1_eng1(const unsigned int i,
 
 
 /* ----------------------------------------------------------------------------
+---------------------------------------------------------------------------- */
+
+//double LennardJones::comp_total_energy()
+
+
+/* ----------------------------------------------------------------------------
    Allocate memory for matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::allocate_memory()
 {
@@ -273,7 +296,7 @@ void LennardJones::allocate_memory()
 
 /* ----------------------------------------------------------------------------
    Free memory for matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void LennardJones::free_memory()
 {
@@ -294,7 +317,7 @@ void LennardJones::free_memory()
 
 /* ----------------------------------------------------------------------------
    LennardJones destructor, releasing memory of all parameter arrays
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 LennardJones::~LennardJones()
 {

@@ -1,5 +1,12 @@
 /* ----------------------------------------------------------------------------
-------------------------------------------------------------------------------- */
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
    Aggregation-volume-biased Monte Carlo (AVBMC) insertion move. This is a
@@ -8,7 +15,7 @@
    conjunction with an AVBMC deletion move, with the same radius of the 
    bonded region and the same move probability. This is ensured when applying
    the 'AVBMC' move. The AVBMC moves were first proposed by Chen (2000).
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <cmath>
@@ -23,14 +30,15 @@
 #include "../sampler/sampler.h"
 #include "../boundary/boundary.h"
 #include "../forcefield/forcefield.h"
+#include "../distance_manager.h"
 
 
 /* ----------------------------------------------------------------------------
    AVBMCIn constructor
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
-                 const double r_below_in, const double r_above_in, bool energy_bias_in)
+    const double r_below_in, const double r_above_in, bool energy_bias_in)
     : Moves(system_in)
 {
     box = box_in;
@@ -39,7 +47,7 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
-    v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3; // can be set to 1 according to Henrik
+    v_in = 1.;
 
     particle_label = particle_in;
     particle_type = box->forcefield->label2type.at(particle_in);
@@ -49,32 +57,23 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
 
 /* ----------------------------------------------------------------------------
    Insert molecule into the bonded region 
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::perform_move()
 {
-    // pick particle i and create local neighbor list of particle
-    int i = rng->next_int(box->npar);
-    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    unsigned int i;
+    std::valarray<double> dr(system->ndim);
+
+    // pick target particle and count number of neighbors
+    i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
+    std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size();
 
-    // construct new particle
-    std::valarray<double> dr(system->ndim);
-    double normsq = norm(dr);
-    while(normsq > r_abovesq || normsq < r_belowsq){
-        // std::generate
-        for(double &d : dr){
-            d = 2 * rng->next_double() - 1;
-        }
-        normsq = norm(dr);
-    }
+    // construct new particle close to target particle
+    dr = insertion_position(false);
+    box->add_particle(particle_label, box->particles[i].r + dr);
 
-    Particle particle_in(particle_label, box->particles[i].r + dr);
-    box->npar ++;
-    particle_in.type = particle_type;
-    box->particles.push_back(particle_in);
-
-    // compute du
+    // compute du (also bake this into add_particle?)
     du = box->forcefield->comp_energy_par_force0(box->npar - 1);
     box->poteng += du;
 }
@@ -82,11 +81,10 @@ void AVBMCIn::perform_move()
 
 /* ----------------------------------------------------------------------------
    Get acceptance probability of move
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double AVBMCIn::accept(double temp, double chempot)
 {
-    //box->boundary->correct_position();
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
     double prefactor = v_in * box->npar / ((n_in + 1) * (box->npar + 1));
     return prefactor * std::exp(-(du-chempot+dw)/temp);
@@ -94,20 +92,19 @@ double AVBMCIn::accept(double temp, double chempot)
 
 
 /* ----------------------------------------------------------------------------
-   Set back to old state before move is move was rejected
-------------------------------------------------------------------------------- */
+   Set back to old state before move is rejected
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::reset()
 {
-    box->npar --;
+    box->rm_particle(box->npar-1);
     box->poteng -= du;
-    box->particles.erase(box->particles.begin() + box->npar);
 }
 
 
 /* ----------------------------------------------------------------------------
    Update number of time this system size has occured if move was accepted
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void AVBMCIn::update_size_histogram()
 {
@@ -117,7 +114,7 @@ void AVBMCIn::update_size_histogram()
 
 /* ----------------------------------------------------------------------------
    Represent move in a clean way
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 std::string AVBMCIn::repr()
 {

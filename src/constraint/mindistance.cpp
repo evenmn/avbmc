@@ -1,10 +1,20 @@
 /* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
    Constraining the distance between two components A and B. All components A
    need to have a component B within the given radius in order to accept
    Monte Carlo moves. If the system is initialized such that this condition
    is not satisfied, no moves will be accepted (unless the constraint is 
-   satisfied after a move
-------------------------------------------------------------------------------- */
+   satisfied after an attempted move
+---------------------------------------------------------------------------- */
 
 #include <iostream>
 #include <string>
@@ -21,7 +31,7 @@
    Minimum distance constraint constructor. 'label1' and 'label2' are the IDs
    of the components A and B, respectively. 'rc_in' is the minimum distance
    between the components.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 MinDistance::MinDistance(Box* box_in, std::string label1, std::string label2,
                          double rc_in) : Constraint(box_in)
@@ -34,7 +44,7 @@ MinDistance::MinDistance(Box* box_in, std::string label1, std::string label2,
 
 /* ----------------------------------------------------------------------------
    Verify that all particles of interest, 'particles',  meet the constraint
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 bool MinDistance::verify()
 {

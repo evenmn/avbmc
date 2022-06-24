@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, version-0.1.0 ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, version-0.1.0 ]
   schedule:
     - cron: '0 2 * * *' # run at 2 AM UTC
 
@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         #mpi: [ 'mpich', 'openmpi' ]
-        os: [ubuntu-latest, macOS-latest, macOS-11]
+        os: [ ubuntu-latest, macOS-latest, macOS-11 ]
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout

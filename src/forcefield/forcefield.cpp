@@ -1,3 +1,18 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  The forcefield base class resides this file. It is responsible for creating
+  label mapping and maintaining energy and force matrices. 
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -10,9 +25,9 @@
 
 
 /* ----------------------------------------------------------------------------
-   Forcefield base class. Making 'comp_energy_par' point to the correct energy
-   calculation function
-------------------------------------------------------------------------------- */
+   Forcefield base class constructor. Making 'comp_energy_par' point to the
+   correct energy calculation function
+---------------------------------------------------------------------------- */
 
 ForceField::ForceField(Box* box_in)
 {
@@ -34,7 +49,7 @@ ForceField::ForceField(Box* box_in)
 
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', when force is not needed.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double ForceField::comp_energy_par_force0(const unsigned int i)
 {
@@ -45,7 +60,7 @@ double ForceField::comp_energy_par_force0(const unsigned int i)
 
 /* ----------------------------------------------------------------------------
    Compute energy contribution from a particle 'i', when force is needed.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double ForceField::comp_energy_par_force1(const unsigned int i,
                                           std::valarray<double> &force)
@@ -55,8 +70,19 @@ double ForceField::comp_energy_par_force1(const unsigned int i,
 
 
 /* ----------------------------------------------------------------------------
+   Initialize vectors that depend on number of types
+---------------------------------------------------------------------------- */
+
+void ForceField::init_ntype()
+{
+    box->typeidx.resize(ntype);
+    box->npartype.resize(ntype);
+}
+
+
+/* ----------------------------------------------------------------------------
    Initialize energy and force matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void ForceField::initialize()
 {
@@ -86,7 +112,7 @@ void ForceField::initialize()
 
 /* ----------------------------------------------------------------------------
    Store current energy and force matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void ForceField::set()
 {
@@ -99,7 +125,7 @@ void ForceField::set()
 
 /* ----------------------------------------------------------------------------
    Reset energy and force matrices
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void ForceField::reset()
 {
@@ -112,7 +138,7 @@ void ForceField::reset()
 
 /* ----------------------------------------------------------------------------
    Compute the squared norm of a valarray 'array'
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double ForceField::norm(std::valarray<double> array)
 {
@@ -130,7 +156,7 @@ double ForceField::norm(std::valarray<double> array)
 
 /* ----------------------------------------------------------------------------
    Create mapping from label to type
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void ForceField::create_label_mapping()
 {
@@ -143,7 +169,7 @@ void ForceField::create_label_mapping()
     ntype = unique_labels.size();
 
     // map labels to types
-    for (i=0; i < ntype; i++){
+    for (i=0; i < ntype; i++) {
         label2type[unique_labels[i]] = i;
     }
 }

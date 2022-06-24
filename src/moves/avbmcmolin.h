@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <cmath>
 #include <string>
@@ -11,18 +17,21 @@ class AVBMCMolIn : virtual public Moves
 {
 public:
     AVBMCMolIn(class System *, class Box *, std::vector<class Particle>,
-    double = 0.9, double = 1.5, double = 1.3, bool = true, bool = false);
+        double = 0.9, double = 1.5, double = 1.3, bool = true, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
     void update_size_histogram() override;
     std::string repr() override;
+    void insert(std::vector<class Particle>);
 
 private:
-    bool reject_move, energy_bias, target_mol;
+    unsigned int detect_target_molecule(bool &);
+    std::vector<Particle> create_molecule();
+
+    bool detected_target, energy_bias, target_mol;
     unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner;
-    double r_below, r_above, r_inner, r_belowsq, r_abovesq, v_in, nmolavg, natom_inv;
-    std::vector<unsigned int> npartype_old;
-    std::vector<class Particle> particles, particles_old;
+    double r_inner, v_in, nmolavg, natom_inv;
+    std::vector<class Particle> particles;
     class Box* box = nullptr;
 };

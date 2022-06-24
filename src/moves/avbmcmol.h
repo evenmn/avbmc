@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <string>
 
@@ -8,7 +14,8 @@
 class AVBMCMol : public AVBMCMolIn, public AVBMCMolOut
 {
 public:
-    AVBMCMol(class System *, class Box *, std::vector<class Particle>, double = 0.95, double = 3.0, double = 1.3, bool = false, bool = false);
+    AVBMCMol(class System *, class Box *, std::vector<class Particle>,
+        double = 0.95, double = 3.0, double = 1.3, bool = false, bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
