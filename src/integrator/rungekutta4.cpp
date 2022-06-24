@@ -1,3 +1,17 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+
+  Author(s): Even M. Nordhagen
+  Email(s): evenmn@mn.uio.no
+  Date: 2022-06-03 (last changed 2022-06-03)
+---------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------------
+  Fourth order Runge-Kutta integration scheme
+---------------------------------------------------------------------------- */
+
 #include <iostream>
 #include <valarray>
 
@@ -8,8 +22,8 @@
 
 
 /* ----------------------------------------------------------------------------
-   Fourth order Runge-Kutta integration scheme
-------------------------------------------------------------------------------- */
+   Runge-Kutta 4 class constructor
+---------------------------------------------------------------------------- */
 
 RungeKutta4::RungeKutta4(Box* box_in, double dt_in)
     : Integrator(box_in, dt_in)
@@ -21,7 +35,7 @@ RungeKutta4::RungeKutta4(Box* box_in, double dt_in)
 
 /* ----------------------------------------------------------------------------
    Move particles to next step
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 double RungeKutta4::next_step()
 {

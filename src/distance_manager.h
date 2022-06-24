@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <iostream>
 #include <vector>
@@ -12,11 +18,14 @@ public:
     unsigned int add_cutoff(double);
     unsigned int add_cutoff(double, std::string, std::string, bool = true);
     unsigned int add_cutoff(double **);
-    void initialize();
     void set(), reset();
     void update_trans(unsigned int);
     void update_remove(unsigned int);
     void update_insert(unsigned int);
+
+    std::vector<unsigned int> build_neigh_list(std::vector<class Particle>,
+        unsigned int, double);
+    std::vector<unsigned int> build_neigh_list(int, double);
     
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
@@ -35,9 +44,9 @@ private:
   std::vector<double> cutoffs;
   std::vector<unsigned int> types1, types2, modes;
 
-  std::vector<std::vector<std::vector<unsigned int>>> neigh_lists_old;
-  std::vector<std::vector<double>> distance_mat_old;
-  std::vector<std::vector<std::valarray<double>>> distance_cube_old;
+  std::vector<std::vector<std::vector<unsigned int> > > neigh_lists_old;
+  std::vector<std::vector<double> > distance_mat_old;
+  std::vector<std::vector<std::valarray<double> > > distance_cube_old;
 
   class Box *box = nullptr;
 };

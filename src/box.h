@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -27,15 +33,19 @@ public:
     void add_particle(const std::string &, std::valarray<double>);
     void add_particles(std::vector<Particle>);
     void add_particles(const std::string &, std::vector<std::valarray<double> >);
+    void rm_particle(unsigned int);
+    void clear_particles();
     void read_particles(const std::string &);
     void add_constraint(class Constraint *);
+    void _rm_typeidx(unsigned int, unsigned int);
+    void rm_constraint(unsigned int);
 
     std::string file_marking();
     void snapshot(std::string); //, bool = true);
     void set_dump(int, std::string, std::vector<std::string>); //, bool = true);
     void set_thermo(int, std::string, std::vector<std::string>); //, bool = true);
-    std::vector<unsigned int> build_neigh_list(int, double);
-    std::vector<unsigned int> build_neigh_list(int, double**);
+    //std::vector<unsigned int> build_neigh_list(int, double);
+    //std::vector<unsigned int> build_neigh_list(int, double**);
     void update_size_histogram();
     void write_size_histogram(const std::string &);
     ~Box();
@@ -56,7 +66,8 @@ public:
     unsigned int npar, step, ntype, nmove, box_id, nconstraint;
     double poteng, time;
 
-    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by stillinger
+    std::vector<unsigned int> size_histogram, npartype;  // npartype is used by constraints
+    std::vector<std::vector<unsigned int> > typeidx;     // indices of each type
     std::vector<Particle> particles;
     std::vector<class Constraint *> constraints;
     std::vector<bool> constraint_allocated_in_system;

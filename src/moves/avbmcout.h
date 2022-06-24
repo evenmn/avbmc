@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <string>
 
@@ -8,7 +14,8 @@
 class AVBMCOut : virtual public Moves
 {
 public:
-    AVBMCOut(class System *, class Box *, const std::string &, double = 3.0, bool = false);
+    AVBMCOut(class System *, class Box *, const std::string &, double = 3.0,
+        bool = false);
     void perform_move() override;
     double accept(double, double) override;
     void reset() override;
@@ -16,10 +23,10 @@ public:
     std::string repr() override;
 
 private:
-    bool reject_move, energy_bias;
-    unsigned int n_in;
+    bool move_performed, energy_bias;
+    unsigned int n_in, particle_type;
     std::string particle_label;
-    double r_above, r_abovesq, v_in;
+    double v_in;
     Particle particle_out = Particle("", {0});
     class Box* box = nullptr;
 };

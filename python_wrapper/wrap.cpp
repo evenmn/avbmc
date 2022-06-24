@@ -36,6 +36,7 @@
 #include "../src/moves/avbmcmol.h"
 #include "../src/moves/avbmcmolin.h"
 #include "../src/moves/avbmcmolout.h"
+#include "../src/moves/avbmcswapright.h"
 
 #include "../src/boundary/boundary.h"
 #include "../src/boundary/open.h"
@@ -70,7 +71,15 @@ PYBIND11_MODULE(avbmc, m) {
 
     // Particle
     py::class_<Particle>(m, "Particle", py::dynamic_attr())
-        .def(py::init<std::string, std::valarray<double> >())
+        .def(py::init<std::string, std::valarray<double> >(),
+        "Particle constructor",
+        py::arg("element"),
+        py::arg("position")
+        )
+        .def(py::init<Particle>(),
+        "Particle copy constructor",
+        py::arg("particle")
+        )
         .def("__repr__",
             [](const Particle &particle) {
                 return particle.label;
@@ -102,7 +111,10 @@ PYBIND11_MODULE(avbmc, m) {
         )
         .def_readonly("label", &RandomNumberGenerator::label);
     py::class_<MersenneTwister, RandomNumberGenerator>(m, "MersenneTwister")
-        .def(py::init<>())
+        .def(py::init<int>(),
+        "Mersenne-Twister constructor",
+        py::arg("seed") = -1
+        )
         .def("set_seed",
             &MersenneTwister::set_seed,
             "Set seed to be used by the random number generator",
@@ -127,6 +139,11 @@ PYBIND11_MODULE(avbmc, m) {
             &MersenneTwister::choice,
             "Index is picked according to a list of probabilities",
             py::arg("probabilities")
+        )
+        .def("shuffle",
+            &MersenneTwister::shuffle,
+            "Shuffle list of unsigned ints",
+            py::arg("list")
         );
 
     // System
@@ -142,10 +159,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("sampler_object")
         )
         .def("set_sampler",
-            py::overload_cast<const std::string &, std::function<double(int)> >(&System::set_sampler),
+            py::overload_cast<const std::string &, std::function<double(int)>, int >(&System::set_sampler),
             "Set sampler used in Monte Carlo simulations",
             py::arg("sampler_label"),
-            py::arg("weight_function") = py::none()
+            py::arg("weight_function") = py::none(),
+            py::arg("ntabulated") = 100
+        )
+        .def("set_sampler",
+            py::overload_cast<const std::string &, std::valarray<double> >(&System::set_sampler),
+            "Set sampler used in Monte Carlo simulations",
+            py::arg("sampler_label"),
+            py::arg("tabulated") = py::none()
         )
         .def("set_rng",
             py::overload_cast<RandomNumberGenerator *>(&System::set_rng),
@@ -179,16 +203,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("prob") = 1.0
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, double, double, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, double, double, const std::string &, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
             py::arg("dx") = 0.1,
             py::arg("Ddt") = 0.1,
+            py::arg("element") = "",
             py::arg("box_id") = -1
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, const std::string &, double, double, bool, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, const std::string &, double, double, bool, int, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
@@ -196,10 +221,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_below") = 0.95,
             py::arg("r_above") = 3.0,
             py::arg("energy_bias") = false,
-            py::arg("box_id") = -1
+            py::arg("box_id") = 0,
+            py::arg("box_id2") = 1
         )
         .def("add_move",
-            py::overload_cast<const std::string &, double, std::vector<Particle>, double, double, double, bool, bool, int>(&System::add_move),
+            py::overload_cast<const std::string &, double, std::vector<Particle>, double, double, double, bool, bool, int, int>(&System::add_move),
             "Add move to the list of moves",
             py::arg("move"),
             py::arg("prob") = 1.0,
@@ -209,7 +235,13 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_mol") = false,
-            py::arg("box_id") = -1
+            py::arg("box_id") = 0,
+            py::arg("box_id2") = 1
+        )
+        .def("rm_move",
+            &System::rm_move,
+            "Remove move by index",
+            py::arg("index")
         )
         .def("add_box",
             py::overload_cast<>(&System::add_box),
@@ -219,6 +251,11 @@ PYBIND11_MODULE(avbmc, m) {
             py::overload_cast<Box *>(&System::add_box),
             "Add system box manually with a box object",
             py::arg("box_object")
+        )
+        .def("rm_box",
+            &System::rm_box,
+            "Remove box by index",
+            py::arg("index")
         )
         .def("set_forcefield",
             py::overload_cast<ForceField *, int>(&System::set_forcefield),
@@ -267,6 +304,12 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh") = 1,
+            py::arg("box_id") = 0
+        )
+        .def("rm_constraint",
+            &System::rm_constraint,
+            "Remove constraint from given box by index. box_id = 0 by default",
+            py::arg("index"),
             py::arg("box_id") = 0
         )
         .def("snapshot",
@@ -323,6 +366,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("filename"),
             py::arg("box_id") = 0
         )
+        .def("rm_particle",
+            &System::rm_particle,
+            "Remove particle from a given box by index. box_id=0 by default",
+            py::arg("index"),
+            py::arg("box_id") = 0
+        )
+        .def("clear_particles",
+            &System::clear_particles,
+            "Remove all particles from a given box. box_id=-1 by default",
+            py::arg("box_id") = -1
+        )
         .def("get_size_histogram",
             &System::get_size_histogram,
             "Get histogram of all system sizes during simulation. box_id = 0 by default",
@@ -356,6 +410,7 @@ PYBIND11_MODULE(avbmc, m) {
         )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
+        .def_readonly("nmove", &System::nmove)
         .def_readonly("temp", &System::temp)
         .def_readonly("chempot", &System::chempot)
         .def_readonly("working_dir", &System::working_dir)
@@ -411,10 +466,24 @@ PYBIND11_MODULE(avbmc, m) {
             "Add a set of particles to the box read from an xyz-file",
             py::arg("filename")
         )
+        .def("rm_particle",
+            &Box::rm_particle,
+            "Remove particle by index",
+            py::arg("index")
+        )
+        .def("clear_particles",
+            &Box::clear_particles,
+            "Remove all particles"
+        )
         .def("add_constraint",
             &Box::add_constraint,
             "Add box constraint by object",
             py::arg("constraint_object")
+        )
+        .def("rm_constraint",
+            &Box::rm_constraint,
+            "Remove constraint by index",
+            py::arg("index")
         )
         .def("snapshot",
             &Box::snapshot,
@@ -438,7 +507,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("npar", &Box::npar)
         .def_readonly("step", &Box::step)
         .def_readonly("box_id", &Box::box_id)
-        .def_readonly("nconstraint", &Box::nconstraint);
+        .def_readonly("nconstraint", &Box::nconstraint)
+        .def_readonly("constraints", &Box::constraints);
 
     // Sampler
     py::class_<Sampler>(m, "Sampler")
@@ -464,6 +534,16 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("system_object"),
             py::arg("weight_function"),
             py::arg("ntabulated") = 100
+        )
+        .def(py::init<System *, std::valarray<double> >(),
+            "Umbrella sampling class constructor with pre-tabulated elements",
+            py::arg("system_object"),
+            py::arg("tabulated")
+        )
+        .def("w",
+            &Umbrella::w,
+            "Get umbrella value for some system size",
+            py::arg("npar")
         );
 
     // Moves
@@ -629,6 +709,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &Stillinger::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MinNeigh, Constraint>(m, "MinNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
@@ -638,6 +722,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh")
+        )
+        .def("__call__",
+            &MinNeigh::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MaxNeigh, Constraint>(m, "MaxNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
@@ -647,6 +735,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element2"),
             py::arg("distance"),
             py::arg("nneigh")
+        )
+        .def("__call__",
+            &MaxNeigh::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MinDistance, Constraint>(m, "MinDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
@@ -655,6 +747,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &MinDistance::verify,
+            "Verify whether or not the constraint is satisfied"
         );
     py::class_<MaxDistance, Constraint>(m, "MaxDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
@@ -663,6 +759,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("element1"),
             py::arg("element2"),
             py::arg("distance")
+        )
+        .def("__call__",
+            &MaxDistance::verify,
+            "Verify whether or not the constraint is satisfied"
         );
 
     // Integrator

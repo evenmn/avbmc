@@ -1,3 +1,9 @@
+/* ----------------------------------------------------------------------------
+  This file is a part of the AVBMC library, which follows the GPL-3.0 License.
+  For license information, see LICENSE file in the top directory, 
+  https://github.com/evenmn/avbmc/LICENSE.
+---------------------------------------------------------------------------- */
+
 #pragma once
 #include <iostream>
 #include <string>
@@ -12,15 +18,18 @@ class System
 public:
     System(const std::string & = ".", bool = true); 
     System(const System &);
+    void set_working_directory(const std::string &);
 
     // methods
     void set_temp(double);
     void set_chempot(double);
     void set_mass(std::string, double);
     void set_seed(unsigned int);
+    void set_dim(unsigned int);
 
     void set_sampler(class Sampler *);
-    void set_sampler(const std::string &, std::function<double(int)>);
+    void set_sampler(const std::string &, std::function<double(int)>, int = 100);
+    void set_sampler(const std::string &, std::valarray<double> = {});
     void set_rng(class RandomNumberGenerator *);
     void set_rng(const std::string &);
     void set_forcefield(class ForceField *, int = -1);
@@ -35,9 +44,9 @@ public:
     void snapshot(const std::string &, int = 0);
         
     void add_move(class Moves *, double);
-    void add_move(const std::string &, double = 1., double = 0.1, double = 0.1, int = -1); // for trans and transmh
-    void add_move(const std::string &, double, const std::string &, double = 0.95, double = 3.0, bool = false, int = -1); // for avbmc, avbmcin, avbmcout
-    void add_move(const std::string &, double, std::vector<class Particle>, double = 1.3, double = 0.95, double = 3.0, bool = false, bool = false, int = -1); // for avbmcmol, avbmcmolin, avbmcmolout
+    void add_move(const std::string &, double = 1., double = 0.1, double = 0.1, const std::string & = "", int = -1); // for trans and transmh
+    void add_move(const std::string &, double, const std::string &, double = 0.95, double = 3.0, bool = false, int = 0, int = 1); // for avbmc, avbmcin, avbmcout, avbmcswap, avbmcswapright
+    void add_move(const std::string &, double, std::vector<class Particle>, double = 1.3, double = 0.95, double = 3.0, bool = false, bool = false, int = 0, int = 1); // for avbmcmol, avbmcmolin, avbmcmolout, avbmcmolswap, avbmcmolswapright
     void add_box(class Box *);
     void add_box();
     void add_particle(class Particle, int = 0);
@@ -48,13 +57,19 @@ public:
     void write_size_histogram(const std::string &, int = 0);
     std::vector<unsigned int> get_size_histogram(int = 0);
 
+    void rm_particle(unsigned int, int = 0);
+    void rm_box(unsigned int);
+    void rm_move(unsigned int);
+    void rm_constraint(unsigned int, int = 0);
+    void clear_particles(int = -1);
+
     void check_masses();
     unsigned int get_maxiter(unsigned int);
     void print_logo();
     void print_info();
     void print_mc_info();
 
-    void run_md(int);
+    void run_md(unsigned int);
     void run_mc(unsigned int, unsigned int = 1);
     void initialize_mc_run();
     void run_mc_cycle(unsigned int = 1);
@@ -67,9 +82,10 @@ public:
     class RandomNumberGenerator* rng = nullptr;
 
     bool logo_printed, rng_allocated_externally, sampler_allocated_externally;
-    unsigned int nbox, ndim, nmove, step;
+    int nbox;  // nbox is signed as it is compared to box_id which is signed
+    unsigned int ndim, nmove, step;
     double temp, chempot, poteng, time;
-    std::string working_dir;
+    std::string working_dir, original_dir;
 
     std::vector<class Box *> boxes;
     //std::vector<std::string> unique_labels;

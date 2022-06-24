@@ -6,7 +6,7 @@ from setuptools.command.build_ext import build_ext
 
 
 # set version number both for pip and python interface
-__version__ = "0.0.3"
+__version__ = "0.1.0"
 
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -53,8 +53,9 @@ setup(name='avbmc',
       cmdclass={'build_ext': build_ext},
       classifiers=[
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: Implementation :: C++",
         "Operating System :: OS Independent",
-        "License :: OSI Approved :: Apache Software License",
+        "License :: OSI Approved :: GNU General License v3 or later (GPLv3+)",
       ],
       python_requires='>=3.5',
       ext_modules=ext_modules,
