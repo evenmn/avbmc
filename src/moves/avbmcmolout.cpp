@@ -113,7 +113,7 @@ std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
     std::vector<unsigned int> molecule_out, molecule_out2, neigh_listi;
     molecule_out.clear();
 
-    neigh_listi = box->build_neigh_list(i, r_abovesq);
+    neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     //neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
     n_in = neigh_listi.size();
     if (n_in < natom) {  // ensure that there is a least one molecule left
@@ -127,7 +127,7 @@ std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
 
     //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
     //molecule_out2 = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected);
-    molecule_out2 = detect_molecule(particles_tmp, molecule, detected, r_inner);
+    molecule_out2 = detect_molecule(particles_tmp, molecule, detected, r_inner, box);
     // std::transform
     for (unsigned int idx : molecule_out2) {
         molecule_out.push_back(neigh_listi[idx]);
@@ -171,7 +171,7 @@ void AVBMCMolOut::perform_move()
     }
     */
     i = box->typeidx[molecule[0].type][rng->next_int(box->npartype[molecule[0].type])];
-    std::vector<unsigned int> neigh_listi = box->build_neigh_list(i, r_abovesq);
+    std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     n_in = neigh_listi.size(); 
     nmolavg = n_in * natom_inv;
 

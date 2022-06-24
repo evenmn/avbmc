@@ -18,12 +18,14 @@ class System
 public:
     System(const std::string & = ".", bool = true); 
     System(const System &);
+    void set_working_directory(const std::string &);
 
     // methods
     void set_temp(double);
     void set_chempot(double);
     void set_mass(std::string, double);
     void set_seed(unsigned int);
+    void set_dim(unsigned int);
 
     void set_sampler(class Sampler *);
     void set_sampler(const std::string &, std::function<double(int)>, int = 100);
@@ -59,6 +61,7 @@ public:
     void rm_box(unsigned int);
     void rm_move(unsigned int);
     void rm_constraint(unsigned int, int = 0);
+    void clear_particles(int = -1);
 
     void check_masses();
     unsigned int get_maxiter(unsigned int);
@@ -82,7 +85,7 @@ public:
     int nbox;  // nbox is signed as it is compared to box_id which is signed
     unsigned int ndim, nmove, step;
     double temp, chempot, poteng, time;
-    std::string working_dir;
+    std::string working_dir, original_dir;
 
     std::vector<class Box *> boxes;
     //std::vector<std::string> unique_labels;

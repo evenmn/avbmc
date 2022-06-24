@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-06-09)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -262,9 +262,9 @@ void Box::add_particle(Particle particle)
                   << "adding particles!" << std::endl;
         exit(0);
     }
+    assert (system->ndim == particle.r.size());
     particle.type = forcefield->label2type[particle.label];
     typeidx[particle.type].push_back(npar);
-    system->ndim = particle.r.size();
     particles.push_back(particle);
     boundary->correct_position(npar);
     npar ++;
@@ -372,6 +372,22 @@ void Box::rm_particle(unsigned int i)
 }
 
 
+void Box::clear_particles()
+{
+    /*
+    typeidx.clear();
+    for (auto &type : npartype) {
+        type.clear();
+    }
+    particles.clear();
+    npar = 0;
+    */
+    for (unsigned int i=npar; i--;) {
+        rm_particle(i);
+    }
+}
+
+
 /* ----------------------------------------------------------------------------
    Add box constraint
 ---------------------------------------------------------------------------- */
@@ -383,6 +399,8 @@ void Box::add_constraint(Constraint* constraint)
                   << "before adding constraints!" << std::endl;
         exit(0);
     }
+    std::cout << "Warning: All constraints have to be added before particles "
+              << "are being added" << std::endl;
     nconstraint ++;
     constraints.push_back(constraint);
     constraint_allocated_in_system.push_back(false);
@@ -457,7 +475,7 @@ void Box::set_thermo(const int freq, std::string filename,
    Build neighbor list of particle 'i' with maximum neighbor
    distance squared 'rsq'
 ---------------------------------------------------------------------------- */
-
+/*
 double normsq(std::valarray<double> array)
 {
     double sumsq;
@@ -520,7 +538,7 @@ std::vector<unsigned int> Box::build_neigh_list(const int i, double **rsq)
     }
     return neigh_list;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Write number of times each system size has occured to

@@ -252,28 +252,57 @@ double DistanceManager::normsq(std::valarray<double> array)
 /* ----------------------------------------------------------------------------
    ff
 ---------------------------------------------------------------------------- */
-/*
-std::vector<unsigned int> DistanceManager::build_neigh_list(const int i, const double rsq)
+
+std::vector<unsigned int> DistanceManager::build_neigh_list(int i, double rsq)
 {
-    double rijsq;
-    std::valarray<double> ri = particles[i].r;
+    //double rijsq;
+    //std::valarray<double> ri = box->particles[i].r;
     std::vector<unsigned int> neigh_list;
+
     for(unsigned int j=0; j<i; j++){
-        rijsq = normsq(particles[j].r - ri);
-        if(rijsq < rsq){
+        //rijsq = normsq(box->particles[j].r - ri);
+        if(distance_mat[i][j] < rsq){
             neigh_list.push_back(j);
         }
     }
-    for(unsigned int j=i+1; j<npar; j++){
-        //std::valarray<double> rii = particles[j].r - particles[i].r;
-        rijsq = normsq(particles[j].r - ri);
-        if(rijsq < rsq){
+    for(unsigned int j=i+1; j<box->npar; j++){
+        //rijsq = normsq(box->particles[j].r - ri);
+        if(distance_mat[i][j] < rsq){
             neigh_list.push_back(j);
         }
     }
     return neigh_list;
 }
-*/
+
+
+/* ----------------------------------------------------------------------------
+   ff
+---------------------------------------------------------------------------- */
+
+std::vector<unsigned int> DistanceManager::build_neigh_list(
+    std::vector<Particle> particles, const unsigned int i, const double rsq)
+{
+    double rijsq;
+    unsigned int npar, j;
+    
+    npar = particles.size();
+    std::valarray<double> ri = particles[i].r;
+    std::vector<unsigned int> neigh_list;
+    for (j=0; j<i; j++) {
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    for (j=i+1; j<npar; j++) {
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if (rijsq < rsq) {
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
+}
+
 
 /* ----------------------------------------------------------------------------
    Store old matrices
@@ -387,6 +416,7 @@ void DistanceManager::update_insert(unsigned int i)
         if (i == j) continue;
         update_neigh(i, j, rij);
     }
+
     distance_mat.insert(distance_mat.begin() + i, rijs);
     distance_cube.insert(distance_cube.begin() + i, delijs);
 }

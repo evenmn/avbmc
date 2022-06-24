@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-06-09)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -122,6 +122,34 @@ System::System(const System &other)
     ndim = other.ndim;
     rng_allocated_externally = other.rng_allocated_externally;
     sampler_allocated_externally = other.sampler_allocated_externally;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Make and move to working directory
+---------------------------------------------------------------------------- */
+
+void System::set_working_directory(const std::string &working_directory)
+{
+    //mkdir(working_dir);
+    //chdir(working_dir);
+}
+
+
+/* ----------------------------------------------------------------------------
+   Set number of dimensions
+---------------------------------------------------------------------------- */
+
+void System::set_dim(unsigned int dim)
+{
+    for (Box *box : boxes) {
+        if (box->npar > 0) {
+            std::cout << "Cannot change dimensionality when particles are "
+                      << "added! Aborting." << std::endl;
+            exit(0);
+        }
+    }
+    ndim = dim;
 }
 
 
@@ -1192,6 +1220,19 @@ void System::rm_particle(unsigned int idx, int box_id)
 }
 
 
+void System::clear_particles(int box_id)
+{
+    if (box_id < 0) {
+        for (Box *box : boxes) {
+            box->clear_particles();
+        }
+    }
+    else {
+        boxes[box_id]->clear_particles();
+    }
+}
+
+
 /* ----------------------------------------------------------------------------
    Write histogram of system sizes out to file
 ---------------------------------------------------------------------------- */
@@ -1420,4 +1461,5 @@ System::~System()
     for (unsigned int i=nmove; i--;) {
         rm_move(i);
     }
+    //chdir(original_dir);
 }

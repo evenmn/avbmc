@@ -23,7 +23,7 @@ public:
     std::string repr() override;
 
 private:
-    bool reject_move, energy_bias;
+    bool move_performed, energy_bias;
     unsigned int n_in, particle_type;
     std::string particle_label;
     double v_in;
