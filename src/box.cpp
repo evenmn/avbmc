@@ -262,9 +262,9 @@ void Box::add_particle(Particle particle)
                   << "adding particles!" << std::endl;
         exit(0);
     }
+    assert (system->ndim == particle.r.size());
     particle.type = forcefield->label2type[particle.label];
     typeidx[particle.type].push_back(npar);
-    system->ndim = particle.r.size();
     particles.push_back(particle);
     boundary->correct_position(npar);
     npar ++;

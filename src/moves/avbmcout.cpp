@@ -60,12 +60,11 @@ void AVBMCOut::perform_move()
 {
     unsigned int i;
 
-    du = 0.;
+    //du = 0.;
+    move_performed = false;
 
     // cannot remove particle if it does not exist
-    if (box->npartype[particle_type] < 1) {
-        return;
-    }
+    if (box->npartype[particle_type] < 1) return;
 
     // pick target particle and count number of neighbors
     i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
@@ -73,17 +72,17 @@ void AVBMCOut::perform_move()
     n_in = neigh_listi.size();
 
     // target atom needs neighbors in order to remove neighbor
-    if (n_in < 1) {
-        return;
-    }
+    if (n_in < 1) return;
+
     // pick particle to be removed randomly among neighbors
     for (unsigned int j : rng->shuffle(neigh_listi)) {
         if (box->particles[j].type == particle_type) {
             du = -box->forcefield->comp_energy_par_force0(j); // this should be
             box->poteng += du;                                // baked into rm_particle
-            box->rm_particle(j);
-            particle_out = box->particles[j];
-            break;
+            particle_out = box->particles[j];                 // store old particle in
+            box->rm_particle(j);                              // case move is rejected
+            move_performed = true;
+            return; //break;
         }
     }
 }
@@ -96,6 +95,8 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
+    if (!move_performed) return 1.;
+
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
     double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
     return prefactor * std::exp(-(du+chempot+dw)/temp);
