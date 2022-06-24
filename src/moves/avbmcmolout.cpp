@@ -127,7 +127,7 @@ std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
 
     //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
     //molecule_out2 = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected);
-    molecule_out2 = detect_molecule(particles_tmp, molecule, detected, r_inner);
+    molecule_out2 = detect_molecule(particles_tmp, molecule, detected, r_inner, box);
     // std::transform
     for (unsigned int idx : molecule_out2) {
         molecule_out.push_back(neigh_listi[idx]);

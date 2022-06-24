@@ -276,6 +276,35 @@ std::vector<unsigned int> DistanceManager::build_neigh_list(int i, double rsq)
 
 
 /* ----------------------------------------------------------------------------
+   ff
+---------------------------------------------------------------------------- */
+
+std::vector<unsigned int> DistanceManager::build_neigh_list(
+    std::vector<Particle> particles, const unsigned int i, const double rsq)
+{
+    double rijsq;
+    unsigned int npar, j;
+    
+    npar = particles.size();
+    std::valarray<double> ri = particles[i].r;
+    std::vector<unsigned int> neigh_list;
+    for (j=0; j<i; j++) {
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if(rijsq < rsq){
+            neigh_list.push_back(j);
+        }
+    }
+    for (j=i+1; j<npar; j++) {
+        rijsq = std::pow(particles[j].r - ri, 2).sum();
+        if (rijsq < rsq) {
+            neigh_list.push_back(j);
+        }
+    }
+    return neigh_list;
+}
+
+
+/* ----------------------------------------------------------------------------
    Store old matrices
 ---------------------------------------------------------------------------- */
 

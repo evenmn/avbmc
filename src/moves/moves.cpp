@@ -20,9 +20,11 @@
 #include <cassert>
 
 #include "moves.h"
+#include "../box.h"
 #include "../particle.h"
 #include "../system.h"
 #include "../rng/rng.h"
+#include "../distance_manager.h"
 
 
 /* ----------------------------------------------------------------------------
@@ -177,7 +179,7 @@ unsigned int Moves::detect_target_particle(bool &detected)
    Build neighbor list of particle 'i' with maximum neighbor distance squared
    'rsq'
 ---------------------------------------------------------------------------- */
-
+/*
 std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particles,
     const unsigned int i, const double rsq)
 {
@@ -201,7 +203,7 @@ std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particle
     }
     return neigh_list;
 }
-
+*/
 
 /* ----------------------------------------------------------------------------
    Check if particles match molecule type recursively.
@@ -209,15 +211,15 @@ std::vector<unsigned int> Moves::build_neigh_list(std::vector<Particle> particle
 
 void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
     unsigned int elm_count, std::vector<unsigned int> &elm_idx,
-    std::vector<Particle> particles, double rc)
+    std::vector<Particle> particles, double rc, Box *box)
 {
     if (elm_idx.size() < molecule.size()) {  
         if (particles[i].type == molecule[elm_count].type) {
             elm_idx.push_back(i);
             elm_count ++;
-            std::vector<unsigned int> neigh_list = build_neigh_list(particles, i, rc*rc);
+            std::vector<unsigned int> neigh_list = box->distance_manager->build_neigh_list(particles, i, rc*rc);
             for (int neigh : neigh_list) {
-                check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc);
+                check_neigh_recu(neigh, molecule, elm_count, elm_idx, particles, rc, box);
             }
         }
     }
@@ -231,7 +233,7 @@ void Moves::check_neigh_recu(const int i, std::vector<Particle> molecule,
 ---------------------------------------------------------------------------- */
 
 std::vector<unsigned int> Moves::detect_molecule(std::vector<Particle> particles,
-    std::vector<Particle> molecule, bool &detected, double rc)
+    std::vector<Particle> molecule, bool &detected, double rc, Box *box)
 {
     unsigned int i, count;
     std::vector<unsigned int> elm_idx;
@@ -241,7 +243,7 @@ std::vector<unsigned int> Moves::detect_molecule(std::vector<Particle> particles
     {
         elm_idx.clear();
         i = rng->next_int(particles.size());     // pick initial particle
-        check_neigh_recu(i, molecule, 0, elm_idx, particles, rc);
+        check_neigh_recu(i, molecule, 0, elm_idx, particles, rc, box);
         if (elm_idx.size() == molecule.size()) {
             detected = true;
         }
