@@ -95,6 +95,7 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
+    std::cout << move_performed << std::endl;
     if (!move_performed) return 1.;
 
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);

@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-07-07)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -62,18 +62,72 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
     cum_time = 0.;
     label = "AVBMCMolOut";
 
-    // neigh_id_above = box->distance_manager->add_cutoff(r_above,
-    // particles[0].label, particles[0].label, false); neigh_id_inner =
-    // box->distance_manager->add_cutoff(r_inner, particles[0].label,
-    // particles[1].label, false);
-    //neigh_id_above = box->distance_manager->add_cutoff(r_above);
-    //neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
+    std::string center = molecule[0].label;
+
+    //unsigned int neigh_id_above, neigh_id_inner;
+    neigh_id_above = box->distance_manager->add_cutoff(r_above, center, center);
+    neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
+
+    //neigh_list_above = &box->distance_manager->neigh_lists[neigh_id_above];
+    //neigh_list_inner = &box->distance_manager->neigh_lists[neigh_id_inner];
 
     for (Particle &particle : molecule) {
         particle.type = box->forcefield->label2type.at(particle.label);
     }
+    center_type = molecule[0].type;
 }
 
+
+/* ----------------------------------------------------------------------------
+   Try to find next element in group sequence through recursive iteration. 'j'
+   is the element to check, 'elm_count' is the currect particle index of the
+   group, 'elm_idx' contains the indices of the correctly detected elements so
+   far and 'neigh_list_d' is the inner neighbor list of particles
+---------------------------------------------------------------------------- */
+/*
+void AVBMCMolOut::check_neigh_recu(int j, unsigned int elm_count,
+    std::vector<unsigned int> &elm_idx,
+    std::vector<std::vector<unsigned int> > neigh_list_d)
+{
+    if (elm_idx.size() == natom) {
+        detected_out = true;
+        return;
+    }
+
+    if (box->particles[j].type == molecule[elm_count].type) {
+        elm_idx.push_back(j);
+        elm_count ++;
+        for (unsigned int neigh : neigh_list_d[j]) {
+            check_neigh_recu(neigh, elm_count, elm_idx, neigh_list_d);
+        }
+    }
+}
+*/
+
+/* ----------------------------------------------------------------------------
+   Detect molecule of the same types as 'molecule' randomly by picking a random 
+   atom among the elements and checking the neighbor list.
+   Returning a list of atom ids if molecule is detected
+---------------------------------------------------------------------------- */
+/*
+std::vector<unsigned int> AVBMCMolOut::detect_molecule(
+    std::vector<unsigned int> neigh_listi, bool &detected)
+{
+    unsigned int i, count;
+    std::vector<unsigned int> elm_idx;
+    
+    //for (unsigned int j : neigh_listi) {
+    for (unsigned int j : rng->shuffle(neigh_listi)) {
+        check_neigh_recu(j, 0, elm_idx, neigh_listi);
+        if (elm_idx.size() == molecule.size()) {
+            detected = true;
+            return elm_idx;
+        }
+    }
+    detected = false;
+    return {};
+}
+*/
 
 /* ----------------------------------------------------------------------------
    Detect target molecule (or atom if target_mol=false). Make maximum 'npar' 
@@ -104,106 +158,71 @@ unsigned int AVBMCMolOut::detect_target_molecule(bool &detected)
 */
 
 /* ----------------------------------------------------------------------------
-   Detect deletion molecule.
----------------------------------------------------------------------------- */
-
-std::vector<unsigned int> AVBMCMolOut::detect_deletion_molecule(unsigned int i,
-    bool &detected)
-{
-    std::vector<unsigned int> molecule_out, molecule_out2, neigh_listi;
-    molecule_out.clear();
-
-    neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
-    //neigh_listi = box->distance_manager->neigh_lists[neigh_id_above][i];
-    n_in = neigh_listi.size();
-    if (n_in < natom) {  // ensure that there is a least one molecule left
-        detected = false;
-        return molecule_out2;
-    }
-    std::vector<Particle> particles_tmp;
-    for (unsigned int j=0; j < n_in; j++){
-        particles_tmp.push_back(box->particles[neigh_listi[j]]);
-    }
-
-    //neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-    //molecule_out2 = detect_molecule(neigh_list_inner, particles_tmp, molecule, detected);
-    molecule_out2 = detect_molecule(particles_tmp, molecule, detected, r_inner, box);
-    // std::transform
-    for (unsigned int idx : molecule_out2) {
-        molecule_out.push_back(neigh_listi[idx]);
-        //molecule_out2.push_back(particles_tmp[idx]);
-    }
-    return molecule_out;
-}
-
-
-/* ----------------------------------------------------------------------------
    Remove a random molecule from the bonded region of another similar molecule.
 ---------------------------------------------------------------------------- */
 
 void AVBMCMolOut::perform_move()
 {
-    unsigned int i, n_in;
-    std::vector<unsigned int> molecule_idx_out;
-
+    du = 0.;
     detected_out = false;
 
     // cannot remove particle if it does not exist
-    if (box->npartype[molecule[0].type] < 1) {
-        return;
-    }
+    if (box->npartype[center_type] < 1) return;
 
-    //if (box->npar < 2 * natom - 1) {
-    //    // do not remove molecule if there is less than two molecules available
-    //    return;
-    //}
+    // loop through potential target particles
+    for (unsigned int t : rng->shuffle(box->typeidx[center_type])) {
+        // loop through potential deletion particles
+        //std::vector<unsigned int> target_neigh = ;
+        // --- begin detect molecule
+        for (unsigned int d : rng->shuffle(box->distance_manager->neigh_lists[neigh_id_above][t])) {
+            std::vector<unsigned int> molecule_idx_out, delete_neigh;
+            if (box->particles[d].type == center_type) {
+                molecule_idx_out.push_back(d);
+                delete_neigh = box->distance_manager->neigh_lists[neigh_id_inner][d];
+                nmolavg = delete_neigh.size();
+                for (unsigned int i=1; i<natom; i++) {
+                    detected_out = false;
+                    for (unsigned int j=0; j<delete_neigh.size(); j++) {
+                        if (molecule[i].type == box->particles[delete_neigh[j]].type) {
+                            molecule_idx_out.push_back(delete_neigh[j]);
+                            delete_neigh.erase(delete_neigh.begin() + j);
+                            detected_out = true;
+                            break;
+                        }
+                    }
+                    if (!detected_out) break;
+                }
+            }
 
-    // detect target particle (molecule)
-    /*
-    if (target_mol) {
-        i = detect_target_molecule(detected_target);
-        if (!detected_target) {
-            return;
+            if (!detected_out) continue;
+            // --- end detect molecule
+
+            //check_neigh_recu(d, 0, molecule_idx_out, delete_neigh);
+
+            // compute change of energy when removing molecule
+            if (box->store_energy) {
+                // std::accumulate
+                for (unsigned int k : molecule_idx_out) {
+                    du -= box->forcefield->poteng_vec[k];
+                }
+            }
+            else {
+                for (unsigned int k : molecule_idx_out) {
+                    du -= box->forcefield->comp_energy_par_force0(k);
+                }
+            }
+
+            // remove molecule
+            molecule_out.clear();
+            std::sort(molecule_idx_out.begin(), molecule_idx_out.end(), std::greater<unsigned int>()); // sort in descending order
+            for (unsigned int k : molecule_idx_out) {
+                molecule_out.push_back(box->particles[k]);
+                box->rm_particle(k);
+            }
+            box->poteng += du;
+            nmolavg = n_in * natom_inv;
         }
     }
-    else {
-        i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
-    }
-    */
-    i = box->typeidx[molecule[0].type][rng->next_int(box->npartype[molecule[0].type])];
-    std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
-    n_in = neigh_listi.size(); 
-    nmolavg = n_in * natom_inv;
-
-    // target particle needs at least natom neighbors
-    if (n_in < natom) {
-        return;
-    }
-    molecule_idx_out = detect_deletion_molecule(i, detected_out);
-    if (!detected_out) return;
-
-    // compute change of energy when removing molecule
-    du = 0.;
-    if (box->store_energy) {
-        // std::accumulate
-        for (unsigned int k : molecule_idx_out) {
-            du -= box->forcefield->poteng_vec[k];
-        }
-    }
-    else {
-        for (unsigned int k : molecule_idx_out) {
-            du -= box->forcefield->comp_energy_par_force0(k);
-        }
-    }
-    // remove molecule
-    molecule_out.clear();
-    std::sort(molecule_idx_out.begin(), molecule_idx_out.end(), std::greater<unsigned int>()); // sort in descending order
-    for (unsigned int k : molecule_idx_out) {
-        molecule_out.push_back(box->particles[k]);
-        box->rm_particle(k);
-    }
-    box->poteng += du;
-    nmolavg = n_in * natom_inv;
 }
 
 

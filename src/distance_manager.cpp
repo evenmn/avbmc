@@ -253,7 +253,7 @@ double DistanceManager::normsq(std::valarray<double> array)
    ff
 ---------------------------------------------------------------------------- */
 
-std::vector<unsigned int> DistanceManager::build_neigh_list(int i, double rsq)
+std::vector<unsigned int> DistanceManager::build_neigh_list(unsigned int i, double rsq)
 {
     //double rijsq;
     //std::valarray<double> ri = box->particles[i].r;

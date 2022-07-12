@@ -25,7 +25,7 @@ public:
 
     std::vector<unsigned int> build_neigh_list(std::vector<class Particle>,
         unsigned int, double);
-    std::vector<unsigned int> build_neigh_list(int, double);
+    std::vector<unsigned int> build_neigh_list(unsigned int, double);
     
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
