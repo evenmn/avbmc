@@ -26,11 +26,13 @@ public:
     std::vector<class Particle> molecule_out;
 
 private:
+    void check_neigh_recu(int, unsigned int, std::vector<unsigned int> &, std::vector<std::vector<unsigned int> >);
     unsigned int detect_target_molecule(bool &);
-    std::vector<unsigned int> detect_deletion_molecule(unsigned int, bool &);
+    std::vector<unsigned int> detect_deletion_molecule(std::vector<unsigned int>, bool &);
 
 
-    unsigned int natom, neigh_id_above, neigh_id_inner, n_in;
+    //std::vector<std::vector<unsigned int> > *neigh_list_above, *neigh_list_inner;
+    unsigned int natom, neigh_id_above, neigh_id_inner, n_in, center_type;
     bool detected_target, energy_bias, target_mol;
     double v_in, nmolavg, r_inner, natom_inv;
     std::vector<class Particle> molecule;
