@@ -997,6 +997,7 @@ void System::rm_move(unsigned int idx)
         delete moves[idx];
     }
     moves.erase(moves.begin() + idx);
+    moves_prob.erase(moves_prob.begin() + idx);
     moves_allocated_in_system.erase(moves_allocated_in_system.begin() + idx);
     nmove--;
 }
