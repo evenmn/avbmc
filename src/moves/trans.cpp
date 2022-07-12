@@ -40,7 +40,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in,
 {
     box = box_in;
     dx = dx_in;
-    i = 0;
+    i = naccept = ndrawn = 0;
     cum_time = 0.;
     if (element_in.empty()) {
         element_spec = false;

@@ -48,6 +48,8 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
     v_in = 1.;
+    cum_time = 0.;
+    naccept = ndrawn = 0;
 
     particle_label = particle_in;
     particle_type = box->forcefield->label2type.at(particle_in);

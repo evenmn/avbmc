@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-07-12)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -46,7 +46,8 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in,
     r_above = r_above_in;
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
-    n_in = 0;
+    cum_time = 0.;
+    n_in = naccept = ndrawn = 0;
     particle_type = box->forcefield->label2type[particle_label];
     label = "AVBMCOut";
 }

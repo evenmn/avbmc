@@ -61,6 +61,7 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     cum_time = 0.;
+    naccept = ndrawn = 0;
     label = "AVBMCMolIn";
 
     /*
