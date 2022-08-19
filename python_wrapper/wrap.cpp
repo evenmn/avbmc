@@ -37,6 +37,7 @@
 #include "../src/moves/avbmcmolin.h"
 #include "../src/moves/avbmcmolout.h"
 #include "../src/moves/avbmcswapright.h"
+#include "../src/moves/avbmcmolswapright.h"
 
 #include "../src/boundary/boundary.h"
 #include "../src/boundary/open.h"
@@ -624,7 +625,8 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_molecule") = false
-        );
+        )
+        .def_readonly("nrejecttarget", &AVBMCMolIn::nrejecttarget);
     py::class_<AVBMCMolOut, Moves>(m, "AVBMCMolOut")
         .def(py::init<System *, Box *, std::vector<Particle>, double, double, bool, bool>(),
             "Aggregate volume-biased molecule insertation move",
@@ -635,7 +637,25 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_molecule") = false
-        );
+        )
+        .def_readonly("nrejecttarget", &AVBMCMolOut::nrejecttarget)
+        .def_readonly("nrejectout", &AVBMCMolOut::nrejectout);
+    py::class_<AVBMCMolSwapRight, Moves>(m, "AVBMCMolSwapRight")
+        .def(py::init<System *, Box *, Box *, std::vector<Particle>, double, double, double, bool, bool>(),
+            "Aggregate volume-biased molecule swap move",
+            py::arg("system_object"),
+            py::arg("box_object1"),
+            py::arg("box_object2"),
+            py::arg("molecule"),
+            py::arg("r_above") = 3.0,
+            py::arg("r_below") = 0.95,
+            py::arg("r_inner") = 1.3,
+            py::arg("energy_bias") = false,
+            py::arg("target_molecule") = false
+        )
+        .def_readonly("nrejecttargetin", &AVBMCMolSwapRight::nrejecttargetin)
+        .def_readonly("nrejecttargetout", &AVBMCMolSwapRight::nrejecttargetout)
+        .def_readonly("nrejectout", &AVBMCMolSwapRight::nrejectout);
 
     // ForceField
     py::class_<ForceField>(m, "ForceField")
