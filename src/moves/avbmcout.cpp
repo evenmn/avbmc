@@ -47,7 +47,7 @@ AVBMCOut::AVBMCOut(System* system_in, Box* box_in,
     r_abovesq = r_above * r_above;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     cum_time = 0.;
-    n_in = naccept = ndrawn = 0;
+    n_in = naccept = ndrawn = nrejecttarget = nrejectout = 0;
     particle_type = box->forcefield->label2type[particle_label];
     label = "AVBMCOut";
 }
@@ -65,7 +65,10 @@ void AVBMCOut::perform_move()
     move_performed = false;
 
     // cannot remove particle if it does not exist
-    if (box->npartype[particle_type] < 1) return;
+    if (box->npartype[particle_type] < 1) {
+        nrejecttarget ++;
+        return;
+    }
 
     // pick target particle and count number of neighbors
     i = box->typeidx[particle_type][rng->next_int(box->npartype[particle_type])];
@@ -73,7 +76,10 @@ void AVBMCOut::perform_move()
     n_in = neigh_listi.size();
 
     // target atom needs neighbors in order to remove neighbor
-    if (n_in < 1) return;
+    if (n_in < 1) {
+        nrejectout ++;
+        return;
+    }
 
     // pick particle to be removed randomly among neighbors
     for (unsigned int j : rng->shuffle(neigh_listi)) {

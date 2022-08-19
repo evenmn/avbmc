@@ -24,7 +24,7 @@ public:
     virtual std::string repr() = 0;
     virtual ~Moves() = default;
 
-    unsigned int ndrawn, naccept, nrejecttarget, nrejectout;
+    unsigned int ndrawn, naccept, nrejecttarget, nrejectout, nrejecttargetin, nrejecttargetout;
     double cum_time;
     std::string label;
 

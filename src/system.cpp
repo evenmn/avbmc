@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-09)
+  Date: 2022-06-03 (last changed 2022-08-19)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -1486,10 +1486,10 @@ std::string cell_padding(const std::string &text, const std::string &side, std::
 
 std::string get_column_mapping(Moves *move, const std::string &keyword)
 {
-    std::string rejout, rejtarg;
+    std::string rejout, rejtarg, rejtargout, rejtargin;
+    std::vector<std::string> mylist{"AVBMCMolOut", "AVBMCOut", "AVBMCSwapRight", "AVBMCMolSwapRight"};
 
-    rejout = rejtarg = "-";
-    if (move->label == "AVBMCMolOut") {
+    if (std::find(std::begin(mylist), std::end(mylist), move->label) != std::end(mylist)) {
         rejout = std::to_string(move->nrejectout);
         rejtarg = std::to_string(move->nrejecttarget);
     }
@@ -1498,8 +1498,15 @@ std::string get_column_mapping(Moves *move, const std::string &keyword)
         rejtarg = std::to_string(move->nrejecttarget);
     }
     else {
-        rejout = "-";
-        rejtarg = "-";
+        rejout = rejtarg = "-";
+    }
+
+    if (move->label == "AVBMCMolSwapRight") {
+        rejtargout = std::to_string(move->nrejecttargetout);
+        rejtargin = std::to_string(move->nrejecttargetin);
+    }
+    else {
+        rejtargout = rejtargin = "-";
     }
 
     std::map<std::string, std::string> column_map { 
@@ -1510,7 +1517,9 @@ std::string get_column_mapping(Moves *move, const std::string &keyword)
         {"accratio", std::to_string(static_cast<double>(move->naccept)/move->ndrawn)},
         {"cputime", std::to_string(move->cum_time)},
         {"rejout", rejout},
-        {"rejtarg", rejtarg}
+        {"rejtarg", rejtarg},
+        {"rejtargout", rejtargout},
+        {"rejtargin", rejtargin}
     };
 
     return column_map[keyword];
@@ -1521,20 +1530,6 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
 {
     std::string head_row, row, rows, table, pad;
 
-    /*
-    //columns to be printed
-    std::vector<std::string> cols = {
-        "move", 
-        "ndrawn", 
-        "naccept", 
-        "nreject",
-        "accratio", 
-        "cputime",
-        "rejout",
-        "rejtarg"
-    };
-    */
-
     std::map<std::string, std::string> head_labels {
         {"move", "Move"},
         {"ndrawn", "#drawn"},
@@ -1543,7 +1538,9 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
         {"accratio", "acc. ratio"},
         {"cputime", "CPU-time (s)"},
         {"rejout", "#reject out"},
-        {"rejtarg", "#reject target"}
+        {"rejtarg", "#reject target"},
+        {"rejtargout", "#reject target out"},
+        {"rejtargin", "#reject target in"}
     };
 
     std::vector<std::size_t> max_size_col(cols.size());

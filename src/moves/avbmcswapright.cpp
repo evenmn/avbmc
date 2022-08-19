@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-19)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -50,6 +50,8 @@ void AVBMCSwapRight::perform_move()
 {
     AVBMCOut::perform_move();  // remove particle from box 1
     AVBMCIn::perform_move();   // insert particle into box 2
+    nrejectout = AVBMCOut::nrejectout;
+    nrejecttarget = AVBMCOut::nrejecttarget;
 }
 
 
