@@ -36,6 +36,8 @@ private:
   void clear_neigh(unsigned int);
   void remove_neigh(unsigned int);
   void update_neigh(unsigned int, unsigned int, double);
+  void update_neigh_k(unsigned int);
+  void update_neigh_k(unsigned int, unsigned int, unsigned int, double);
   double normsq(std::valarray<double>);
 
   double cutoff_tol;
