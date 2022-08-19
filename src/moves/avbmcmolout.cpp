@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-07-12)
+  Date: 2022-06-03 (last changed 2022-08-19)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -200,7 +200,10 @@ void AVBMCMolOut::perform_move()
             }
             // --- end detect molecule
 
-            if (!detected_out) continue;
+            if (!detected_out) {
+                nrejectout ++;
+                continue;
+            }
 
             //check_neigh_recu(d, 0, molecule_idx_out, delete_neigh);
 

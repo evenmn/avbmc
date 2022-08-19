@@ -25,8 +25,6 @@ public:
     std::string repr() override;
     void insert(std::vector<class Particle>);
 
-    unsigned int nrejecttarget;
-
 private:
     unsigned int detect_target_molecule(bool &);
     std::vector<Particle> create_molecule();

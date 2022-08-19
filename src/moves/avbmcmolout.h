@@ -23,7 +23,6 @@ public:
     std::string repr() override;
 
     bool detected_out;
-    unsigned int nrejecttarget, nrejectout;
     std::vector<class Particle> molecule_out;
 
 private:
