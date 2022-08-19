@@ -409,6 +409,13 @@ PYBIND11_MODULE(avbmc, m) {
             &System::initialize_mc_run,
             "Initialize Monte Carlo run before running"
         )
+        .def("print_statistics",
+            &System::print_statistics,
+            "Print moves statistics",
+            py::arg("cols"), // = {"move","ndrawn","naccept","nreject","accratio","cputime"},
+            py::arg("print") = true,
+            py::arg("style") = "basic"
+        )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
         .def_readonly("nmove", &System::nmove)

@@ -1517,10 +1517,11 @@ std::string get_column_mapping(Moves *move, const std::string &keyword)
 }
 
 
-std::string System::print_statistics(bool print, const std::string &style) //std::vector<std::string> cols, bool print)
+std::string System::print_statistics(std::vector<std::string> cols, bool print, const std::string &style)
 {
     std::string head_row, row, rows, table, pad;
 
+    /*
     //columns to be printed
     std::vector<std::string> cols = {
         "move", 
@@ -1532,6 +1533,7 @@ std::string System::print_statistics(bool print, const std::string &style) //std
         "rejout",
         "rejtarg"
     };
+    */
 
     std::map<std::string, std::string> head_labels {
         {"move", "Move"},
@@ -1610,7 +1612,6 @@ std::string System::print_statistics(bool print, const std::string &style) //std
 
 System::~System()
 {
-    print_statistics();
     if (!rng_allocated_externally) {
         delete rng;
     }
