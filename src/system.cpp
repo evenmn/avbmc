@@ -23,6 +23,7 @@
 #include <cassert>
 #include <chrono>
 #include <functional>
+#include <map>
 
 #include "system.h"
 #include "box.h"
@@ -1418,6 +1419,10 @@ void System::initialize_mc_run()
 }
 
 
+/* ----------------------------------------------------------------------------
+   Run nsteps cycles
+---------------------------------------------------------------------------- */
+
 void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
 {
     initialize_mc_run();
@@ -1433,6 +1438,10 @@ void System::run_mc(const unsigned int nsteps, const unsigned int nmoves)
 }
 
 
+/* ----------------------------------------------------------------------------
+   Run a cycle
+---------------------------------------------------------------------------- */
+
 void System::run_mc_cycle(const unsigned int nmoves)
 {
     for (Box* box : boxes) {
@@ -1445,11 +1454,163 @@ void System::run_mc_cycle(const unsigned int nmoves)
 
 
 /* ----------------------------------------------------------------------------
+   Print beautiful table for moves statistics
+---------------------------------------------------------------------------- */
+
+std::string cell_padding(const std::string &text, const std::string &side, std::size_t column_width)
+{
+    std::size_t whitespace, whitespace_left, whitespace_right;
+
+    if (text.size() > column_width) return text;
+    
+    whitespace = column_width - text.size();
+    if (side == "center" || side == "c") {
+        whitespace_left = static_cast<int>(std::floor(whitespace/2.));
+        whitespace_right = static_cast<int>(std::ceil(whitespace/2.));
+    }
+    else if (side == "left" || side == "l") {
+        whitespace_left = 0;
+        whitespace_right = whitespace;
+    }
+    else if (side == "right" || side == "r") {
+        whitespace_left = whitespace;
+        whitespace_right = 0;
+    }
+    else {
+        exit(0);
+    }
+
+    return std::string(whitespace_left, ' ') + text + std::string(whitespace_right, ' ');
+}
+
+
+std::string get_column_mapping(Moves *move, const std::string &keyword)
+{
+    std::string rejout, rejtarg;
+
+    rejout = rejtarg = "-";
+    if (move->label == "AVBMCMolOut") {
+        rejout = std::to_string(move->nrejectout);
+        rejtarg = std::to_string(move->nrejecttarget);
+    }
+    else if (move->label == "AVBMCMolIn") {
+        rejout = "-";
+        rejtarg = std::to_string(move->nrejecttarget);
+    }
+    else {
+        rejout = "-";
+        rejtarg = "-";
+    }
+
+    std::map<std::string, std::string> column_map { 
+        {"move", move->label},
+        {"ndrawn", std::to_string(move->ndrawn)},
+        {"naccept", std::to_string(move->naccept)},
+        {"nreject", std::to_string(move->ndrawn-move->naccept)},
+        {"accratio", std::to_string(static_cast<double>(move->naccept)/move->ndrawn)},
+        {"cputime", std::to_string(move->cum_time)},
+        {"rejout", rejout},
+        {"rejtarg", rejtarg}
+    };
+
+    return column_map[keyword];
+}
+
+
+std::string System::print_statistics(bool print, const std::string &style) //std::vector<std::string> cols, bool print)
+{
+    std::string head_row, row, rows, table, pad;
+
+    //columns to be printed
+    std::vector<std::string> cols = {
+        "move", 
+        "ndrawn", 
+        "naccept", 
+        "nreject",
+        "accratio", 
+        "cputime",
+        "rejout",
+        "rejtarg"
+    };
+
+    std::map<std::string, std::string> head_labels {
+        {"move", "Move"},
+        {"ndrawn", "#drawn"},
+        {"naccept", "#accept"},
+        {"nreject", "#reject"},
+        {"accratio", "acc. ratio"},
+        {"cputime", "CPU-time (s)"},
+        {"rejout", "#reject out"},
+        {"rejtarg", "#reject target"}
+    };
+
+    std::vector<std::size_t> max_size_col(cols.size());
+
+    // determine max size of column
+    for (int i=0; i<cols.size(); i++) {
+        max_size_col[i] = head_labels[cols[i]].size();
+        for (Moves *move : moves) {
+            std::size_t len_cell = get_column_mapping(move, cols[i]).size();
+            if (len_cell > max_size_col[i]) max_size_col[i] = len_cell;
+        }
+    }
+
+    // get header
+    for (int i=0; i<cols.size(); i++) {
+        pad = "c";
+        std::string cell = head_labels[cols[i]];
+        head_row += "| " + cell_padding(cell, pad, max_size_col[i]) + " ";
+    }
+    head_row += "|";
+
+    // get rows
+    for (Moves *move : moves) {
+        row = "";
+        for (int i=0; i<cols.size(); i++) {
+            if (cols[i] == "move") {
+                pad = "l";
+            }
+            else {
+                pad = "r";
+            }
+            std::string cell = get_column_mapping(move, cols[i]);
+            row += "| " + cell_padding(cell, pad, max_size_col[i]) + " ";
+        }
+        row += "|";
+        rows += row + "\n";
+    }
+
+    if (style == "basic") {
+        table += std::string(head_row.size(), '-') + "\n"; 
+        table += head_row + "\n";
+        table += std::string(head_row.size(), '-') + "\n";
+        table += rows;
+        table += std::string(head_row.size(), '-') + "\n"; 
+    }
+    else if (style == "latex") {
+        table += "\begin{center}\n\begin{tabular}{";
+    }
+    else {
+        exit(0);
+    }
+
+    if (print) {
+        std::cout << std::endl;
+        std::cout << table << std::endl;
+        std::cout << std::endl;
+    }
+
+    return table;
+}
+
+
+/* ----------------------------------------------------------------------------
    System destructor, free memory allocated within this class
 ---------------------------------------------------------------------------- */
 
 System::~System()
 {
+    print_statistics();
     if (!rng_allocated_externally) {
         delete rng;
     }
