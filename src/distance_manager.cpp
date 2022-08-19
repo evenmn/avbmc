@@ -72,7 +72,10 @@ unsigned int DistanceManager::add_cutoff(double rc)
     ncutoff ++;
     modes.push_back(mode);
     cutoffs.push_back(rcsq);
+
+    // all particles
     neigh_lists.push_back({});
+    neigh_lists[neigh_id].resize(box->npar);
     update_neigh_k(neigh_id);
     return neigh_id;
 }
@@ -122,6 +125,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     mutuals.push_back(mutual);
     cutoffs.push_back(rcsq);
     neigh_lists.push_back({});
+    neigh_lists[neigh_id].resize(box->npar);
     update_neigh_k(neigh_id);
     return neigh_id;
 }
@@ -143,6 +147,7 @@ unsigned int DistanceManager::add_cutoff(double **rc)
     modes.push_back(mode);
     cutoff_mats.push_back(rc);
     neigh_lists.push_back({});
+    neigh_lists[neigh_id].resize(box->npar);
     update_neigh_k(neigh_id);
     return neigh_id;
 }
