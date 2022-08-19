@@ -24,6 +24,8 @@ public:
     void update_size_histogram() override;
     std::string repr() override;
 
+    unsigned int nrejecttargetin, nrejecttargetout, nrejectout;
+
 private:
     bool energy_bias, target_mol;
     double r_below, r_above, r_inner;

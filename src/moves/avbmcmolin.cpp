@@ -61,7 +61,7 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     cum_time = 0.;
-    naccept = ndrawn = 0;
+    naccept = ndrawn = nrejecttarget = 0;
     label = "AVBMCMolIn";
 
     /*
@@ -75,6 +75,7 @@ AVBMCMolIn::AVBMCMolIn(System* system_in, Box* box_in,
         particle.r -= particles[0].r;
         particle.type = box->forcefield->label2type.at(particle.label);
     }
+    center_type = particles[0].type;
 }
 
 
@@ -139,7 +140,12 @@ void AVBMCMolIn::insert(std::vector<Particle> molecule)
         i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
     }
     */
-    i = box->typeidx[particles[0].type][rng->next_int(box->npartype[particles[0].type])];
+    if (box->npartype[center_type] < 1) {
+        nrejecttarget ++;
+        return;
+    }
+
+    i = box->typeidx[center_type][rng->next_int(box->npartype[center_type])];
     std::vector<unsigned int> neigh_listi = box->distance_manager->build_neigh_list(i, r_abovesq);
     nmolavg = neigh_listi.size() * natom_inv;
 

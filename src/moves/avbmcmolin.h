@@ -25,12 +25,14 @@ public:
     std::string repr() override;
     void insert(std::vector<class Particle>);
 
+    unsigned int nrejecttarget;
+
 private:
     unsigned int detect_target_molecule(bool &);
     std::vector<Particle> create_molecule();
 
     bool detected_target, energy_bias, target_mol;
-    unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner;
+    unsigned int natom, neigh_id_above, neigh_id_below, neigh_id_inner, center_type;
     double r_inner, v_in, nmolavg, natom_inv;
     std::vector<class Particle> particles;
     class Box* box = nullptr;

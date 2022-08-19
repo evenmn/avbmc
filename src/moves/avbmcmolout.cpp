@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-07-07)
+  Date: 2022-06-03 (last changed 2022-07-12)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -60,17 +60,13 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
     natom_inv = 1. / natom;
     v_in = 1.; // 4 * pi * std::pow(r_above, 3)/3;
     cum_time = 0.;
-    naccept = ndrawn = 0;
+    naccept = ndrawn = nrejecttarget = nrejectout = 0;
     label = "AVBMCMolOut";
 
     std::string center = molecule[0].label;
 
-    //unsigned int neigh_id_above, neigh_id_inner;
     neigh_id_above = box->distance_manager->add_cutoff(r_above, center, center);
     neigh_id_inner = box->distance_manager->add_cutoff(r_inner);
-
-    //neigh_list_above = &box->distance_manager->neigh_lists[neigh_id_above];
-    //neigh_list_inner = &box->distance_manager->neigh_lists[neigh_id_inner];
 
     for (Particle &particle : molecule) {
         particle.type = box->forcefield->label2type.at(particle.label);
@@ -166,16 +162,24 @@ void AVBMCMolOut::perform_move()
 {
     du = 0.;
     detected_out = false;
+    //std::cout << "avbmcmolout::perform_move 1"<< std::endl;
 
     // cannot remove particle if it does not exist
-    if (box->npartype[center_type] < 1) return;
+    if (box->npartype[center_type] < 1) {
+        nrejecttarget ++;
+        return;
+    }
 
     // loop through potential target particles
     for (unsigned int t : rng->shuffle(box->typeidx[center_type])) {
+        //std::cout << "avbmcmolout::perform_move " << t << std::endl;
         // loop through potential deletion particles
-        //std::vector<unsigned int> target_neigh = ;
+        std::vector<unsigned int> target_neigh = box->distance_manager->neigh_lists[neigh_id_above][t];
         // --- begin detect molecule
-        for (unsigned int d : rng->shuffle(box->distance_manager->neigh_lists[neigh_id_above][t])) {
+        for (unsigned int d : rng->shuffle(target_neigh)) {
+            //std::cout << "avbmcmolout::perform_move " << d << std::endl;
+            //std::cout << box->npar << std::endl;
+            //std::cout << box->particles[d].label << std::endl;
             std::vector<unsigned int> molecule_idx_out, delete_neigh;
             if (box->particles[d].type == center_type) {
                 molecule_idx_out.push_back(d);
@@ -194,9 +198,9 @@ void AVBMCMolOut::perform_move()
                     if (!detected_out) break;
                 }
             }
+            // --- end detect molecule
 
             if (!detected_out) continue;
-            // --- end detect molecule
 
             //check_neigh_recu(d, 0, molecule_idx_out, delete_neigh);
 
@@ -222,6 +226,10 @@ void AVBMCMolOut::perform_move()
             }
             box->poteng += du;
             nmolavg = n_in * natom_inv;
+            return;
+        }
+        if (!detected_out) {
+            nrejectout ++;
         }
     }
 }
