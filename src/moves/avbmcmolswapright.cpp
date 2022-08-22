@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-19)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -60,12 +60,15 @@ AVBMCMolSwapRight::AVBMCMolSwapRight(System *system_in, Box *box1_in,
 void AVBMCMolSwapRight::perform_move()
 {
     AVBMCMolOut::perform_move();  // remove molecule from box 1
+    nrejecttargetout = AVBMCMolOut::nrejecttarget;
+    nrejectout = AVBMCMolOut::nrejectout;
 
     // do not attempt inserting molecule if molecule was not removed
     if (!AVBMCMolOut::detected_out) return;
 
     
     AVBMCMolIn::insert(AVBMCMolOut::molecule_out);
+    nrejecttargetin = AVBMCMolIn::nrejecttarget;
 }
 
 

@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-19)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -48,6 +48,8 @@ AVBMCIn::AVBMCIn(System* system_in, Box* box_in, const std::string &particle_in,
     r_abovesq = r_above * r_above;
     r_belowsq = r_below * r_below;
     v_in = 1.;
+    cum_time = 0.;
+    naccept = ndrawn = 0;
 
     particle_label = particle_in;
     particle_type = box->forcefield->label2type.at(particle_in);
@@ -73,7 +75,7 @@ void AVBMCIn::perform_move()
     dr = insertion_position(false);
     box->add_particle(particle_label, box->particles[i].r + dr);
 
-    // compute du (also bake this into add_particle?)
+    // compute du
     du = box->forcefield->comp_energy_par_force0(box->npar - 1);
     box->poteng += du;
 }

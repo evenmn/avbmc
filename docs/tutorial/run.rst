@@ -8,7 +8,7 @@ Monte Carlo simulations can be run by calling the function :code:`run_mc`:
 
    system.run_mc(cycles, move_per_cycle=1)
 
-Making your own sampling loop (to be implemented)
+Making your own sampling loop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: python
@@ -17,14 +17,14 @@ Making your own sampling loop (to be implemented)
    system.set_sampler(sampler)
 
    for step in range(100):
-       sampler.run(1)
+       system.run_mc_cycle(1)
 
 .. code-block:: python
 
    from tqdm import tqdm
 
    for step in tqdm(range(100)):
-       sampler.run(1)
+       system.run_mc_cycle()
 
 
 Running molecular dynamics simulations (to be implemented)

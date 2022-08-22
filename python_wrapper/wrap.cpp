@@ -37,6 +37,7 @@
 #include "../src/moves/avbmcmolin.h"
 #include "../src/moves/avbmcmolout.h"
 #include "../src/moves/avbmcswapright.h"
+#include "../src/moves/avbmcmolswapright.h"
 
 #include "../src/boundary/boundary.h"
 #include "../src/boundary/open.h"
@@ -408,6 +409,13 @@ PYBIND11_MODULE(avbmc, m) {
             &System::initialize_mc_run,
             "Initialize Monte Carlo run before running"
         )
+        .def("print_statistics",
+            &System::print_statistics,
+            "Print moves statistics",
+            py::arg("cols"), // = {"move","ndrawn","naccept","nreject","accratio","cputime"},
+            py::arg("print") = true,
+            py::arg("style") = "basic"
+        )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
         .def_readonly("nmove", &System::nmove)
@@ -557,13 +565,24 @@ PYBIND11_MODULE(avbmc, m) {
         .def_readonly("ndrawn", &Moves::ndrawn)
         .def_readonly("naccept", &Moves::naccept)
         .def_readonly("cum_time", &Moves::cum_time);
+
     py::class_<Trans, Moves>(m, "Trans")
         .def(py::init<System *, Box *, double>(),
             "Naive translational move class constructor",
             py::arg("system_object"),
             py::arg("box_object"),
             py::arg("dx") = 0.1
-        );
+        )
+        .def("__repr__",
+            [](const Trans &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &Trans::label)
+        .def_readonly("ndrawn", &Trans::ndrawn)
+        .def_readonly("naccept", &Trans::naccept)
+        .def_readonly("cum_time", &Trans::cum_time);
+
     py::class_<TransMH, Moves>(m, "TransMH")
         .def(py::init<System *, Box *, double, double>(),
             "Biased translational move class constructor",
@@ -571,7 +590,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("box_object"),
             py::arg("dx") = 0.1,
             py::arg("Ddt") = 0.1
-        );
+        )
+        .def("__repr__",
+            [](const TransMH &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &TransMH::label)
+        .def_readonly("ndrawn", &TransMH::ndrawn)
+        .def_readonly("naccept", &TransMH::naccept)
+        .def_readonly("cum_time", &TransMH::cum_time);
+
     py::class_<AVBMC, Moves>(m, "AVBMC")
         .def(py::init<System *, Box *, const std::string &, double, double, bool>(),
             "Aggregate volume-biased insertation and deletion moves",
@@ -581,7 +610,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_below") = 0.95,
             py::arg("r_above") = 3.0,
             py::arg("energy_bias") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMC &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &AVBMC::label)
+        .def_readonly("ndrawn", &AVBMC::ndrawn)
+        .def_readonly("naccept", &AVBMC::naccept)
+        .def_readonly("cum_time", &AVBMC::cum_time);
+
     py::class_<AVBMCIn, Moves>(m, "AVBMCIn")
         .def(py::init<System *, Box *, const std::string &, double, double, bool>(),
             "Aggregate volume-biased insertation move",
@@ -591,7 +630,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_below") = 0.95,
             py::arg("r_above") = 3.0,
             py::arg("energy_bias") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMCIn &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &AVBMCIn::label)
+        .def_readonly("ndrawn", &AVBMCIn::ndrawn)
+        .def_readonly("naccept", &AVBMCIn::naccept)
+        .def_readonly("cum_time", &AVBMCIn::cum_time);
+
     py::class_<AVBMCOut, Moves>(m, "AVBMCOut")
         .def(py::init<System *, Box *, const std::string &, double, bool>(),
             "Aggregate volume-biased deletion move",
@@ -600,7 +649,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("particle"),
             py::arg("r_above") = 3.0,
             py::arg("energy_bias") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMCOut &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &AVBMCOut::label)
+        .def_readonly("ndrawn", &AVBMCOut::ndrawn)
+        .def_readonly("naccept", &AVBMCOut::naccept)
+        .def_readonly("cum_time", &AVBMCOut::cum_time);
+
     py::class_<AVBMCMol, Moves>(m, "AVBMCMol")
         .def(py::init<System *, Box *, std::vector<Particle>, double, double, double, bool, bool>(),
             "Aggregate volume-biased molecule insertation and deletion moves",
@@ -612,7 +671,17 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_molecule") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMCMol &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("label", &AVBMCMol::label)
+        .def_readonly("ndrawn", &AVBMCMol::ndrawn)
+        .def_readonly("naccept", &AVBMCMol::naccept)
+        .def_readonly("cum_time", &AVBMCMol::cum_time);
+
     py::class_<AVBMCMolIn, Moves>(m, "AVBMCMolIn")
         .def(py::init<System *, Box *, std::vector<Particle>, double, double, double, bool, bool>(),
             "Aggregate volume-biased molecule insertation move",
@@ -624,7 +693,18 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_molecule") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMCMolIn &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("nrejecttarget", &AVBMCMolIn::nrejecttarget)
+        .def_readonly("label", &AVBMCMolIn::label)
+        .def_readonly("ndrawn", &AVBMCMolIn::ndrawn)
+        .def_readonly("naccept", &AVBMCMolIn::naccept)
+        .def_readonly("cum_time", &AVBMCMolIn::cum_time);
+
     py::class_<AVBMCMolOut, Moves>(m, "AVBMCMolOut")
         .def(py::init<System *, Box *, std::vector<Particle>, double, double, bool, bool>(),
             "Aggregate volume-biased molecule insertation move",
@@ -635,7 +715,44 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("r_inner") = 1.3,
             py::arg("energy_bias") = false,
             py::arg("target_molecule") = false
-        );
+        )
+        .def("__repr__",
+            [](const AVBMCMolOut &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("nrejecttarget", &AVBMCMolOut::nrejecttarget)
+        .def_readonly("nrejectout", &AVBMCMolOut::nrejectout)
+        .def_readonly("label", &AVBMCMolOut::label)
+        .def_readonly("ndrawn", &AVBMCMolOut::ndrawn)
+        .def_readonly("naccept", &AVBMCMolOut::naccept)
+        .def_readonly("cum_time", &AVBMCMolOut::cum_time);
+
+    py::class_<AVBMCMolSwapRight, Moves>(m, "AVBMCMolSwapRight")
+        .def(py::init<System *, Box *, Box *, std::vector<Particle>, double, double, double, bool, bool>(),
+            "Aggregate volume-biased molecule swap move",
+            py::arg("system_object"),
+            py::arg("box_object1"),
+            py::arg("box_object2"),
+            py::arg("molecule"),
+            py::arg("r_above") = 3.0,
+            py::arg("r_below") = 0.95,
+            py::arg("r_inner") = 1.3,
+            py::arg("energy_bias") = false,
+            py::arg("target_molecule") = false
+        )
+        .def("__repr__",
+            [](const AVBMCMolSwapRight &move) {
+                return move.label;
+            }
+        )
+        .def_readonly("nrejecttargetin", &AVBMCMolSwapRight::nrejecttargetin)
+        .def_readonly("nrejecttargetout", &AVBMCMolSwapRight::nrejecttargetout)
+        .def_readonly("nrejectout", &AVBMCMolSwapRight::nrejectout)
+        .def_readonly("label", &AVBMCMolSwapRight::label)
+        .def_readonly("ndrawn", &AVBMCMolSwapRight::ndrawn)
+        .def_readonly("naccept", &AVBMCMolSwapRight::naccept)
+        .def_readonly("cum_time", &AVBMCMolSwapRight::cum_time);
 
     // ForceField
     py::class_<ForceField>(m, "ForceField")

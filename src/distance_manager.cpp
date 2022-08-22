@@ -51,8 +51,9 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 unsigned int DistanceManager::add_cutoff(double rc)
 {
     double rcsq;
-    unsigned int i, j, mode;
+    unsigned int i, j, mode, neigh_id;
 
+    neigh_id = ncutoff;
     mode = 0;
     rcsq = rc * rc;
 
@@ -71,8 +72,12 @@ unsigned int DistanceManager::add_cutoff(double rc)
     ncutoff ++;
     modes.push_back(mode);
     cutoffs.push_back(rcsq);
+
+    // all particles
     neigh_lists.push_back({});
-    return ncutoff - 1;
+    neigh_lists[neigh_id].resize(box->npar);
+    update_neigh_k(neigh_id);
+    return neigh_id;
 }
 
 
@@ -88,8 +93,9 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                                          std::string label2, bool mutual)
 {
     double rcsq;
-    unsigned int i, j, k, type1, type2, mode;
+    unsigned int i, j, k, type1, type2, mode, neigh_id;
 
+    neigh_id = ncutoff;
     mode = 1;
     rcsq = rc * rc;
     type1 = box->forcefield->label2type.at(label1);
@@ -119,7 +125,9 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     mutuals.push_back(mutual);
     cutoffs.push_back(rcsq);
     neigh_lists.push_back({});
-    return ncutoff - 1;
+    neigh_lists[neigh_id].resize(box->npar);
+    update_neigh_k(neigh_id);
+    return neigh_id;
 }
 
 
@@ -131,14 +139,17 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
 
 unsigned int DistanceManager::add_cutoff(double **rc)
 {
-    unsigned int mode;
+    unsigned int mode, neigh_id;
 
+    neigh_id = ncutoff;
     mode = 2;
     ncutoff ++;
     modes.push_back(mode);
     cutoff_mats.push_back(rc);
     neigh_lists.push_back({});
-    return ncutoff - 1;
+    neigh_lists[neigh_id].resize(box->npar);
+    update_neigh_k(neigh_id);
+    return neigh_id;
 }
 
 
@@ -192,12 +203,69 @@ void DistanceManager::remove_neigh(unsigned int i) {
 
 
 /* ----------------------------------------------------------------------------
+   Update neighbor list 'k' of a particle pair 'i' and 'j' with respect to the
+   distance (squared), 'rij'.
+---------------------------------------------------------------------------- */
+
+void DistanceManager::update_neigh_k(unsigned int i, unsigned int j,
+    unsigned int k, double rij)
+{
+    unsigned int l, m, typei, typej;
+
+    typei = box->particles[i].type;
+    typej = box->particles[j].type;
+
+    l = m = 0;
+    if (modes[k] == 0) {
+        if (rij < cutoffs[m]) {
+            neigh_lists[k][i].push_back(j);
+            neigh_lists[k][j].push_back(i);
+        }
+        m++;
+    }
+    else if (modes[k] == 1) {
+        if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
+            neigh_lists[k][i].push_back(j);
+            if (mutuals[l]) {
+                neigh_lists[k][j].push_back(i);
+            }
+        }
+        l++;
+        m++;
+    }
+    else {
+        if (rij < cutoff_mats[k-m][typei][typej]) {
+            neigh_lists[k][i].push_back(j);
+            neigh_lists[k][j].push_back(i);
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
+   Update all elements of neighbor list k
+---------------------------------------------------------------------------- */
+
+void DistanceManager::update_neigh_k(unsigned int k)
+{
+    unsigned int i, j;
+
+    for (i=0; i<box->npar; i++) {
+        for (j=0; j<i; j++) {
+            update_neigh_k(i, j, k, distance_mat[i][j]);
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
    Update neighbor lists of a particle pair 'i' and 'j' with respect to the
    distance (squared), 'rij'. This is done when a particle is moved or inserted
 ---------------------------------------------------------------------------- */
 
 void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
+    /*
     unsigned int k, l, m, typei, typej;
 
     typei = box->particles[i].type;
@@ -229,6 +297,12 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
             }
         }
     }
+    */
+    unsigned int k;
+
+    for (k=0; k<ncutoff; k++) {
+        update_neigh_k(i, j, k, rij);
+    }
 }
 
 
@@ -253,7 +327,7 @@ double DistanceManager::normsq(std::valarray<double> array)
    ff
 ---------------------------------------------------------------------------- */
 
-std::vector<unsigned int> DistanceManager::build_neigh_list(int i, double rsq)
+std::vector<unsigned int> DistanceManager::build_neigh_list(unsigned int i, double rsq)
 {
     //double rijsq;
     //std::valarray<double> ri = box->particles[i].r;

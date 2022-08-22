@@ -68,6 +68,7 @@ public:
     void print_logo();
     void print_info();
     void print_mc_info();
+    std::string print_statistics(std::vector<std::string> = {"move", "ndrawn", "naccept", "nreject", "accratio", "cputime"}, bool = true, const std::string & = "basic");
 
     void run_md(unsigned int);
     void run_mc(unsigned int, unsigned int = 1);
