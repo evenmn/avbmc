@@ -14,13 +14,14 @@ Welcome to AVBMC's documentation!
    tutorial/system_constants
    tutorial/forcefield
    tutorial/particles
-   tutorial/outputs
    tutorial/boundary
    tutorial/constraints
    tutorial/moves
    tutorial/sampler
    tutorial/rng
    tutorial/run
+   tutorial/outputs
+   tutorial/statistics
 
 
 
