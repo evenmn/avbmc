@@ -116,10 +116,7 @@ void AVBMCMolOut::perform_move()
             }
             // --- end detect molecule
 
-            if (!detected_out) {
-                nrejectout ++;
-                continue;
-            }
+            if (!detected_out) continue;
 
             //check_neigh_recu(d, 0, molecule_idx_out, delete_neigh);
 
@@ -147,9 +144,6 @@ void AVBMCMolOut::perform_move()
             nmolavg = n_in * natom_inv;
             return;
         }
-        if (!detected_out) {
-            nrejectout ++;
-        }
     }
 }
 
@@ -161,7 +155,10 @@ void AVBMCMolOut::perform_move()
 
 double AVBMCMolOut::accept(double temp, double chempot)
 {
-    if (!detected_out) return 0.;
+    if (!detected_out) {
+        nrejectout ++;
+        return 0.;
+    }
 
     for (Constraint* constraint : box->constraints) {
         if (!constraint->verify()) return 0.;
