@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -80,10 +80,6 @@ void Trans::perform_move()
     for (j=0; j<system->ndim; j++) {
         box->particles[i].r[j] += dx * 2 * (rng->next_double() - 0.5);
     }
-    //std::valarray<double> dr(system->ndim);
-    //for(double &d : dr)
-    //    d = 2 * (rng->next_double() - 0.5);
-    //box->particles[i].r += dx * dr;
     box->distance_manager->set();
     box->distance_manager->update_trans(i);
 
@@ -100,12 +96,11 @@ void Trans::perform_move()
 
 double Trans::accept(double temp, double /*chempot*/)
 {
-    bool constr_satis = true;
     for (Constraint* constraint : box->constraints) {
-        constr_satis *= constraint->verify();
+        if (!constraint->verify()) return 0.;
     }
     box->boundary->correct_position(i);
-    return constr_satis * std::exp(-du/temp);
+    return std::exp(-du/temp);
 }
 
 
