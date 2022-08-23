@@ -52,20 +52,16 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 unsigned int DistanceManager::add_cutoff(double rc)
 {
     double rcsq;
-    unsigned int i, j, mode, neigh_id;
+    unsigned int k, mode, neigh_id;
 
     neigh_id = ncutoff;
     mode = 0;
     rcsq = rc * rc;
 
     // check if a similar cutoff exists
-    j = 0;
-    for (i=0; i<ncutoff; i++) {
-      if (modes[i] == mode && fabs(cutoffs0[j] - rcsq) < cutoff_tol) {
-        return i;
-      }
-      if (modes[i] < 2) {
-        j++;
+    for (k=0; k<ncutoff; k++) {
+      if (modes[k] == mode && fabs(cutoffs0[mapid2vector[k]] - rcsq) < cutoff_tol) {
+        return k;
       }
     }
 
@@ -96,7 +92,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                                          std::string label2, bool mutual)
 {
     double rcsq;
-    unsigned int i, j, k, type1, type2, mode, neigh_id;
+    unsigned int k, vecid, type1, type2, mode, neigh_id;
 
     neigh_id = ncutoff;
     mode = 1;
@@ -105,18 +101,17 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     type2 = box->forcefield->label2type.at(label2);
 
     // check if a similar cutoff exists
-    j = k = 0;
-    for (i=0; i<ncutoff; i++) {
-        if (modes[i] == mode) {
-          if (types1[j] == type1 && types2[j] == type2 &&
-              mutuals[j] == mutual &&
-              fabs(cutoffs1[k] - rcsq) < cutoff_tol) {
-            return i;
-          }
-            j++;
-        }
-        if (modes[i] < 2) {
-          k++;
+    for (k=0; k<ncutoff; k++) {
+        if (modes[k] == mode) {
+        vecid = mapid2vector[k];
+            if (
+                types1[vecid] == type1 && 
+                types2[vecid] == type2 &&
+                mutuals[vecid] == mutual &&
+                fabs(cutoffs1[vecid] - rcsq) < cutoff_tol
+            ) {
+                return k;
+            }
         }
     }
 
