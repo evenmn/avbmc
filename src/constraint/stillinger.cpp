@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ Stillinger::Stillinger(Box* box_in, double rc)
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
     v_c = 0.;
     ntype = 0;
-    label = "Stillinger of radius " + std::to_string(rc);
+    label = "Stillinger";
 
     // fill r_csq_mat with r_csq
     ntype = box->forcefield->ntype;
@@ -56,6 +56,7 @@ Stillinger::Stillinger(Box* box_in, double rc)
         }
     }
     cutoff_id = box->distance_manager->add_cutoff(r_csq_mat);
+    vecid = box->distance_manager->mapid2vector[cutoff_id];
 }
 
 
@@ -102,10 +103,10 @@ void Stillinger::swap(Stillinger &other)
     std::vector<std::vector<int> > neigh_lists_tmp = neigh_lists;
     neigh_lists = other.neigh_lists;
     other.neigh_lists = neigh_lists_tmp;
-    std::valarray<char> in_cluster_tmp = in_cluster;
+    std::valarray<unsigned long long> in_cluster_tmp = in_cluster;
     in_cluster = other.in_cluster;
     other.in_cluster = in_cluster_tmp;
-    std::valarray<char> checked_tmp = checked;
+    std::valarray<unsigned long long> checked_tmp = checked;
     checked = other.checked;
     other.checked = checked_tmp;
 }
@@ -114,15 +115,15 @@ void Stillinger::swap(Stillinger &other)
 /* ----------------------------------------------------------------------------
    Set stillinger criterion for two substances 'label1' and 'label2'. This
    will overwrite the critical distance given when constructing the object.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Stillinger::set_criterion(std::string label1, std::string label2, double rc)
 {
     unsigned int type1 = box->forcefield->label2type[label1];
     unsigned int type2 = box->forcefield->label2type[label2];
     
-    box->distance_manager->cutoff_mats[cutoff_id][type1][type2] = rc * rc;
-    box->distance_manager->cutoff_mats[cutoff_id][type2][type1] = rc * rc;
+    box->distance_manager->cutoff_mats[vecid][type1][type2] = rc * rc;
+    box->distance_manager->cutoff_mats[vecid][type2][type1] = rc * rc;
 }
 
 
@@ -131,10 +132,10 @@ void Stillinger::set_criterion(std::string label1, std::string label2, double rc
    which atoms that we have checked neighbor list of (to avoid circular check),
    and 'in_cluster' contains informations about which particles that are part
    of cluster.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
-void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
-                                  std::valarray<char> &checked)
+void Stillinger::check_neigh_recu(const int i, std::valarray<unsigned long long> &in_cluster,
+                                  std::valarray<unsigned long long> &checked)
 {
     if (!checked[i]) {
         checked[i] = 1;
@@ -153,19 +154,24 @@ void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
    Check if Stillinger criterion is satisfied. If it is not satisfied, Monte
    Carlo moves should be rejected. Molecular dynamics simulations should abort
    in the same case.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 bool Stillinger::verify()
 {
+    auto t0 = Time::now();
     in_cluster.resize(box->npar, 0);
     checked.resize(box->npar, 0);
     
     check_neigh_recu(0, in_cluster, checked);
+    auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    cum_time += fs.count();
 
     if ((unsigned int) in_cluster.sum() == box->npar) {
         return true;
     }
     else {
+        nreject ++;
         return false;
     }
 }

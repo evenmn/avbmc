@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -49,6 +49,7 @@ MinDistance::MinDistance(Box* box_in, std::string label1, std::string label2,
 bool MinDistance::verify()
 {
     unsigned int i, typei;
+    auto t0 = Time::now();
 
     if (type1 == type2 && box->npartype[type1] < 2) {
         // constraint does not apply if particle pair does not exist
@@ -62,9 +63,16 @@ bool MinDistance::verify()
         for (i=0; i<box->npar; i++) {
             typei = box->particles[i].type;
             if ((typei==type1 || typei==type2) && neigh_list[i].size()>0) {
+                nreject ++;
+                auto t1 = Time::now();
+                fsec fs = t1 - t0;
+                cum_time += fs.count();
                 return false;
             }
         }
     }
+    auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    cum_time += fs.count();
     return true;
 }

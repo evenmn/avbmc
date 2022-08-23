@@ -399,8 +399,6 @@ void Box::add_constraint(Constraint* constraint)
                   << "before adding constraints!" << std::endl;
         exit(0);
     }
-    std::cout << "Warning: All constraints have to be added before particles "
-              << "are being added" << std::endl;
     nconstraint ++;
     constraints.push_back(constraint);
     constraint_allocated_in_system.push_back(false);

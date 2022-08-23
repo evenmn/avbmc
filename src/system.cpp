@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -569,7 +569,7 @@ void System::add_constraint(Constraint* constraint_in, int box_id)
 
     if (box_id < 0) {
         if (nbox > 1) {
-            std::cout << "Warning: More than one box was detected. Setting"
+            std::cout << "Warning: More than one box was detected. Setting "
                       << "constraint for all boxes" << std::endl;
         }
         for (Box *box : boxes) {
@@ -597,7 +597,7 @@ void System::add_constraint(const std::string &constraint_in,
         exit(0);
     }
     else if (box_id < 0 && nbox > 1) {
-        std::cout << "Warning: More than one box was detected. Setting"
+        std::cout << "Warning: More than one box was detected. Setting "
                   << "constraint for all boxes" << std::endl;
     }
 
@@ -883,7 +883,7 @@ void System::add_move(const std::string &move_in, double prob,
     }
     else if (move_in == "avbmcswapright") {
         if (box_id < 0 || box_id2 < 0) {
-            std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+            std::cout << "Both box_id1 and box_id2 have to be defined in order to do "
                       << "inter-box swap moves! Aborting." << std::endl;
             exit(0);
         }
@@ -961,7 +961,7 @@ void System::add_move(const std::string &move_in, double prob,
     }
     else if (move_in == "avbmcmolswapright") {
         if (box_id < 0 || box_id2 < 0) {
-            std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+            std::cout << "Both box_id1 and box_id2 have to be defined in order to do "
                       << "inter-box swap moves! Aborting." << std::endl;
             exit(0);
         }
@@ -981,7 +981,7 @@ void System::add_move(const std::string &move_in, double prob,
         add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id2, box_id);
     }
     else {
-        std::cout << "Move '" << move_in << "' is not implemented!"
+        std::cout << "Move '" << move_in << "' is not implemented! "
                   << "Aborting." << std::endl;
         exit(0);
     }
@@ -1528,7 +1528,7 @@ std::string get_column_mapping(Moves *move, const std::string &keyword)
 
 std::string System::print_statistics(std::vector<std::string> cols, bool print, const std::string &style)
 {
-    std::string head_row, row, rows, table, pad;
+    std::string head_row, row, rows, total, table, pad;
 
     std::map<std::string, std::string> head_labels {
         {"move", "Move"},
@@ -1563,27 +1563,50 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     head_row += "|";
 
     // get rows
+    std::valarray<double> totals(0., cols.size());
     for (Moves *move : moves) {
         row = "";
         for (int i=0; i<cols.size(); i++) {
+            std::string cell = get_column_mapping(move, cols[i]);
             if (cols[i] == "move") {
                 pad = "l";
             }
             else {
                 pad = "r";
+                if (cell != "-") {
+                    totals[i] += std::stod(cell);
+                }
             }
-            std::string cell = get_column_mapping(move, cols[i]);
             row += "| " + cell_padding(cell, pad, max_size_col[i]) + " ";
         }
         row += "|";
         rows += row + "\n";
     }
 
+    // get total
+    for (int i=0; i<cols.size(); i++) {
+        if (cols[i] == "move") {
+            total += "| " + cell_padding("Total:", "l", max_size_col[i]) + " ";
+        }
+        else if (cols[i] == "cputime") {
+            total += "| " + cell_padding(std::to_string(totals[i]), "r", max_size_col[i]) + " ";
+        }
+        else if (cols[i] == "accratio") {
+            total += "| " + cell_padding(std::to_string(totals[i]/nmove), "r", max_size_col[i]) + " ";
+        }
+        else {
+            total += "| " + cell_padding(std::to_string(static_cast<int>(totals[i])), "r", max_size_col[i]) + " ";
+        }
+    }
+    total += "|\n";
+
     if (style == "basic") {
         table += std::string(head_row.size(), '-') + "\n"; 
         table += head_row + "\n";
         table += std::string(head_row.size(), '-') + "\n";
         table += rows;
+        table += std::string(head_row.size(), '-') + "\n"; 
+        table += total;
         table += std::string(head_row.size(), '-') + "\n"; 
     }
     else if (style == "latex") {
@@ -1600,6 +1623,20 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     }
 
     return table;
+}
+
+
+/* ----------------------------------------------------------------------------
+   Print constraint statistics
+---------------------------------------------------------------------------- */
+
+void System::print_constraint_statistics()
+{
+    for (Box *box : boxes) {
+        for (Constraint *constraint : box->constraints) {
+            std::cout << constraint->label << " " << constraint->nreject << " " << constraint->cum_time << std::endl;
+        }
+    }
 }
 
 

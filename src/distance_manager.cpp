@@ -2,10 +2,9 @@
   This file is a part of the AVBMC library, which follows the GPL-3.0 License.
   For license information, see LICENSE file in the top directory, 
   https://github.com/evenmn/avbmc/LICENSE.
-
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -37,8 +36,10 @@
 DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 {
     ncutoff = 0;
+    nmode = 3;
     box = box_in;
     cutoff_tol = cutoff_tol_in;
+    nmodes.resize(nmode, 0);
 }
 
 
@@ -51,27 +52,25 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
 unsigned int DistanceManager::add_cutoff(double rc)
 {
     double rcsq;
-    unsigned int i, j, mode, neigh_id;
+    unsigned int k, mode, neigh_id;
 
     neigh_id = ncutoff;
     mode = 0;
     rcsq = rc * rc;
 
     // check if a similar cutoff exists
-    j = 0;
-    for (i=0; i<ncutoff; i++) {
-      if (modes[i] == mode && fabs(cutoffs[j] - rcsq) < cutoff_tol) {
-        return i;
-      }
-      if (modes[i] < 2) {
-        j++;
+    for (k=0; k<ncutoff; k++) {
+      if (modes[k] == mode && fabs(cutoffs0[mapid2vector[k]] - rcsq) < cutoff_tol) {
+        return k;
       }
     }
 
     // add cutoff to list of cutoffs if it does not already exist
     ncutoff ++;
     modes.push_back(mode);
-    cutoffs.push_back(rcsq);
+    mapid2vector.push_back(nmodes[mode]); 
+    nmodes[mode] ++;
+    cutoffs0.push_back(rcsq);
 
     // all particles
     neigh_lists.push_back({});
@@ -93,7 +92,7 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
                                          std::string label2, bool mutual)
 {
     double rcsq;
-    unsigned int i, j, k, type1, type2, mode, neigh_id;
+    unsigned int k, vecid, type1, type2, mode, neigh_id;
 
     neigh_id = ncutoff;
     mode = 1;
@@ -102,28 +101,29 @@ unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
     type2 = box->forcefield->label2type.at(label2);
 
     // check if a similar cutoff exists
-    j = k = 0;
-    for (i=0; i<ncutoff; i++) {
-        if (modes[i] == mode) {
-          if (types1[j] == type1 && types2[j] == type2 &&
-              mutuals[j] == mutual &&
-              fabs(cutoffs[k] - rcsq) < cutoff_tol) {
-            return i;
-          }
-            j++;
-        }
-        if (modes[i] < 2) {
-          k++;
+    for (k=0; k<ncutoff; k++) {
+        if (modes[k] == mode) {
+        vecid = mapid2vector[k];
+            if (
+                types1[vecid] == type1 && 
+                types2[vecid] == type2 &&
+                mutuals[vecid] == mutual &&
+                fabs(cutoffs1[vecid] - rcsq) < cutoff_tol
+            ) {
+                return k;
+            }
         }
     }
 
     // add cutoff to list of cutoffs if it does not already exist
     ncutoff ++;
     modes.push_back(mode);
+    mapid2vector.push_back(nmodes[mode]); 
+    nmodes[mode] ++;
     types1.push_back(type1);
     types2.push_back(type2);
     mutuals.push_back(mutual);
-    cutoffs.push_back(rcsq);
+    cutoffs1.push_back(rcsq);
     neigh_lists.push_back({});
     neigh_lists[neigh_id].resize(box->npar);
     update_neigh_k(neigh_id);
@@ -145,6 +145,8 @@ unsigned int DistanceManager::add_cutoff(double **rc)
     mode = 2;
     ncutoff ++;
     modes.push_back(mode);
+    mapid2vector.push_back(nmodes[mode]); 
+    nmodes[mode] ++;
     cutoff_mats.push_back(rc);
     neigh_lists.push_back({});
     neigh_lists[neigh_id].resize(box->npar);
@@ -210,31 +212,28 @@ void DistanceManager::remove_neigh(unsigned int i) {
 void DistanceManager::update_neigh_k(unsigned int i, unsigned int j,
     unsigned int k, double rij)
 {
-    unsigned int l, m, typei, typej;
+    unsigned int typei, typej, vecid;
 
     typei = box->particles[i].type;
     typej = box->particles[j].type;
+    vecid = mapid2vector[k];
 
-    l = m = 0;
     if (modes[k] == 0) {
-        if (rij < cutoffs[m]) {
+        if (rij < cutoffs0[vecid]) {
             neigh_lists[k][i].push_back(j);
             neigh_lists[k][j].push_back(i);
         }
-        m++;
     }
     else if (modes[k] == 1) {
-        if (types1[l]==typei && types2[l]==typej && rij < cutoffs[m]) {
+        if (types1[vecid]==typei && types2[vecid]==typej && rij < cutoffs1[vecid]) {
             neigh_lists[k][i].push_back(j);
-            if (mutuals[l]) {
+            if (mutuals[vecid]) {
                 neigh_lists[k][j].push_back(i);
             }
         }
-        l++;
-        m++;
     }
     else {
-        if (rij < cutoff_mats[k-m][typei][typej]) {
+        if (rij < cutoff_mats[vecid][typei][typej]) {
             neigh_lists[k][i].push_back(j);
             neigh_lists[k][j].push_back(i);
         }
@@ -267,10 +266,8 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
 {
     /*
     unsigned int k, l, m, typei, typej;
-
     typei = box->particles[i].type;
     typej = box->particles[j].type;
-
     l = m = 0;
     for (k=0; k<ncutoff; k++) {
         if (modes[k] == 0) {

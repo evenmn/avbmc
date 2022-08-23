@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-22)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -76,85 +76,6 @@ AVBMCMolOut::AVBMCMolOut(System* system_in, Box* box_in,
 
 
 /* ----------------------------------------------------------------------------
-   Try to find next element in group sequence through recursive iteration. 'j'
-   is the element to check, 'elm_count' is the currect particle index of the
-   group, 'elm_idx' contains the indices of the correctly detected elements so
-   far and 'neigh_list_d' is the inner neighbor list of particles
----------------------------------------------------------------------------- */
-/*
-void AVBMCMolOut::check_neigh_recu(int j, unsigned int elm_count,
-    std::vector<unsigned int> &elm_idx,
-    std::vector<std::vector<unsigned int> > neigh_list_d)
-{
-    if (elm_idx.size() == natom) {
-        detected_out = true;
-        return;
-    }
-
-    if (box->particles[j].type == molecule[elm_count].type) {
-        elm_idx.push_back(j);
-        elm_count ++;
-        for (unsigned int neigh : neigh_list_d[j]) {
-            check_neigh_recu(neigh, elm_count, elm_idx, neigh_list_d);
-        }
-    }
-}
-*/
-
-/* ----------------------------------------------------------------------------
-   Detect molecule of the same types as 'molecule' randomly by picking a random 
-   atom among the elements and checking the neighbor list.
-   Returning a list of atom ids if molecule is detected
----------------------------------------------------------------------------- */
-/*
-std::vector<unsigned int> AVBMCMolOut::detect_molecule(
-    std::vector<unsigned int> neigh_listi, bool &detected)
-{
-    unsigned int i, count;
-    std::vector<unsigned int> elm_idx;
-    
-    //for (unsigned int j : neigh_listi) {
-    for (unsigned int j : rng->shuffle(neigh_listi)) {
-        check_neigh_recu(j, 0, elm_idx, neigh_listi);
-        if (elm_idx.size() == molecule.size()) {
-            detected = true;
-            return elm_idx;
-        }
-    }
-    detected = false;
-    return {};
-}
-*/
-
-/* ----------------------------------------------------------------------------
-   Detect target molecule (or atom if target_mol=false). Make maximum 'npar' 
-   attempts of finding target molecule.
----------------------------------------------------------------------------- */
-/*
-unsigned int AVBMCMolOut::detect_target_molecule(bool &detected)
-{
-    unsigned int count, i;
-    std::vector<unsigned int> target_molecule;
-    std::vector<std::vector<unsigned int> > neigh_list_inner;
-
-    count = i = 0;
-    while (count < box->npar || detected) {
-        count ++;
-        if (target_mol) {
-            neigh_list_inner = box->distance_manager->neigh_lists[neigh_id_inner];
-            target_molecule = detect_molecule(neigh_list_inner, molecule, detected);
-            i = target_molecule[0];
-        }
-        else {
-            i = rng->next_int(box->npar);
-            detected = (box->particles[i].type == molecule[0].type);
-        }
-    }
-    return i;
-}
-*/
-
-/* ----------------------------------------------------------------------------
    Remove a random molecule from the bonded region of another similar molecule.
 ---------------------------------------------------------------------------- */
 
@@ -162,7 +83,6 @@ void AVBMCMolOut::perform_move()
 {
     du = 0.;
     detected_out = false;
-    //std::cout << "avbmcmolout::perform_move 1"<< std::endl;
 
     // cannot remove particle if it does not exist
     if (box->npartype[center_type] < 1) {
@@ -172,19 +92,15 @@ void AVBMCMolOut::perform_move()
 
     // loop through potential target particles
     for (unsigned int t : rng->shuffle(box->typeidx[center_type])) {
-        //std::cout << "avbmcmolout::perform_move " << t << std::endl;
         // loop through potential deletion particles
         std::vector<unsigned int> target_neigh = box->distance_manager->neigh_lists[neigh_id_above][t];
         // --- begin detect molecule
         for (unsigned int d : rng->shuffle(target_neigh)) {
-            //std::cout << "avbmcmolout::perform_move " << d << std::endl;
-            //std::cout << box->npar << std::endl;
-            //std::cout << box->particles[d].label << std::endl;
             std::vector<unsigned int> molecule_idx_out, delete_neigh;
             if (box->particles[d].type == center_type) {
                 molecule_idx_out.push_back(d);
                 delete_neigh = box->distance_manager->neigh_lists[neigh_id_inner][d];
-                nmolavg = delete_neigh.size();
+                n_in = delete_neigh.size();
                 for (unsigned int i=1; i<natom; i++) {
                     detected_out = false;
                     for (unsigned int j=0; j<delete_neigh.size(); j++) {
