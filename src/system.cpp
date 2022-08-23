@@ -569,7 +569,7 @@ void System::add_constraint(Constraint* constraint_in, int box_id)
 
     if (box_id < 0) {
         if (nbox > 1) {
-            std::cout << "Warning: More than one box was detected. Setting"
+            std::cout << "Warning: More than one box was detected. Setting "
                       << "constraint for all boxes" << std::endl;
         }
         for (Box *box : boxes) {
