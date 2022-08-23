@@ -27,6 +27,7 @@ public:
         unsigned int, double);
     std::vector<unsigned int> build_neigh_list(unsigned int, double);
     
+    std::vector<unsigned int> mapid2vector;
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
     std::vector<std::vector<std::valarray<double> > > distance_cube;
@@ -45,7 +46,7 @@ private:
   std::valarray<unsigned int> nmodes;
   std::vector<bool> mutuals;
   std::vector<double> cutoffs0, cutoffs1;
-  std::vector<unsigned int> mapid2vector, types1, types2, modes;
+  std::vector<unsigned int> types1, types2, modes;
 
   std::vector<std::vector<std::vector<unsigned int> > > neigh_lists_old;
   std::vector<std::vector<double> > distance_mat_old;
