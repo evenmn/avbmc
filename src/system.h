@@ -69,7 +69,7 @@ public:
     void print_info();
     void print_mc_info();
     std::string print_statistics(std::vector<std::string> = {"move", "ndrawn", "naccept", "nreject", "accratio", "cputime"}, bool = true, const std::string & = "basic");
-    void print_constraint_statistics();
+    std::string print_constraint_statistics(const std::string & = "basic", bool = true);
 
     void run_md(unsigned int);
     void run_mc(unsigned int, unsigned int = 1);
