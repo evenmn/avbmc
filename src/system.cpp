@@ -1646,7 +1646,6 @@ void System::print_constraint_statistics()
 
 System::~System()
 {
-    print_constraint_statistics();
     if (!rng_allocated_externally) {
         delete rng;
     }

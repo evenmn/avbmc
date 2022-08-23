@@ -416,6 +416,10 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("print") = true,
             py::arg("style") = "basic"
         )
+        .def("print_constraint_statistics",
+            &System::print_constraint_statistics,
+            "Print constraint statistics"
+        )
         .def_readonly("nbox", &System::nbox)
         .def_readonly("ndim", &System::ndim)
         .def_readonly("nmove", &System::nmove)
@@ -813,7 +817,10 @@ PYBIND11_MODULE(avbmc, m) {
                 return constraint.label;
             }
         )
-        .def_readonly("label", &Constraint::label);
+        .def_readonly("label", &Constraint::label)
+        .def_readonly("nreject", &Constraint::nreject)
+        .def_readonly("cum_time", &Constraint::cum_time);
+
     py::class_<Stillinger, Constraint>(m, "Stillinger")
         .def(py::init<Box *, double>(),
             "Stillinger class constructor",
@@ -830,7 +837,11 @@ PYBIND11_MODULE(avbmc, m) {
         .def("__call__",
             &Stillinger::verify,
             "Verify whether or not the constraint is satisfied"
-        );
+        )
+        .def_readonly("label", &Stillinger::label)
+        .def_readonly("nreject", &Stillinger::nreject)
+        .def_readonly("cum_time", &Stillinger::cum_time);
+
     py::class_<MinNeigh, Constraint>(m, "MinNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
             "Minimum number of neighbors class constructor",
@@ -843,7 +854,11 @@ PYBIND11_MODULE(avbmc, m) {
         .def("__call__",
             &MinNeigh::verify,
             "Verify whether or not the constraint is satisfied"
-        );
+        )
+        .def_readonly("label", &MinNeigh::label)
+        .def_readonly("nreject", &MinNeigh::nreject)
+        .def_readonly("cum_time", &MinNeigh::cum_time);
+
     py::class_<MaxNeigh, Constraint>(m, "MaxNeigh")
         .def(py::init<Box *, std::string, std::string, double, int>(),
             "Maximum number of neighbors class constructor",
@@ -856,7 +871,11 @@ PYBIND11_MODULE(avbmc, m) {
         .def("__call__",
             &MaxNeigh::verify,
             "Verify whether or not the constraint is satisfied"
-        );
+        )
+        .def_readonly("label", &MaxNeigh::label)
+        .def_readonly("nreject", &MaxNeigh::nreject)
+        .def_readonly("cum_time", &MaxNeigh::cum_time);
+
     py::class_<MinDistance, Constraint>(m, "MinDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
             "Minimum distance class constructor",
@@ -868,7 +887,11 @@ PYBIND11_MODULE(avbmc, m) {
         .def("__call__",
             &MinDistance::verify,
             "Verify whether or not the constraint is satisfied"
-        );
+        )
+        .def_readonly("label", &MinDistance::label)
+        .def_readonly("nreject", &MinDistance::nreject)
+        .def_readonly("cum_time", &MinDistance::cum_time);
+
     py::class_<MaxDistance, Constraint>(m, "MaxDistance")
         .def(py::init<Box *, std::string, std::string, double>(),
             "Maximum distance class constructor",
@@ -880,7 +903,10 @@ PYBIND11_MODULE(avbmc, m) {
         .def("__call__",
             &MaxDistance::verify,
             "Verify whether or not the constraint is satisfied"
-        );
+        )
+        .def_readonly("label", &MaxDistance::label)
+        .def_readonly("nreject", &MaxDistance::nreject)
+        .def_readonly("cum_time", &MaxDistance::cum_time);
 
     // Integrator
     py::class_<Integrator>(m, "Integrator")
