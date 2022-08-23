@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <chrono>
 
 
 class Constraint
@@ -19,8 +20,12 @@ public:
     virtual ~Constraint() = default;
 
     std::string label;
+    double cum_time;
+    unsigned int nreject;
 
 protected:
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::duration<double> fsec;
     unsigned int cutoff_id, type1, type2;
     std::vector<std::vector<unsigned int> > neigh_list;
     class Box* box = nullptr;

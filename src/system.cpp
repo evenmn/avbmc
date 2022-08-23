@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -1627,11 +1627,26 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
 
 
 /* ----------------------------------------------------------------------------
+   Print constraint statistics
+---------------------------------------------------------------------------- */
+
+void System::print_constraint_statistics()
+{
+    for (Box *box : boxes) {
+        for (Constraint *constraint : box->constraints) {
+            std::cout << constraint->label << " " << constraint->nreject << " " << constraint->cum_time << std::endl;
+        }
+    }
+}
+
+
+/* ----------------------------------------------------------------------------
    System destructor, free memory allocated within this class
 ---------------------------------------------------------------------------- */
 
 System::~System()
 {
+    print_constraint_statistics();
     if (!rng_allocated_externally) {
         delete rng;
     }

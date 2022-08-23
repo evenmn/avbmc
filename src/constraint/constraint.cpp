@@ -25,7 +25,8 @@
 Constraint::Constraint(Box* box_in)
 {
     box = box_in;
-    cutoff_id = type1 = type2 = 0;
+    cum_time = 0.;
+    cutoff_id = type1 = type2 = nreject = 0;
 }
 
 

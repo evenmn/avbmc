@@ -44,7 +44,7 @@ Stillinger::Stillinger(Box* box_in, double rc)
     //v_c = 4 * datum::pi * pow(r_c, 3) / 3;
     v_c = 0.;
     ntype = 0;
-    label = "Stillinger of radius " + std::to_string(rc);
+    label = "Stillinger";
 
     // fill r_csq_mat with r_csq
     ntype = box->forcefield->ntype;
@@ -158,15 +158,20 @@ void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
 
 bool Stillinger::verify()
 {
+    auto t0 = Time::now();
     in_cluster.resize(box->npar, 0);
     checked.resize(box->npar, 0);
     
     check_neigh_recu(0, in_cluster, checked);
+    auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    cum_time += fs.count();
 
     if ((unsigned int) in_cluster.sum() == box->npar) {
         return true;
     }
     else {
+        nreject ++;
         return false;
     }
 }
