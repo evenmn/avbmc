@@ -597,7 +597,7 @@ void System::add_constraint(const std::string &constraint_in,
         exit(0);
     }
     else if (box_id < 0 && nbox > 1) {
-        std::cout << "Warning: More than one box was detected. Setting"
+        std::cout << "Warning: More than one box was detected. Setting "
                   << "constraint for all boxes" << std::endl;
     }
 
@@ -883,7 +883,7 @@ void System::add_move(const std::string &move_in, double prob,
     }
     else if (move_in == "avbmcswapright") {
         if (box_id < 0 || box_id2 < 0) {
-            std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+            std::cout << "Both box_id1 and box_id2 have to be defined in order to do "
                       << "inter-box swap moves! Aborting." << std::endl;
             exit(0);
         }
@@ -961,7 +961,7 @@ void System::add_move(const std::string &move_in, double prob,
     }
     else if (move_in == "avbmcmolswapright") {
         if (box_id < 0 || box_id2 < 0) {
-            std::cout << "Both box_id1 and box_id2 have to be defined in order to do"
+            std::cout << "Both box_id1 and box_id2 have to be defined in order to do "
                       << "inter-box swap moves! Aborting." << std::endl;
             exit(0);
         }
@@ -981,7 +981,7 @@ void System::add_move(const std::string &move_in, double prob,
         add_move("avbmcmolswapright", prob / 2., molecule_in, r_below, r_above, r_inner, energy_bias, target_mol, box_id2, box_id);
     }
     else {
-        std::cout << "Move '" << move_in << "' is not implemented!"
+        std::cout << "Move '" << move_in << "' is not implemented! "
                   << "Aborting." << std::endl;
         exit(0);
     }
