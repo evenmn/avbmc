@@ -46,25 +46,17 @@ Stillinger::Stillinger(Box* box_in, double rc)
     ntype = 0;
     label = "Stillinger of radius " + std::to_string(rc);
 
-    std::cout << "Stillinger constructor1" << std::endl;
     // fill r_csq_mat with r_csq
     ntype = box->forcefield->ntype;
-    std::cout << "Stillinger constructor2 " << ntype << std::endl;
     r_csq_mat = new double*[ntype];
-    std::cout << "Stillinger constructor3" << std::endl;
-    std::cout << "ntype: " << ntype << std::endl;
     for (i=0; i<ntype; i++) {
-        std::cout << "Stillinger constructor3-" << i << std::endl;
         r_csq_mat[i] = new double[ntype];
         for (j=0; j<ntype; j++) {
             r_csq_mat[i][j] = rc * rc;
-            std::cout << "r_csq_mat[i][j]: " << r_csq_mat[i][j] << std::endl;
         }
     }
-    std::cout << "Stillinger constructor4" << std::endl;
     cutoff_id = box->distance_manager->add_cutoff(r_csq_mat);
     vecid = box->distance_manager->mapid2vector[cutoff_id];
-    std::cout << "Stillinger constructor5" << std::endl;
 }
 
 
@@ -127,11 +119,9 @@ void Stillinger::swap(Stillinger &other)
 
 void Stillinger::set_criterion(std::string label1, std::string label2, double rc)
 {
-    std::cout << "Stillinger::set_criterion1" << std::endl;
     unsigned int type1 = box->forcefield->label2type[label1];
     unsigned int type2 = box->forcefield->label2type[label2];
     
-    std::cout << "Stillinger::set_criterion2" << std::endl;
     box->distance_manager->cutoff_mats[vecid][type1][type2] = rc * rc;
     box->distance_manager->cutoff_mats[vecid][type2][type1] = rc * rc;
 }
