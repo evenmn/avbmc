@@ -103,10 +103,10 @@ void Stillinger::swap(Stillinger &other)
     std::vector<std::vector<int> > neigh_lists_tmp = neigh_lists;
     neigh_lists = other.neigh_lists;
     other.neigh_lists = neigh_lists_tmp;
-    std::valarray<char> in_cluster_tmp = in_cluster;
+    std::valarray<unsigned long long> in_cluster_tmp = in_cluster;
     in_cluster = other.in_cluster;
     other.in_cluster = in_cluster_tmp;
-    std::valarray<char> checked_tmp = checked;
+    std::valarray<unsigned long long> checked_tmp = checked;
     checked = other.checked;
     other.checked = checked_tmp;
 }
@@ -134,8 +134,8 @@ void Stillinger::set_criterion(std::string label1, std::string label2, double rc
    of cluster.
 ---------------------------------------------------------------------------- */
 
-void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
-                                  std::valarray<char> &checked)
+void Stillinger::check_neigh_recu(const int i, std::valarray<unsigned long long> &in_cluster,
+                                  std::valarray<unsigned long long> &checked)
 {
     if (!checked[i]) {
         checked[i] = 1;

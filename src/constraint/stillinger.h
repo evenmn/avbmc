@@ -26,7 +26,7 @@ public:
     void swap(Stillinger &other);  // swap two objects
 
     void set_criterion(std::string, std::string, double);
-    void check_neigh_recu(int, std::valarray<char> &, std::valarray<char> &);
+    void check_neigh_recu(int, std::valarray<unsigned long long> &, std::valarray<unsigned long long> &);
     bool verify() override;
     //double comp_volume();
     ~Stillinger();
@@ -35,5 +35,5 @@ private:
     unsigned int ntype, vecid; //, cutoff_id;
     double v_c, **r_csq_mat;
     std::vector<std::vector<int> > neigh_lists;
-    std::valarray<char> in_cluster, checked;
+    std::valarray<unsigned long long> in_cluster, checked;
 };
