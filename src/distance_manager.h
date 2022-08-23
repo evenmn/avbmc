@@ -41,10 +41,11 @@ private:
   double normsq(std::valarray<double>);
 
   double cutoff_tol;
-  unsigned int ncutoff;
+  unsigned int ncutoff, nmode;
+  std::valarray<unsigned int> nmodes;
   std::vector<bool> mutuals;
-  std::vector<double> cutoffs;
-  std::vector<unsigned int> types1, types2, modes;
+  std::vector<double> cutoffs0, cutoffs1;
+  std::vector<unsigned int> mapid2vector, types1, types2, modes;
 
   std::vector<std::vector<std::vector<unsigned int> > > neigh_lists_old;
   std::vector<std::vector<double> > distance_mat_old;
