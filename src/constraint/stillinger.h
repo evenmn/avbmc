@@ -32,7 +32,7 @@ public:
     ~Stillinger();
 
 private:
-    unsigned int ntype; //, cutoff_id;
+    unsigned int ntype, vecid; //, cutoff_id;
     double v_c, **r_csq_mat;
     std::vector<std::vector<int> > neigh_lists;
     std::valarray<char> in_cluster, checked;

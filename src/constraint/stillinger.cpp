@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-23)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -46,16 +46,25 @@ Stillinger::Stillinger(Box* box_in, double rc)
     ntype = 0;
     label = "Stillinger of radius " + std::to_string(rc);
 
+    std::cout << "Stillinger constructor1" << std::endl;
     // fill r_csq_mat with r_csq
     ntype = box->forcefield->ntype;
+    std::cout << "Stillinger constructor2 " << ntype << std::endl;
     r_csq_mat = new double*[ntype];
+    std::cout << "Stillinger constructor3" << std::endl;
+    std::cout << "ntype: " << ntype << std::endl;
     for (i=0; i<ntype; i++) {
+        std::cout << "Stillinger constructor3-" << i << std::endl;
         r_csq_mat[i] = new double[ntype];
         for (j=0; j<ntype; j++) {
             r_csq_mat[i][j] = rc * rc;
+            std::cout << "r_csq_mat[i][j]: " << r_csq_mat[i][j] << std::endl;
         }
     }
+    std::cout << "Stillinger constructor4" << std::endl;
     cutoff_id = box->distance_manager->add_cutoff(r_csq_mat);
+    vecid = box->distance_manager->mapid2vector[cutoff_id];
+    std::cout << "Stillinger constructor5" << std::endl;
 }
 
 
@@ -114,15 +123,17 @@ void Stillinger::swap(Stillinger &other)
 /* ----------------------------------------------------------------------------
    Set stillinger criterion for two substances 'label1' and 'label2'. This
    will overwrite the critical distance given when constructing the object.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Stillinger::set_criterion(std::string label1, std::string label2, double rc)
 {
+    std::cout << "Stillinger::set_criterion1" << std::endl;
     unsigned int type1 = box->forcefield->label2type[label1];
     unsigned int type2 = box->forcefield->label2type[label2];
     
-    box->distance_manager->cutoff_mats[cutoff_id][type1][type2] = rc * rc;
-    box->distance_manager->cutoff_mats[cutoff_id][type2][type1] = rc * rc;
+    std::cout << "Stillinger::set_criterion2" << std::endl;
+    box->distance_manager->cutoff_mats[vecid][type1][type2] = rc * rc;
+    box->distance_manager->cutoff_mats[vecid][type2][type1] = rc * rc;
 }
 
 
@@ -131,7 +142,7 @@ void Stillinger::set_criterion(std::string label1, std::string label2, double rc
    which atoms that we have checked neighbor list of (to avoid circular check),
    and 'in_cluster' contains informations about which particles that are part
    of cluster.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
                                   std::valarray<char> &checked)
@@ -153,7 +164,7 @@ void Stillinger::check_neigh_recu(const int i, std::valarray<char> &in_cluster,
    Check if Stillinger criterion is satisfied. If it is not satisfied, Monte
    Carlo moves should be rejected. Molecular dynamics simulations should abort
    in the same case.
-------------------------------------------------------------------------------- */
+---------------------------------------------------------------------------- */
 
 bool Stillinger::verify()
 {
