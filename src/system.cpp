@@ -1528,7 +1528,7 @@ std::string get_column_mapping(Moves *move, const std::string &keyword)
 
 std::string System::print_statistics(std::vector<std::string> cols, bool print, const std::string &style)
 {
-    std::string head_row, row, rows, table, pad;
+    std::string head_row, row, rows, total, table, pad;
 
     std::map<std::string, std::string> head_labels {
         {"move", "Move"},
@@ -1563,27 +1563,50 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     head_row += "|";
 
     // get rows
+    std::valarray<double> totals(0., cols.size());
     for (Moves *move : moves) {
         row = "";
         for (int i=0; i<cols.size(); i++) {
+            std::string cell = get_column_mapping(move, cols[i]);
             if (cols[i] == "move") {
                 pad = "l";
             }
             else {
                 pad = "r";
+                if (cell != "-") {
+                    totals[i] += std::stod(cell);
+                }
             }
-            std::string cell = get_column_mapping(move, cols[i]);
             row += "| " + cell_padding(cell, pad, max_size_col[i]) + " ";
         }
         row += "|";
         rows += row + "\n";
     }
 
+    // get total
+    for (int i=0; i<cols.size(); i++) {
+        if (cols[i] == "move") {
+            total += "| " + cell_padding("Total:", "l", max_size_col[i]) + " ";
+        }
+        else if (cols[i] == "cputime") {
+            total += "| " + cell_padding(std::to_string(totals[i]), "r", max_size_col[i]) + " ";
+        }
+        else if (cols[i] == "accratio") {
+            total += "| " + cell_padding(std::to_string(totals[i]/nmove), "r", max_size_col[i]) + " ";
+        }
+        else {
+            total += "| " + cell_padding(std::to_string(static_cast<int>(totals[i])), "r", max_size_col[i]) + " ";
+        }
+    }
+    total += "|\n";
+
     if (style == "basic") {
         table += std::string(head_row.size(), '-') + "\n"; 
         table += head_row + "\n";
         table += std::string(head_row.size(), '-') + "\n";
         table += rows;
+        table += std::string(head_row.size(), '-') + "\n"; 
+        table += total;
         table += std::string(head_row.size(), '-') + "\n"; 
     }
     else if (style == "latex") {
