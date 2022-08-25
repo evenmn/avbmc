@@ -102,7 +102,7 @@ void AVBMCOut::perform_move()
 
 double AVBMCOut::accept(double temp, double chempot)
 {
-    if (!move_performed) return 1.;
+    if (!move_performed) return 0.;
 
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
     double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
