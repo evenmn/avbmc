@@ -185,7 +185,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_temp",
             &System::set_temp,
             "Set system temperature to be used in canonical and grand-canonical Monte Carlo simulations",
-            py::arg("temperature")
+            py::arg("temperature"),
+            py::arg("kB") = 1.
         )
         .def("set_seed",
             &System::set_seed,
@@ -195,7 +196,8 @@ PYBIND11_MODULE(avbmc, m) {
         .def("set_chempot",
             &System::set_chempot,
             "Set chemical potential to be used in grand-canonical Monte Carlo simulations",
-            py::arg("chempot")
+            py::arg("chempot") = 0.,
+            py::arg("saturation") = -1.
         )
         .def("add_move",
             py::overload_cast<Moves *, double>(&System::add_move),
