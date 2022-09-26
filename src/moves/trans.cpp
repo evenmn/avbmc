@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-23)
+  Date: 2022-06-03 (last changed 2022-09-20)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ Trans::Trans(System* system_in, Box* box_in, const double dx_in,
         element_type = box->forcefield->label2type.at(element_in);
         element_spec = true;
     }
-    label = "Trans   ";
+    label = "Trans";
 }
 
 
@@ -94,13 +94,13 @@ void Trans::perform_move()
    Compute acceptance probability of translational move
 ---------------------------------------------------------------------------- */
 
-double Trans::accept(double temp, double /*chempot*/)
+double Trans::accept(double beta, double /*chempot*/)
 {
     for (Constraint* constraint : box->constraints) {
         if (!constraint->verify()) return 0.;
     }
     box->boundary->correct_position(i);
-    return std::exp(-du/temp);
+    return std::exp(-beta * du);
 }
 
 

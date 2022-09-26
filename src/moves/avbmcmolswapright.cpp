@@ -76,10 +76,10 @@ void AVBMCMolSwapRight::perform_move()
    Acceptance probability
 ---------------------------------------------------------------------------- */
 
-double AVBMCMolSwapRight::accept(double temp, double chempot)
+double AVBMCMolSwapRight::accept(double beta, double chempot)
 {
-    double acceptin = AVBMCMolIn::accept(temp, chempot);
-    double acceptout = AVBMCMolOut::accept(temp, chempot);
+    double acceptin = AVBMCMolIn::accept(beta, chempot);
+    double acceptout = AVBMCMolOut::accept(beta, chempot);
     return std::min(acceptin, acceptout);
 }
 

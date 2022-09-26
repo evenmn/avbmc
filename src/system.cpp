@@ -24,6 +24,7 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <cmath>
 
 #include "system.h"
 #include "box.h"
@@ -83,7 +84,7 @@ System::System(const std::string &working_dir_in, bool initialize_in)
     : working_dir(working_dir_in)
 {
     nbox = nmove = step = 0;
-    time = temp = chempot = poteng = 0.;
+    time = temp = chempot = poteng = beta = 0.;
     ndim = 3;
 
     //print_logo();
@@ -155,22 +156,34 @@ void System::set_dim(unsigned int dim)
 
 
 /* ----------------------------------------------------------------------------
-   Set box temperature used in NVT and uPT Monte Carlo simulations
+   Set box temperature used in NVT and uPT Monte Carlo simulations. The 
+   Boltzmann constant can also be set to match the units. Default kB is
+   1., which works for many scaled units (for instance Lennard-Jones units)
 ---------------------------------------------------------------------------- */
 
-void System::set_temp(const double temp_in)
+void System::set_temp(const double temp_in, const double kB_in)
 {
     temp = temp_in;
+    kB = kB_in;
+    beta = 1. / (kB * temp);
 }
 
 
 /* ----------------------------------------------------------------------------
-   Set chemical potential of system used in grand canonical ensemble
+   Set chemical potential of system used in grand canonical ensemble. Instead
+   of setting the chemical potential directly, it can be indirectly set by
+   the saturation, which is ensemble invariant. This should be done after
+   temperature and the Boltzmann constant are set.
 ---------------------------------------------------------------------------- */
 
-void System::set_chempot(const double chempot_in)
+void System::set_chempot(const double chempot_in, const double sat_in)
 {
-    chempot = chempot_in;
+    if (sat_in > 0) {
+        chempot = - std::log(sat_in) / beta;
+    }
+    else {
+        chempot = chempot_in;
+    }
 }
 
 
@@ -1493,17 +1506,25 @@ std::string create_table(std::vector<std::string> keywords,
 
     if (style == "latex") {
         table = "\\begin{center}\n";
+        std::cout << table << std::endl;
         table += "  \\begin{tabular}{" + pos_col + "}\\hline\n";
+        std::cout << table << std::endl;
         table += "    ";
+        std::cout << table << std::endl;
         // keyword
         for (std::string keyword : keywords) {
             table += keyword + " & ";
         }
-        table += " \\\\ \n    \\hline\\hline\n";
+        std::cout << table << std::endl;
+        table += " \\\\ \n";
+        std::cout << table << std::endl;
+        table += "    \\hline\\hline\n";
+        std::cout << table << std::endl;
         // values
         for (std::vector<std::string> row : values) {
             table += "    ";
             for (std::string value : row) {
+                std::cout << value << std::endl;
                 table += value + " & ";
             }
             table += " \\\\ \n";
@@ -1734,10 +1755,12 @@ std::string System::print_constraint_statistics(const std::string &style, bool p
         for (Constraint *constraint : box->constraints) {
             values.push_back({});
             std::size_t vs = values.size();
+            std::cout << constraint->label << std::endl;
             values[vs].push_back(constraint->label);
             values[vs].push_back(std::to_string(constraint->nreject));
             values[vs].push_back(std::to_string(constraint->cum_time));
             values[vs].push_back(std::to_string(box->box_id));
+            std::cout << values[vs].size() << std::endl;
         }
     }
     return create_table(keywords, values, style, print);

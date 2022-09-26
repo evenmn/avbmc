@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-22)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -153,7 +153,7 @@ void AVBMCMolOut::perform_move()
    'temp' and chemical potential 'chempot'.
 ---------------------------------------------------------------------------- */
 
-double AVBMCMolOut::accept(double temp, double chempot)
+double AVBMCMolOut::accept(double beta, double chempot)
 {
     if (!detected_out) {
         nrejectout ++;
@@ -166,7 +166,7 @@ double AVBMCMolOut::accept(double temp, double chempot)
 
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar + natom);
     double prefactor = nmolavg * box->npar / (v_in * (box->npar - natom)); 
-    return prefactor * std::exp(-(du+chempot+dw)/temp);
+    return prefactor * std::exp(-beta * (du+chempot+dw));
 }
 
 

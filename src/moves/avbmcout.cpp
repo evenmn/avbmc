@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -100,13 +100,13 @@ void AVBMCOut::perform_move()
    chemical potential 'chempot'.
 ---------------------------------------------------------------------------- */
 
-double AVBMCOut::accept(double temp, double chempot)
+double AVBMCOut::accept(double beta, double chempot)
 {
     if (!move_performed) return 0.;
 
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar+1);
     double prefactor = n_in * box->npar / (v_in * (box->npar - 1));
-    return prefactor * std::exp(-(du+chempot+dw)/temp);
+    return prefactor * std::exp(-beta * (du+chempot+dw));
 }
 
 
