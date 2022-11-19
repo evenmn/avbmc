@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -59,10 +59,10 @@ void AVBMCSwapRight::perform_move()
    Accept move
 ---------------------------------------------------------------------------- */
 
-double AVBMCSwapRight::accept(double temp, double chempot)
+double AVBMCSwapRight::accept(double beta, double chempot)
 {
-    double acceptout = AVBMCOut::accept(temp, chempot);
-    double acceptin = AVBMCIn::accept(temp, chempot);
+    double acceptout = AVBMCOut::accept(beta, chempot);
+    double acceptin = AVBMCIn::accept(beta, chempot);
     return acceptout * acceptin;
 }
 

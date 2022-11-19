@@ -48,7 +48,7 @@ void Sampler::sample(int nmoves)
         Moves* move = system->moves[j];
         move->ndrawn ++;
         move->perform_move();
-        if(move->accept(system->temp, system->chempot) > rng->next_double()) {
+        if(move->accept(system->beta, system->chempot) > rng->next_double()) {
             move->naccept ++;
         }
         else {

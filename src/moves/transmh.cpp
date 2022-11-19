@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ void TransMH::perform_move()
    Compute acceptance probability of translational move
 ---------------------------------------------------------------------------- */
 
-double TransMH::accept(double temp, double /*chempot*/)
+double TransMH::accept(double beta, double /*chempot*/)
 {
     double dot;
     unsigned int j;
@@ -109,7 +109,7 @@ double TransMH::accept(double temp, double /*chempot*/)
         dot += df[j] * eps[j];
     }
     box->boundary->correct_position(i);
-    return (std::exp(0.5 * dot) + 1) * std::exp(-du/temp);
+    return (std::exp(0.5 * dot) + 1) * std::exp(-beta * du);
 }
 
 

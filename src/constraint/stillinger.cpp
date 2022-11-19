@@ -158,6 +158,8 @@ void Stillinger::check_neigh_recu(const int i, std::valarray<unsigned long long>
 
 bool Stillinger::verify()
 {
+    if (box->npar < 2) return true;
+
     auto t0 = Time::now();
     in_cluster.resize(box->npar, 0);
     checked.resize(box->npar, 0);

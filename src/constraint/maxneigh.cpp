@@ -37,6 +37,7 @@ MaxNeigh::MaxNeigh(Box* box_in, std::string label1, std::string label2,
     type1 = box->forcefield->label2type.at(label1);
     type2 = box->forcefield->label2type.at(label2);
     cutoff_id = box->distance_manager->add_cutoff(rc_in, label1, label2);
+    label = "MaxNeigh";
 }
 
 

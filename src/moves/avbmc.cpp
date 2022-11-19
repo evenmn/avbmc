@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -52,16 +52,16 @@ AVBMC::AVBMC(System* system_in, Box* box_in, const std::string &label_in,
 
 void AVBMC::perform_move()
 {
-    if(box->npar < 2){
+    if(box->npar < 2) {
         move_in = true;
     }
-    else{
+    else {
         move_in = rng->next_int(2);
     }
-    if(move_in){
+    if(move_in) {
         AVBMCIn::perform_move();
     }
-    else{
+    else {
         AVBMCOut::perform_move();
     }
 }
@@ -71,13 +71,13 @@ void AVBMC::perform_move()
    Get acceptance probability
 ---------------------------------------------------------------------------- */
 
-double AVBMC::accept(const double temp, const double chempot)
+double AVBMC::accept(const double beta, const double chempot)
 {
-    if(move_in){
-        return AVBMCIn::accept(temp, chempot);
+    if(move_in) {
+        return AVBMCIn::accept(beta, chempot);
     }
-    else{
-        return AVBMCOut::accept(temp, chempot);
+    else {
+        return AVBMCOut::accept(beta, chempot);
     }
 }
 

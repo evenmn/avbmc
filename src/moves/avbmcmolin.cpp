@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -176,17 +176,17 @@ void AVBMCMolIn::perform_move()
 
 
 /* ----------------------------------------------------------------------------
-   Get acceptance probability of move
+   Get acceptance probability of move. Beta is the reciprocal temperature
 ---------------------------------------------------------------------------- */
 
-double AVBMCMolIn::accept(double temp, double chempot)
+double AVBMCMolIn::accept(double beta, double chempot)
 {
     for (Constraint* constraint : box->constraints) {
         if (!constraint->verify()) return 0.;
     }
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar - natom);
     double prefactor = (v_in * box->npar) / ((nmolavg + 1) * (box->npar + natom)); 
-    double accept_prob = prefactor * std::exp(-(du-chempot+dw)/temp);
+    double accept_prob = prefactor * std::exp(-beta * (du-chempot+dw));
     return accept_prob;
 }
 

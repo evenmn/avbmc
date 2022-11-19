@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-08-19)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -85,11 +85,11 @@ void AVBMCIn::perform_move()
    Get acceptance probability of move
 ---------------------------------------------------------------------------- */
 
-double AVBMCIn::accept(double temp, double chempot)
+double AVBMCIn::accept(double beta, double chempot)
 {
     double dw = system->sampler->w(box->npar) - system->sampler->w(box->npar-1);
     double prefactor = v_in * box->npar / ((n_in + 1) * (box->npar + 1));
-    return prefactor * std::exp(-(du-chempot+dw)/temp);
+    return prefactor * std::exp(-beta * (du-chempot+dw));
 }
 
 

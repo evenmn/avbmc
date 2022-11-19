@@ -5,7 +5,7 @@
 
   Author(s): Even M. Nordhagen
   Email(s): evenmn@mn.uio.no
-  Date: 2022-06-03 (last changed 2022-06-03)
+  Date: 2022-06-03 (last changed 2022-08-28)
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
@@ -77,13 +77,13 @@ void AVBMCMol::perform_move()
    Get acceptance probability
 ---------------------------------------------------------------------------- */
 
-double AVBMCMol::accept(const double temp, const double chempot)
+double AVBMCMol::accept(const double beta, const double chempot)
 {
     if (move_in) {
-        return AVBMCMolIn::accept(temp, chempot);
+        return AVBMCMolIn::accept(beta, chempot);
     }
     else {
-        return AVBMCMolOut::accept(temp, chempot);
+        return AVBMCMolOut::accept(beta, chempot);
     }
 }
 

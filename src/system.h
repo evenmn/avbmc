@@ -21,8 +21,8 @@ public:
     void set_working_directory(const std::string &);
 
     // methods
-    void set_temp(double);
-    void set_chempot(double);
+    void set_temp(double, double = 1.);
+    void set_chempot(double = 0., double = -1.);
     void set_mass(std::string, double);
     void set_seed(unsigned int);
     void set_dim(unsigned int);
@@ -69,7 +69,7 @@ public:
     void print_info();
     void print_mc_info();
     std::string print_statistics(std::vector<std::string> = {"move", "ndrawn", "naccept", "nreject", "accratio", "cputime"}, bool = true, const std::string & = "basic");
-    void print_constraint_statistics();
+    std::string print_constraint_statistics(const std::string & = "basic", bool = true);
 
     void run_md(unsigned int);
     void run_mc(unsigned int, unsigned int = 1);
@@ -86,7 +86,7 @@ public:
     bool logo_printed, rng_allocated_externally, sampler_allocated_externally;
     int nbox;  // nbox is signed as it is compared to box_id which is signed
     unsigned int ndim, nmove, step;
-    double temp, chempot, poteng, time;
+    double temp, chempot, poteng, time, beta, kB;
     std::string working_dir, original_dir;
 
     std::vector<class Box *> boxes;

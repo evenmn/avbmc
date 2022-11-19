@@ -24,6 +24,7 @@
 #include <chrono>
 #include <functional>
 #include <map>
+#include <cmath>
 
 #include "system.h"
 #include "box.h"
@@ -83,7 +84,7 @@ System::System(const std::string &working_dir_in, bool initialize_in)
     : working_dir(working_dir_in)
 {
     nbox = nmove = step = 0;
-    time = temp = chempot = poteng = 0.;
+    time = temp = chempot = poteng = beta = 0.;
     ndim = 3;
 
     //print_logo();
@@ -155,22 +156,34 @@ void System::set_dim(unsigned int dim)
 
 
 /* ----------------------------------------------------------------------------
-   Set box temperature used in NVT and uPT Monte Carlo simulations
+   Set box temperature used in NVT and uPT Monte Carlo simulations. The 
+   Boltzmann constant can also be set to match the units. Default kB is
+   1., which works for many scaled units (for instance Lennard-Jones units)
 ---------------------------------------------------------------------------- */
 
-void System::set_temp(const double temp_in)
+void System::set_temp(const double temp_in, const double kB_in)
 {
     temp = temp_in;
+    kB = kB_in;
+    beta = 1. / (kB * temp);
 }
 
 
 /* ----------------------------------------------------------------------------
-   Set chemical potential of system used in grand canonical ensemble
+   Set chemical potential of system used in grand canonical ensemble. Instead
+   of setting the chemical potential directly, it can be indirectly set by
+   the saturation, which is ensemble invariant. This should be done after
+   temperature and the Boltzmann constant are set.
 ---------------------------------------------------------------------------- */
 
-void System::set_chempot(const double chempot_in)
+void System::set_chempot(const double chempot_in, const double sat_in)
 {
-    chempot = chempot_in;
+    if (sat_in > 0) {
+        chempot = - std::log(sat_in) / beta;
+    }
+    else {
+        chempot = chempot_in;
+    }
 }
 
 
@@ -1484,6 +1497,110 @@ std::string cell_padding(const std::string &text, const std::string &side, std::
 }
 
 
+std::string create_table(std::vector<std::string> keywords,
+    std::vector<std::vector<std::string> > values, const std::string &style = "basic", bool print = true) 
+{
+    std::string table, pos_col;
+
+    pos_col = "l" + std::string(keywords.size(), 'r');
+
+    if (style == "latex") {
+        table = "\\begin{center}\n";
+        std::cout << table << std::endl;
+        table += "  \\begin{tabular}{" + pos_col + "}\\hline\n";
+        std::cout << table << std::endl;
+        table += "    ";
+        std::cout << table << std::endl;
+        // keyword
+        for (std::string keyword : keywords) {
+            table += keyword + " & ";
+        }
+        std::cout << table << std::endl;
+        table += " \\\\ \n";
+        std::cout << table << std::endl;
+        table += "    \\hline\\hline\n";
+        std::cout << table << std::endl;
+        // values
+        for (std::vector<std::string> row : values) {
+            table += "    ";
+            for (std::string value : row) {
+                std::cout << value << std::endl;
+                table += value + " & ";
+            }
+            table += " \\\\ \n";
+        }
+        table += "    \\hline \n";
+        table += "  \\end{tabular} \n";
+        table += "\\end{center} \n";
+    }
+    else if (style == "basic") {
+        std::string head_row, row, rows, total;
+
+        std::valarray<std::size_t> max_size_col(keywords.size());
+        std::valarray<double> sums(0., keywords.size());
+        std::valarray<std::string> sums_str(keywords.size());
+
+        // determine max size of column
+        for (std::size_t i=0; i<keywords.size(); i++) {
+            max_size_col[i] = keywords[i].size();
+        }
+        for (std::vector<std::string> value : values) { 
+            for (std::size_t i=0; i<value.size(); i++) {
+                std::size_t len_cell = value[i].size();
+                try {
+                    sums[i] += std::stod(value[i]);
+                    sums_str[i] = std::to_string(sums[i]);
+                }
+                catch (...) {
+                    sums_str[i] = "";
+                }
+                std::size_t len_tot = sums_str[i].size();
+                if (len_cell > max_size_col[i]) max_size_col[i] = len_cell;
+                if (len_tot > max_size_col[i]) max_size_col[i] = len_tot;
+            }
+        }
+
+        // get header
+        for (std::size_t i=0; i<keywords.size(); i++) {
+            std::string cell = keywords[i];
+            head_row += "| " + cell_padding(cell, "c", max_size_col[i]) + " ";
+        }
+        head_row += "|";
+
+        // get rows
+        for (std::vector<std::string> value : values) {
+            row = "";
+            for (std::size_t i=0; i<value.size(); i++) {
+                row += "| " + cell_padding(value[i], std::to_string(pos_col[i]), max_size_col[i]) + " ";
+            }
+            row += "|";
+            rows += row + "\n";
+        }
+
+        // total
+        for (std::size_t i=0; i<sums_str.size(); i++) {
+            total += "| " + cell_padding(sums_str[i], std::to_string(pos_col[i]), max_size_col[i]) + " ";
+        }
+        total += "|\n";
+
+        // merging everything together
+        table += std::string(head_row.size(), '-') + "\n"; 
+        table += head_row + "\n";
+        table += std::string(head_row.size(), '-') + "\n";
+        table += rows;
+        table += std::string(head_row.size(), '-') + "\n"; 
+        table += total;
+        table += std::string(head_row.size(), '-') + "\n";
+    }
+
+    if (print) {
+        std::cout << table << std::endl;
+    }
+
+    return table;
+}
+
+
 std::string get_column_mapping(Moves *move, const std::string &keyword)
 {
     std::string rejout, rejtarg, rejtargout, rejtargin;
@@ -1546,7 +1663,7 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     std::vector<std::size_t> max_size_col(cols.size());
 
     // determine max size of column
-    for (int i=0; i<cols.size(); i++) {
+    for (std::size_t i=0; i<cols.size(); i++) {
         max_size_col[i] = head_labels[cols[i]].size();
         for (Moves *move : moves) {
             std::size_t len_cell = get_column_mapping(move, cols[i]).size();
@@ -1555,7 +1672,7 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     }
 
     // get header
-    for (int i=0; i<cols.size(); i++) {
+    for (std::size_t i=0; i<cols.size(); i++) {
         pad = "c";
         std::string cell = head_labels[cols[i]];
         head_row += "| " + cell_padding(cell, pad, max_size_col[i]) + " ";
@@ -1566,7 +1683,7 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     std::valarray<double> totals(0., cols.size());
     for (Moves *move : moves) {
         row = "";
-        for (int i=0; i<cols.size(); i++) {
+        for (std::size_t i=0; i<cols.size(); i++) {
             std::string cell = get_column_mapping(move, cols[i]);
             if (cols[i] == "move") {
                 pad = "l";
@@ -1584,7 +1701,7 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
     }
 
     // get total
-    for (int i=0; i<cols.size(); i++) {
+    for (std::size_t i=0; i<cols.size(); i++) {
         if (cols[i] == "move") {
             total += "| " + cell_padding("Total:", "l", max_size_col[i]) + " ";
         }
@@ -1630,13 +1747,23 @@ std::string System::print_statistics(std::vector<std::string> cols, bool print, 
    Print constraint statistics
 ---------------------------------------------------------------------------- */
 
-void System::print_constraint_statistics()
+std::string System::print_constraint_statistics(const std::string &style, bool print)
 {
+    std::vector<std::string> keywords = {"Constraint", "#reject", "CPU-time (s)", "box-ID"};
+    std::vector<std::vector<std::string> > values;
     for (Box *box : boxes) {
         for (Constraint *constraint : box->constraints) {
-            std::cout << constraint->label << " " << constraint->nreject << " " << constraint->cum_time << std::endl;
+            values.push_back({});
+            std::size_t vs = values.size();
+            std::cout << constraint->label << std::endl;
+            values[vs].push_back(constraint->label);
+            values[vs].push_back(std::to_string(constraint->nreject));
+            values[vs].push_back(std::to_string(constraint->cum_time));
+            values[vs].push_back(std::to_string(box->box_id));
+            std::cout << values[vs].size() << std::endl;
         }
     }
+    return create_table(keywords, values, style, print);
 }
 
 
