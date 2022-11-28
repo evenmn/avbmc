@@ -282,7 +282,7 @@ void Box::add_particle(Particle particle)
    Add a single particle given a label 'label' and initial position 'r'
 ---------------------------------------------------------------------------- */
 
-void Box::add_particle(const std::string &label, const std::valarray<double> r)
+void Box::add_particle(const std::string &label, const std::valarray<double> &r)
 {
     add_particle(Particle(label, r));
 }
@@ -293,9 +293,9 @@ void Box::add_particle(const std::string &label, const std::valarray<double> r)
    'particles_in'.
 ---------------------------------------------------------------------------- */
 
-void Box::add_particles(std::vector<Particle> particles_in)
+void Box::add_particles(std::vector<Particle> &particles_in)
 {
-    for (Particle particle : particles_in) {
+    for (Particle &particle : particles_in) {
         add_particle(particle);
     }
 }
@@ -307,9 +307,9 @@ void Box::add_particles(std::vector<Particle> particles_in)
 ---------------------------------------------------------------------------- */
 
 void Box::add_particles(const std::string &label,
-    std::vector<std::valarray<double> > positions_in)
+    std::vector<std::valarray<double> > &positions_in)
 {
-    for (std::valarray<double> position : positions_in) {
+    for (std::valarray<double> &position : positions_in) {
         add_particle(label, position);
     }
 }
@@ -338,7 +338,7 @@ void Box::read_particles(const std::string &filename)
      4. (reduce size of energy and force matrices)
 ---------------------------------------------------------------------------- */
 
-void Box::_rm_typeidx(unsigned int i, unsigned int type)
+void Box::_rm_typeidx(const unsigned int &i, const unsigned int &type)
 {
     std::vector<unsigned int>::iterator position;
 
@@ -356,7 +356,7 @@ void Box::_rm_typeidx(unsigned int i, unsigned int type)
 }
 
 
-void Box::rm_particle(unsigned int i)
+void Box::rm_particle(const unsigned int &i)
 {
     assert (i < npar);
     _rm_typeidx(i, particles[i].type);

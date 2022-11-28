@@ -33,7 +33,7 @@
    checking if two cutoffs are equivalent and should share neighbor lists.
 ---------------------------------------------------------------------------- */
 
-DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
+DistanceManager::DistanceManager(Box* box_in, const double &cutoff_tol_in)
 {
     ncutoff = 0;
     nmode = 3;
@@ -49,7 +49,7 @@ DistanceManager::DistanceManager(Box* box_in, double cutoff_tol_in)
    cutoff-ID, which has to be used when extracting the correct neighbor list.
 ---------------------------------------------------------------------------- */
 
-unsigned int DistanceManager::add_cutoff(double rc)
+unsigned int DistanceManager::add_cutoff(const double &rc)
 {
     double rcsq;
     unsigned int k, mode, neigh_id;
@@ -88,8 +88,8 @@ unsigned int DistanceManager::add_cutoff(double rc)
    to be used when extracting the correct neighbor list.
 ---------------------------------------------------------------------------- */
 
-unsigned int DistanceManager::add_cutoff(double rc, std::string label1,
-                                         std::string label2, bool mutual)
+unsigned int DistanceManager::add_cutoff(const double &rc, const std::string &label1,
+                                         const std::string &label2, const bool &mutual)
 {
     double rcsq;
     unsigned int k, vecid, type1, type2, mode, neigh_id;
@@ -158,15 +158,17 @@ unsigned int DistanceManager::add_cutoff(double **rc)
 /* ----------------------------------------------------------------------------
    Clear neighbor lists of particle 'i' and clear it from the other neighbor
    lists. This is done when a particle is moved.
+
+   TODO: This does not necessarily have to be done: perform checks first;
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::clear_neigh(unsigned int i) {
-  unsigned int j, k;
+void DistanceManager::clear_neigh(const unsigned int &i) 
+{
   std::vector<unsigned int>::iterator position;
 
-  for (j = 0; j < ncutoff; j++) {
+  for (unsigned int j = 0; j < ncutoff; j++) {
     neigh_lists[j][i].clear(); // clear neighbor list of particle i
-    for (k = 0; k < neigh_lists[j].size(); k++) {
+    for (unsigned int k = 0; k < neigh_lists[j].size(); k++) {
       position =
           std::find(neigh_lists[j][k].begin(), neigh_lists[j][k].end(), i);
       if (position != neigh_lists[j][k].end()) {
@@ -182,19 +184,18 @@ void DistanceManager::clear_neigh(unsigned int i) {
    lists. This has to be done when a particle is removed.
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::remove_neigh(unsigned int i) {
-  unsigned int j, k, l;
+void DistanceManager::remove_neigh(const unsigned int &i) {
   std::vector<unsigned int>::iterator position;
 
-  for (j = 0; j < ncutoff; j++) {
+  for (unsigned int j = 0; j < ncutoff; j++) {
     neigh_lists[j].erase(neigh_lists[j].begin() + i);
-    for (k = 0; k < neigh_lists[j].size(); k++) {
+    for (unsigned int k = 0; k < neigh_lists[j].size(); k++) {
       position =
           std::find(neigh_lists[j][k].begin(), neigh_lists[j][k].end(), i);
       if (position != neigh_lists[j][k].end()) {
         neigh_lists[j][k].erase(position);
       }
-      for (l = 0; l < neigh_lists[j][k].size(); l++) {
+      for (unsigned int l = 0; l < neigh_lists[j][k].size(); l++) {
         if (neigh_lists[j][k][l] > i) {
           neigh_lists[j][k][l] -= 1;
         }
@@ -209,14 +210,12 @@ void DistanceManager::remove_neigh(unsigned int i) {
    distance (squared), 'rij'.
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_neigh_k(unsigned int i, unsigned int j,
-    unsigned int k, double rij)
+void DistanceManager::update_neigh_k(const unsigned int &i, const unsigned int &j,
+    const unsigned int &k, const double &rij)
 {
-    unsigned int typei, typej, vecid;
-
-    typei = box->particles[i].type;
-    typej = box->particles[j].type;
-    vecid = mapid2vector[k];
+    std::size_t typei = box->particles[i].type;
+    std::size_t typej = box->particles[j].type;
+    std::size_t vecid = mapid2vector[k];
 
     if (modes[k] == 0) {
         if (rij < cutoffs0[vecid]) {
@@ -245,12 +244,10 @@ void DistanceManager::update_neigh_k(unsigned int i, unsigned int j,
    Update all elements of neighbor list k
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_neigh_k(unsigned int k)
+void DistanceManager::update_neigh_k(const unsigned int &k)
 {
-    unsigned int i, j;
-
-    for (i=0; i<box->npar; i++) {
-        for (j=0; j<i; j++) {
+    for (std::size_t i=0; i<box->npar; i++) {
+        for (std::size_t j=0; j<i; j++) {
             update_neigh_k(i, j, k, distance_mat[i][j]);
         }
     }
@@ -262,7 +259,7 @@ void DistanceManager::update_neigh_k(unsigned int k)
    distance (squared), 'rij'. This is done when a particle is moved or inserted
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
+void DistanceManager::update_neigh(const unsigned int &i, const unsigned int &j, const double &rij)
 {
     /*
     unsigned int k, l, m, typei, typej;
@@ -295,9 +292,7 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
         }
     }
     */
-    unsigned int k;
-
-    for (k=0; k<ncutoff; k++) {
+    for (unsigned int k=0; k<ncutoff; k++) {
         update_neigh_k(i, j, k, rij);
     }
 }
@@ -307,14 +302,11 @@ void DistanceManager::update_neigh(unsigned int i, unsigned int j, double rij)
    Compute the squared norm of a valarray 'array'
 ---------------------------------------------------------------------------- */
 
-double DistanceManager::normsq(std::valarray<double> array)
+double DistanceManager::normsq(const std::valarray<double> &array)
 {
-    double norm;
-    unsigned int i;
-
-    norm = 0.;
-    for (i=0; i < array.size(); i++) {
-        norm += array[i] * array[i];
+    double norm = 0.;
+    for (const double &element : array) {
+        norm += element * element;
     }
     return norm;
 }
@@ -324,7 +316,7 @@ double DistanceManager::normsq(std::valarray<double> array)
    ff
 ---------------------------------------------------------------------------- */
 
-std::vector<unsigned int> DistanceManager::build_neigh_list(unsigned int i, double rsq)
+std::vector<unsigned int> DistanceManager::build_neigh_list(const unsigned int &i, const double &rsq)
 {
     //double rijsq;
     //std::valarray<double> ri = box->particles[i].r;
@@ -351,22 +343,19 @@ std::vector<unsigned int> DistanceManager::build_neigh_list(unsigned int i, doub
 ---------------------------------------------------------------------------- */
 
 std::vector<unsigned int> DistanceManager::build_neigh_list(
-    std::vector<Particle> particles, const unsigned int i, const double rsq)
+    const std::vector<Particle> &particles, const unsigned int &i, const double &rsq)
 {
-    double rijsq;
-    unsigned int npar, j;
-    
-    npar = particles.size();
+    std::size_t npar = particles.size();
     std::valarray<double> ri = particles[i].r;
     std::vector<unsigned int> neigh_list;
-    for (j=0; j<i; j++) {
-        rijsq = std::pow(particles[j].r - ri, 2).sum();
+    for (std::size_t j=0; j<i; j++) {
+        double rijsq = std::pow(particles[j].r - ri, 2).sum();
         if(rijsq < rsq){
             neigh_list.push_back(j);
         }
     }
-    for (j=i+1; j<npar; j++) {
-        rijsq = std::pow(particles[j].r - ri, 2).sum();
+    for (std::size_t j=i+1; j<npar; j++) {
+        double rijsq = std::pow(particles[j].r - ri, 2).sum();
         if (rijsq < rsq) {
             neigh_list.push_back(j);
         }
@@ -376,7 +365,7 @@ std::vector<unsigned int> DistanceManager::build_neigh_list(
 
 
 /* ----------------------------------------------------------------------------
-   Store old matrices
+   Store old matrices. Here the vectors have to be deep copied
 ---------------------------------------------------------------------------- */
 
 void DistanceManager::set()
@@ -386,9 +375,20 @@ void DistanceManager::set()
     neigh_lists_old = neigh_lists;
 }
 
+void DistanceManager::set(const std::size_t &i)
+{
+    for (std::size_t j=0; j<box->npar; j++) {
+        distance_mat_old[i][j] = distance_mat[i][j];
+        distance_mat_old[j][i] = distance_mat[j][i];
+        distance_cube_old[i][j] = distance_cube[i][j];
+        distance_cube_old[j][i] = distance_cube[j][i];
+    }
+    neigh_lists_old = neigh_lists;
+}
+
 
 /* ----------------------------------------------------------------------------
-   Reset new matrices
+   Reset new matrices. Only need a shallow copy here
 ---------------------------------------------------------------------------- */
 
 void DistanceManager::reset()
@@ -404,14 +404,13 @@ void DistanceManager::reset()
    corresponds to updating the i'th row and column in the distance matrix.
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_trans(unsigned int i)
+void DistanceManager::update_trans(const unsigned int &i)
 {
     double rij;
-    unsigned int j;
     std::valarray<double> delij;
 
     clear_neigh(i);
-    for (j=0; j<i; j++) {
+    for (std::size_t j=0; j<i; j++) {
         delij = box->particles[j].r - box->particles[i].r;
         box->boundary->correct_distance(delij);
         rij = normsq(delij);
@@ -421,7 +420,7 @@ void DistanceManager::update_trans(unsigned int i)
         distance_cube[j][i] = -delij;
         update_neigh(i, j, rij);
     }
-    for (j=i+1; j<box->npar; j++) {
+    for (std::size_t j=i+1; j<box->npar; j++) {
         delij = box->particles[j].r - box->particles[i].r;
         box->boundary->correct_distance(delij);
         rij = normsq(delij);
@@ -439,14 +438,12 @@ void DistanceManager::update_trans(unsigned int i)
    This means removing the i'th row and column from the distance matrix.
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_remove(unsigned int i)
+void DistanceManager::update_remove(const unsigned int &i)
 {
-    unsigned int j;
-
     remove_neigh(i);
     distance_mat.erase (distance_mat.begin() + i);
     distance_cube.erase (distance_cube.begin() + i);
-    for (j=0; j<distance_mat.size(); j++) {
+    for (std::size_t j=0; j<distance_mat.size(); j++) {
         distance_mat[j].erase (distance_mat[j].begin() + i);
         distance_cube[j].erase (distance_cube[j].begin() + i);
     }
@@ -460,23 +457,25 @@ void DistanceManager::update_remove(unsigned int i)
    for the particles.
 ---------------------------------------------------------------------------- */
 
-void DistanceManager::update_insert(unsigned int i)
+void DistanceManager::update_insert(const unsigned int &i)
 {
     double rij;
-    unsigned int j, k;
     std::valarray<double> delij;
 
     std::vector<double> rijs(box->npar);
     std::vector<std::valarray<double> > delijs(box->npar);
 
     // extend neighbor lists
-    for (k=0; k<ncutoff; k++) {
+    for (std::size_t k=0; k<ncutoff; k++) {
         //neigh_lists[k].insert(neigh_lists[k].begin() + i, {});
         neigh_lists[k].push_back({});
     }
+    //for (std::vector<unsigned int> &neigh_list : neigh_lists) {
+    //    neigh_list.push_back({});
+    //}
 
     // extend distance matrix and update distance matrix and neighbor lists
-    for (j=0; j<box->npar-1; j++) {
+    for (std::size_t j=0; j<box->npar-1; j++) {
         delij = box->particles[j].r - box->particles[i].r;
         box->boundary->correct_distance(delij);
         rij = normsq(delij);

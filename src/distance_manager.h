@@ -14,18 +14,19 @@
 class DistanceManager
 {
 public:
-    DistanceManager(class Box *, double = 1e-2);
-    unsigned int add_cutoff(double);
-    unsigned int add_cutoff(double, std::string, std::string, bool = true);
+    DistanceManager(class Box *, const double & = 1e-2);
+    unsigned int add_cutoff(const double &);
+    unsigned int add_cutoff(const double &, const std::string &, const std::string &, const bool & = true);
     unsigned int add_cutoff(double **);
     void set(), reset();
-    void update_trans(unsigned int);
-    void update_remove(unsigned int);
-    void update_insert(unsigned int);
+    void set(const std::size_t &);
+    void update_trans(const unsigned int &);
+    void update_remove(const unsigned int &);
+    void update_insert(const unsigned int &);
 
-    std::vector<unsigned int> build_neigh_list(std::vector<class Particle>,
-        unsigned int, double);
-    std::vector<unsigned int> build_neigh_list(unsigned int, double);
+    std::vector<unsigned int> build_neigh_list(const std::vector<class Particle> &,
+        const unsigned int &, const double &);
+    std::vector<unsigned int> build_neigh_list(const unsigned int &, const double &);
     
     std::vector<unsigned int> mapid2vector;
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
@@ -34,12 +35,12 @@ public:
     std::vector<double **> cutoff_mats;
 
 private:
-  void clear_neigh(unsigned int);
-  void remove_neigh(unsigned int);
-  void update_neigh(unsigned int, unsigned int, double);
-  void update_neigh_k(unsigned int);
-  void update_neigh_k(unsigned int, unsigned int, unsigned int, double);
-  double normsq(std::valarray<double>);
+  void clear_neigh(const unsigned int &);
+  void remove_neigh(const unsigned int &);
+  void update_neigh(const unsigned int &, const unsigned int &, const double &);
+  void update_neigh_k(const unsigned int &);
+  void update_neigh_k(const unsigned int &, const unsigned int &, const unsigned int &, const double &);
+  double normsq(const std::valarray<double> &);
 
   double cutoff_tol;
   unsigned int ncutoff, nmode;
