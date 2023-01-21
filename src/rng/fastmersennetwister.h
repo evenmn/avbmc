@@ -25,5 +25,5 @@ public:
     ~FastMersenneTwister() = default;
 
 private:
-    static constexpr double RAND_MAX_inv = 1. / static_cast <double> (std::pow(2, 32)); // 32 bits
+    double RAND_MAX_inv = 1. / static_cast <double> (std::pow(2, 32)); // 32 bits
 };
