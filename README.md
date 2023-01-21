@@ -33,5 +33,22 @@ For more example usage, see the [documentation](https://evenmn.github.io/avbmc).
 ## File formats
 We try to stick to standard input file formats. For datafiles, the xyz-format is supported both to initialize the system and for dump files. The parameter files follow the LAMMPS standard. Both xyz-files and LAMMPS parameter files are oriented around chemical symbols (in contrast to for instance LAMMPS data files, which are oriented around particle types). This means that the user never needs to deal with the particle type indices, only the chemical symbols. Particles with the same chemical symbol will have the same properties (mass, charge and other properties given by the parameter file).
 
+## Build without Python interface
+The code can also be built without the Python interface, with `src/main.cpp` as the configuration file. Build with `make` and `release` or `debug` mode:
+
+``` bash
+make release
+make debug
+```
+
+Then the code is built with `g++`. One can also use `CMake` with all its advantages in the standard fashion:
+
+``` bash
+mkdir build
+cd build
+cmake ..
+make -j4
+```
+
 ## License
 AVBMC is available under the GPL v3 license. See the LICENSE file for more info.

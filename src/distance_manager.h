@@ -14,7 +14,7 @@
 class DistanceManager
 {
 public:
-    DistanceManager(class Box *, const double & = 1e-2);
+    DistanceManager(class Box *, const double & = 1e-2, const std::size_t & = 100);
     unsigned int add_cutoff(const double &);
     unsigned int add_cutoff(const double &, const std::string &, const std::string &, const bool & = true);
     unsigned int add_cutoff(double **);
@@ -29,6 +29,7 @@ public:
     std::vector<unsigned int> build_neigh_list(const unsigned int &, const double &);
     
     std::vector<unsigned int> mapid2vector;
+    //std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<std::vector<unsigned int> > > neigh_lists;
     std::vector<std::vector<double> > distance_mat;
     std::vector<std::vector<std::valarray<double> > > distance_cube;
@@ -43,7 +44,7 @@ private:
   double normsq(const std::valarray<double> &);
 
   double cutoff_tol;
-  unsigned int ncutoff, nmode;
+  unsigned int ncutoff, nmode, max_neigh;
   std::valarray<unsigned int> nmodes;
   std::vector<bool> mutuals;
   std::vector<double> cutoffs0, cutoffs1;

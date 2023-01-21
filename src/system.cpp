@@ -82,7 +82,7 @@
           of each particle
 ---------------------------------------------------------------------------- */
 
-System::System(const std::string &working_dir_in, bool initialize_in) 
+System::System(const std::string &working_dir_in, const bool &initialize_in) 
     : working_dir(working_dir_in)
 {
     nbox = nmove = step = 0;
@@ -144,7 +144,7 @@ void System::set_working_directory(const std::string &working_directory)
    Set number of dimensions
 ---------------------------------------------------------------------------- */
 
-void System::set_dim(unsigned int dim)
+void System::set_dim(const std::size_t &dim)
 {
     for (Box *box : boxes) {
         if (box->npar > 0) {
@@ -163,7 +163,7 @@ void System::set_dim(unsigned int dim)
    1., which works for many scaled units (for instance Lennard-Jones units)
 ---------------------------------------------------------------------------- */
 
-void System::set_temp(const double temp_in, const double kB_in)
+void System::set_temp(const double &temp_in, const double &kB_in)
 {
     temp = temp_in;
     kB = kB_in;
@@ -178,7 +178,7 @@ void System::set_temp(const double temp_in, const double kB_in)
    temperature and the Boltzmann constant are set.
 ---------------------------------------------------------------------------- */
 
-void System::set_chempot(const double chempot_in, const double sat_in)
+void System::set_chempot(const double &chempot_in, const double &sat_in)
 {
     if (sat_in > 0) {
         chempot = - std::log(sat_in) / beta;
@@ -193,7 +193,7 @@ void System::set_chempot(const double chempot_in, const double sat_in)
    Set seed to be used by RNG
 ---------------------------------------------------------------------------- */
 
-void System::set_seed(unsigned int seed_)
+void System::set_seed(const int &seed_)
 {
     rng->set_seed(seed_);
 }
@@ -205,7 +205,7 @@ void System::set_seed(unsigned int seed_)
    the masses in a table.
 ---------------------------------------------------------------------------- */
 /*
-void System::set_mass(const std::string label, const double mass)
+void System::set_mass(const std::string &label, const double &mass)
 {
     mass_labels.push_back(label);
     masses.push_back(mass);

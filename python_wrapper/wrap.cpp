@@ -459,18 +459,18 @@ PYBIND11_MODULE(avbmc, m) {
             py::arg("particle_object")
         )
         .def("add_particle",
-            py::overload_cast<const std::string &, std::valarray<double> >(&Box::add_particle),
+            py::overload_cast<const std::string &, const std::valarray<double> &>(&Box::add_particle),
             "Add a particle to the box by particle label and position",
             py::arg("particle_label"),
             py::arg("position")
         )
         .def("add_particles",
-            py::overload_cast<std::vector<Particle> >(&Box::add_particles),
+            py::overload_cast<std::vector<Particle> &>(&Box::add_particles),
             "Add a list of particles to the box by particle objects",
             py::arg("particle_objects")
         )
         .def("add_particles",
-            py::overload_cast<const std::string &, std::vector<std::valarray<double> > >(&Box::add_particles),
+            py::overload_cast<const std::string &, std::vector<std::valarray<double> > &>(&Box::add_particles),
             "Add a list of particles to the box by particle label and positions",
             py::arg("particle_label"),
             py::arg("positions")

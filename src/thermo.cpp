@@ -170,7 +170,7 @@ void Thermo::print_header()
    Print thermo outputs of current step
 ---------------------------------------------------------------------------- */
 
-void Thermo::print_line (const int step)
+void Thermo::print_line (const std::size_t &step)
 {
     if (freq > 0 && step % freq == 0) {
         //std::cout << std::fixed; // << std::setprecision(6);

@@ -20,7 +20,7 @@ public:
     virtual ~Sampler() = default;
     
     // declare public functions
-    void sample(int);
+    void sample(const std::size_t &);
 
     std::string label;
 

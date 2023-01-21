@@ -80,8 +80,8 @@ void Trans::perform_move()
     for (j=0; j<system->ndim; j++) {
         box->particles[i].r[j] += dx * 2 * (rng->next_double() - 0.5);
     }
-    box->distance_manager->set();
-    box->distance_manager->update_trans(i);
+    //box->distance_manager->set();
+    //box->distance_manager->update_trans(i);
 
     // compute new energy contribution from particle i
     u1 = box->forcefield->comp_energy_par_force0(i);
