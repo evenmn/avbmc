@@ -35,7 +35,9 @@
 #include "distance_manager.h"
 
 #include "rng/rng.h"
+#include "rng/simple.h"
 #include "rng/mersennetwister.h"
+#include "rng/fastmersennetwister.h"
 
 #include "boundary/boundary.h"
 #include "boundary/open.h"
@@ -288,12 +290,20 @@ void System::set_rng(const std::string &rng_in)
     if (!rng_allocated_externally) {
         delete rng;
     }
-    if (rng_in == "mersennetwister") {
+    if (rng_in == "simple") {
+        rng = new Simple;
+        rng_allocated_externally = false;
+    }
+    else if (rng_in == "mersennetwister") {
         rng = new MersenneTwister;
         rng_allocated_externally = false;
     }
     else if (rng_in == "mt19937") {
         rng = new MersenneTwister;
+        rng_allocated_externally = false;
+    }
+    else if (rng_in == "fastmersennetwister") {
+        rng = new FastMersenneTwister;
         rng_allocated_externally = false;
     }
     else {

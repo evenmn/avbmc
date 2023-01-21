@@ -12,7 +12,7 @@
 class Particle
 {
 public:
-    Particle(std::string, std::valarray<double>);
+    Particle(const std::string &, const std::valarray<double> &);
     Particle(const Particle &);
 
     std::valarray<double> r;

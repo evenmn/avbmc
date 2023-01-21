@@ -9,35 +9,33 @@
 ---------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------------
-  Mersenne-Twister pseudo random number generator (prng). The prng has a 
-  period of 2^19937, and is popularly abbreviated mt19937. The algorithm was
-  first proposed and described by ... This code is just a wrapper around the
-  standard C++ implementation of Mersenne-Twister.
+  Simple C++ random numbers. This should only be used to benchmark the
+  performance of other pseudo random number generators, as it might be
+  biased
 ---------------------------------------------------------------------------- */
 
 #include <iostream>
-#include <random>
 #include <vector>
 #include <algorithm>
 #include <cassert>
+#include <cstdlib>
+#include <ctime>
 
-#include "mersennetwister.h"
+#include "simple.h"
 
 
 /* ----------------------------------------------------------------------------
-   Mersenne Twister constructor
+   Simple constructor
 ---------------------------------------------------------------------------- */
 
-MersenneTwister::MersenneTwister(int seed_)
-    : RandomNumberGenerator(), generator(seed())
+Simple::Simple(int seed_) : RandomNumberGenerator()
 {
-    label = "Mersenne-Twister";
-    if (seed_ > 0) {
-        generator.seed (seed_);
-    }
+    label = "Simple";
 
-    //std::uniform_real_distribution randu_(0, 1);
-    //randu = randu_;
+    std::srand (static_cast <unsigned> (time(NULL)));
+    if (seed_ > 0) {
+        std::srand (seed_);
+    }
 }
 
 
@@ -45,9 +43,9 @@ MersenneTwister::MersenneTwister(int seed_)
    Set seed
 ---------------------------------------------------------------------------- */
 
-void MersenneTwister::set_seed(unsigned int seed)
+void Simple::set_seed(unsigned int seed)
 {
-    generator.seed (seed);
+    std::srand  (seed);
 }
 
 
@@ -56,10 +54,10 @@ void MersenneTwister::set_seed(unsigned int seed)
    variance 'variance'
 ---------------------------------------------------------------------------- */
 
-double MersenneTwister::next_gaussian(double mean, double variance)
+double Simple::next_gaussian(double mean, double variance)
 {
-    std::normal_distribution<double> dis(mean, variance);
-    return dis(generator);
+    std::cout << "No gaussian numbers" << std::endl;
+    exit(0);
 }
 
 
@@ -67,10 +65,10 @@ double MersenneTwister::next_gaussian(double mean, double variance)
    Returns an interger between 0 and (including) 'upper_limit'
 ---------------------------------------------------------------------------- */
 
-int MersenneTwister::next_int(int upper_limit)
+int Simple::next_int(int upper_limit)
 {
-    std::uniform_int_distribution<int> dis(0, upper_limit - 1);
-    return dis(generator);
+    assert (upper_limit < RAND_MAX);
+    return rand() % upper_limit;
 }
 
 
@@ -78,11 +76,9 @@ int MersenneTwister::next_int(int upper_limit)
    Returns a double between 0 and 1 drawn from a uniform distribution
 ---------------------------------------------------------------------------- */
 
-double MersenneTwister::next_double()
+double Simple::next_double()
 {
-    //std::uniform_real_distribution<double> dis(0, 1);
-    //return dis(generator);
-    return randu(generator);
+    return static_cast <double> (rand()) * RAND_MAX_inv;
 }
 
 
@@ -92,7 +88,7 @@ double MersenneTwister::next_double()
    don't need to take them as an argument.
 ---------------------------------------------------------------------------- */
 
-int MersenneTwister::choice(const std::vector<double> &probabilities)
+int Simple::choice(const std::vector<double> &probabilities)
 {
     double r = next_double();
     double p = 0.;
@@ -101,15 +97,4 @@ int MersenneTwister::choice(const std::vector<double> &probabilities)
         if (r<=p) return i;
     }
     return 0;
-}
-
-
-/* ----------------------------------------------------------------------------
-   Shuffle vector randomly
----------------------------------------------------------------------------- */
-
-std::vector<unsigned int> MersenneTwister::shuffle(std::vector<unsigned int> &vector)
-{
-    std::shuffle(vector.begin(), vector.end(), generator);
-    return vector;
 }

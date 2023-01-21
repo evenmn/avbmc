@@ -6,24 +6,24 @@
 
 #pragma once
 #include <vector>
-#include <random>
+#include <cstdlib>
 
 #include "rng.h"
 
 
-class MersenneTwister : public RandomNumberGenerator
+class FastMersenneTwister : public RandomNumberGenerator
 {
 public:
-    MersenneTwister(int = -1);
+    FastMersenneTwister(int = -1);
     void set_seed(unsigned int) override;
     int next_int(int) override;
+    uint32_t next_int(const uint32_t &);
     double next_double() override;
     double next_gaussian(double, double) override;
     int choice(const std::vector<double> &) override;
-    std::vector<unsigned int> shuffle(std::vector<unsigned int> &);
-    ~MersenneTwister() = default;
+    //std::vector<unsigned int> shuffle(std::vector<unsigned int> &) override;
+    ~FastMersenneTwister() = default;
 
 private:
-    std::mt19937 generator;
-    std::uniform_real_distribution<double> randu; //(0, 1);
+    double RAND_MAX_inv = 1. / static_cast <double> (std::pow(2, 32)); // 32 bits
 };

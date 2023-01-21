@@ -41,6 +41,8 @@ std::vector<std::string> split(const std::string &s)
 /* ----------------------------------------------------------------------------
    Read xyz-file 'filename' consisting of one time frame into vector of
    particle objects.
+
+    TODO: Allow for files with multiple frames. Then only read last frame
 ---------------------------------------------------------------------------- */
 
 std::vector<Particle> read_xyz(const std::string &filename)
