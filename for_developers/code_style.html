@@ -1,0 +1,326 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Code Style &mdash; avbmc  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Build with g++ (for developers)" href="build_cpp.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> avbmc
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About AVBMC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html">Installing and importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/installation.html#initializing-system">Initializing system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/system_constants.html">Setting system constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/forcefield.html">Setting forcefield</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/particles.html">Adding particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/boundary.html">Setting boundary conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/constraints.html">Adding constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/moves.html">Adding moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/sampler.html">Setting sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/rng.html">Setting random number generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/run.html">Running the code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/outputs.html">System outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/statistics.html">Statistics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/1_lennardjones_nvt.html">Canonical ensemble simulations with Lennard-Jones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/2_lennardjones_upt.html">Grand-canonical simulations with Lennard-Jones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/3_vashishta_upt.html">Grand-canonical ensemble studies with Vashishta</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/4_mpi_parallelisation.html">MPI parallelisation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="code_structure.html">Code structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="build_cpp.html">Build with g++ (for developers)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Style</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#doc-string-rules">Doc string rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#spacing-rules">Spacing rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-rules">Code rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#an-example">An example</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">avbmc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Code Style</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/for_developers/code_style.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="code-style">
+<h1>Code Style<a class="headerlink" href="#code-style" title="Permalink to this heading">¶</a></h1>
+<p>The AVBMC C++ source code has to meet some requirements to be neet and readable.
+Usually, every cpp source file contains a class, which might be a subclass. The
+opposite is also true: All new classes are written to new files.</p>
+<p>Every cpp source file has to contain the following:</p>
+<ol class="arabic simple">
+<li><p>A doc string with the standard licence information, author and date last edited</p></li>
+<li><p>A doc string about the tasks of the file/class</p></li>
+<li><p>External includes (standard library, for instance)</p></li>
+<li><p>Local includes (usually from AVBMC header files)</p></li>
+<li><p>A doc string before every function, including the constructor and destructor</p></li>
+</ol>
+<section id="doc-string-rules">
+<h2>Doc string rules<a class="headerlink" href="#doc-string-rules" title="Permalink to this heading">¶</a></h2>
+<p>Every doc string starts with a separation line constructed with <code class="docutils literal notranslate"><span class="pre">/*</span></code> + 77 * <code class="docutils literal notranslate"><span class="pre">-</span></code>
+to make it 80 characters long:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/* ----------------------------------------------------------------------------</span>
+</pre></div>
+</div>
+<p>Thereafter, the text is written. A text line should never exceed the length of
+the separation line (80 characters).</p>
+<p>The doc string is ended with another separation line constructed with 80 * <code class="docutils literal notranslate"><span class="pre">-</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*/</span></code>.</p></li>
+</ul>
+</section>
+<section id="spacing-rules">
+<h2>Spacing rules<a class="headerlink" href="#spacing-rules" title="Permalink to this heading">¶</a></h2>
+<p>There is one line gap from doc strings to code and two lines gap from code to
+doc strings.</p>
+</section>
+<section id="code-rules">
+<h2>Code rules<a class="headerlink" href="#code-rules" title="Permalink to this heading">¶</a></h2>
+<p>We follow the clang code format when writing code. This can be done by running
+<code class="docutils literal notranslate"><span class="pre">git-clang-format</span></code> before committing. Function arguments have always names
+ending with ‘<code class="docutils literal notranslate"><span class="pre">_in</span></code>‘, while class variables do not have any particular ending.
+Code lines should not exceed 80 characters.</p>
+</section>
+<section id="an-example">
+<h2>An example<a class="headerlink" href="#an-example" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cm">/* ----------------------------------------------------------------------------</span>
+<span class="cm">   This file is a part of the AVBMC library, which follows the GPL-3.0 License.</span>
+<span class="cm">   For license information, see LICENSE file in the top directory,</span>
+<span class="cm">   https://github.com/evenmn/avbmc/LICENSE.</span>
+
+<span class="cm">   Author(s): Even M. Nordhagen</span>
+<span class="cm">   Email(s): evenmn@mn.uio.no</span>
+<span class="cm">   Date: 2022-04-24 (last changed 2022-04-25)</span>
+<span class="cm">------------------------------------------------------------------------------- */</span>
+
+<span class="cm">/* ----------------------------------------------------------------------------</span>
+<span class="cm">   This is the particle base class, used to create particle objects. A particle</span>
+<span class="cm">   object consists of a label and position at the minimum. Might also contain</span>
+<span class="cm">   information about mass (this is only needed by molecular dynamics).</span>
+<span class="cm">------------------------------------------------------------------------------- */</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;valarray&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;string&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;particle.h&quot;</span>
+
+
+<span class="cm">/* ----------------------------------------------------------------------------</span>
+<span class="cm">   Particle constructor, taking in the particle label, &#39;label_in&#39;, and the</span>
+<span class="cm">   initial particle position, &#39;position_in&#39;, as arguments.</span>
+<span class="cm">------------------------------------------------------------------------------- */</span>
+
+<span class="n">Particle</span><span class="o">::</span><span class="n">Particle</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">label_in</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">valarray</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="w"> </span><span class="n">position_in</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">label</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">label_in</span><span class="p">;</span>
+<span class="w">    </span><span class="n">position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">position_in</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="cm">/* ----------------------------------------------------------------------------</span>
+<span class="cm">   Assign particle mass, &#39;mass_in&#39;. Warning: Mass is overwritten every time</span>
+<span class="cm">   this method is called, which is usually not the desired behavior.</span>
+<span class="cm">------------------------------------------------------------------------------- */</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="n">Particle</span><span class="o">::</span><span class="n">assign_mass</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">mass_in</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">mass</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_in</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="build_cpp.html" class="btn btn-neutral float-left" title="Build with g++ (for developers)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2022, Even Marius Nordhagen.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Setting forcefield &mdash; avbmc  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="author" title="About these documents" href="../about.html" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Adding particles" href="particles.html" />
+    <link rel="prev" title="Setting system constants" href="system_constants.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> avbmc
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about.html">About AVBMC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing and importing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#initializing-system">Initializing system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="system_constants.html">Setting system constants</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Setting forcefield</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dealing-with-forcefield-object">Dealing with forcefield-object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ideal-gas">Ideal gas</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="particles.html">Adding particles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="boundary.html">Setting boundary conditions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Adding constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moves.html">Adding moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sampler.html">Setting sampler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rng.html">Setting random number generator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run.html">Running the code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputs.html">System outputs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="statistics.html">Statistics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/1_lennardjones_nvt.html">Canonical ensemble simulations with Lennard-Jones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/2_lennardjones_upt.html">Grand-canonical simulations with Lennard-Jones</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/3_vashishta_upt.html">Grand-canonical ensemble studies with Vashishta</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/4_mpi_parallelisation.html">MPI parallelisation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../for_developers/code_structure.html">Code structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_developers/build_cpp.html">Build with g++ (for developers)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../for_developers/code_style.html">Code Style</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">avbmc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Setting forcefield</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/tutorial/forcefield.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="setting-forcefield">
+<h1>Setting forcefield<a class="headerlink" href="#setting-forcefield" title="Permalink to this heading">¶</a></h1>
+<p>The forcefield is usually set by the signature</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">system</span><span class="o">.</span><span class="n">set_forcefield</span><span class="p">(</span><span class="n">forcefield_name</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If several boxes are found, the same forcefield is set to all boxes. Avoid this by using the <code class="docutils literal notranslate"><span class="pre">box_id</span></code>-argument. Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">system</span><span class="o">.</span><span class="n">set_forcefield</span><span class="p">(</span><span class="s2">&quot;lennardjones&quot;</span><span class="p">,</span> <span class="s2">&quot;params.lj&quot;</span><span class="p">,</span> <span class="n">box_id</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">box_id</span></code> starts from 0 for the first box and increases with 1 for every box added.</p>
+<section id="dealing-with-forcefield-object">
+<h2>Dealing with forcefield-object<a class="headerlink" href="#dealing-with-forcefield-object" title="Permalink to this heading">¶</a></h2>
+<p>Since everything is treated as objects under the hood, it is also possible to deal with the raw objects:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">forcefield</span> <span class="o">=</span> <span class="n">mc</span><span class="o">.</span><span class="n">LennardJones</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="s2">&quot;params.lj&quot;</span><span class="p">)</span>
+<span class="n">box</span><span class="o">.</span><span class="n">set_forcefield</span><span class="p">(</span><span class="n">forcefield</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ideal-gas">
+<h2>Ideal gas<a class="headerlink" href="#ideal-gas" title="Permalink to this heading">¶</a></h2>
+<p>An exception from the above examples is the ideal gas forcefield, which does not take a parameter file. It is still necessary to specify all the particle types in the box. Set ideal gas by</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">system</span><span class="o">.</span><span class="n">set_forcefield</span><span class="p">(</span><span class="s2">&quot;idealgas&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Si&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="particles.html" class="btn btn-neutral float-right" title="Adding particles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="system_constants.html" class="btn btn-neutral float-left" title="Setting system constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2022, Even Marius Nordhagen.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
