@@ -18,8 +18,6 @@ with open("README.md", "r") as fh:
 source_files = glob('src/*.cpp')
 source_files.extend(glob('src/**/*.cpp'))
 source_files.remove('src/main.cpp')
-source_files.remove('src/main_parser.cpp')
-#source_files.remove('src/parser.cpp')
 source_files.append('python_wrapper/wrap.cpp')
 print(source_files)
 
