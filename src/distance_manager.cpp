@@ -31,14 +31,17 @@
 /* ----------------------------------------------------------------------------
    Distance manager class constructor. 'cutoff_tol_in' is the tolerance when
    checking if two cutoffs are equivalent and should share neighbor lists.
+   'max_neigh_in' is the max number of neighbors an atom can take
 ---------------------------------------------------------------------------- */
 
-DistanceManager::DistanceManager(Box* box_in, const double &cutoff_tol_in)
+DistanceManager::DistanceManager(Box* box_in, const double &cutoff_tol_in,
+    const std::size_t &max_neigh_in)
 {
     ncutoff = 0;
     nmode = 3;
     box = box_in;
     cutoff_tol = cutoff_tol_in;
+    max_neigh = max_neigh_in;
     nmodes.resize(nmode, 0);
 }
 

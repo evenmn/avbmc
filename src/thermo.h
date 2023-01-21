@@ -17,7 +17,7 @@ class Thermo
 public:
     Thermo(class Box *, int, const std::string &, const std::vector<std::string> &);
     void print_header();
-    void print_line(int);
+    void print_line(const std::size_t &);
     ~Thermo();
 
 private:

@@ -38,12 +38,12 @@ Sampler::Sampler(System* system_in)
    Sample 'nmoves' random moves.
 ---------------------------------------------------------------------------- */
 
-void Sampler::sample(int nmoves)
+void Sampler::sample(const std::size_t &nmoves)
 {
     //typedef std::chrono::high_resolution_clock Time;
     //typedef std::chrono::duration<double> fsec;
     //auto t0 = Time::now();
-    for (int i=0; i<nmoves; i++){
+    for (std::size_t i=0; i<nmoves; i++){
         int j = rng->choice(system->moves_prob);
         Moves* move = system->moves[j];
         move->ndrawn ++;

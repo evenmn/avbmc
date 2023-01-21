@@ -16,16 +16,16 @@
 class System
 {
 public:
-    System(const std::string & = ".", bool = true); 
+    System(const std::string & = ".", const bool & = true); 
     System(const System &);
     void set_working_directory(const std::string &);
 
     // methods
-    void set_temp(double, double = 1.);
-    void set_chempot(double = 0., double = -1.);
-    void set_mass(std::string, double);
-    void set_seed(unsigned int);
-    void set_dim(unsigned int);
+    void set_temp(const double &, const double & = 1.);
+    void set_chempot(const double & = 0., const double & = -1.);
+    void set_mass(const std::string &, const double &);
+    void set_seed(const int &);
+    void set_dim(const std::size_t &);
 
     void set_sampler(class Sampler *);
     void set_sampler(const std::string &, std::function<double(int)>, int = 100);

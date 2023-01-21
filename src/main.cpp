@@ -99,24 +99,24 @@ int main()
     // ======  initialize moves  ======
     Trans move1(&system, &box, 0.1);
     //Trans move2(&system, &box, 1.0);
-    //AVBMCMolInRes move3(&system, &box, single_molecule, 3., 0.9, 4.0);
-    //AVBMCMolOutRes move4(&system, &box, single_molecule, 4.0, 3.);
+    //AVBMCMolIn move3(&system, &box, single_molecule, 3., 0.9, 4.0);
+    //AVBMCMolOut move4(&system, &box, single_molecule, 4.0, 3.);
     system.add_move(&move1, 1.0);
     //system.add_move(&move2, 0.45);
     //system.add_move(&move3, 0.25);
     //system.add_move(&move4, 0.25);
 
     // set sampling outputs
-    //box.set_dump(1, "mc.xyz", {"x", "y", "z"});
-    //box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
+    box.set_dump(1, "mc.xyz", {"x", "y", "z"});
+    box.set_thermo(1, "mc.log", {"step", "atoms", "poteng"});
 
     // run Monte Carlo simulation
-    //box.snapshot("initial.xyz");
+    box.snapshot("initial.xyz");
     system.run_mc(1e4, 1);
-    //box.snapshot("final.xyz");
+    box.snapshot("final.xyz");
     //system.run_mc(1e5, 1);
 
     // dump number of status with a certain system size to file
-    //box.write_nsystemsize("nsystemsize_biased_water.txt");
+    box.write_size_histogram("nsystemsize_biased_water.txt");
     return 0;
 }
